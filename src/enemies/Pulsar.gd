@@ -17,6 +17,7 @@ var ship: Node2D = null
 var pulse_progress: float = 0.0
 var pulse_cooldown: float = 1.0
 var ring_visible: bool = false
+var _range_t: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -31,6 +32,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+
+	_range_t += delta
 
 	if combat_active and is_instance_valid(ship):
 		var to_ship: Vector2 = ship.global_position - global_position
@@ -79,6 +82,15 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
+func _current_range() -> float:
+	# Compound wave: slow swell (period ~8s) modulated by a medium beat (period ~3s)
+	# Results in a recognizable pattern: big → medium → small → medium → big
+	var slow: float = 0.5 + 0.5 * sin(_range_t * 0.78)
+	var med: float  = 0.5 + 0.5 * sin(_range_t * 2.1 + 0.6)
+	var frac: float = slow * 0.65 + med * 0.35
+	return pulse_range * (0.40 + 0.60 * frac)
+
+
 func _start_pulse() -> void:
 	ring_visible = true
 	pulse_progress = 0.0
@@ -86,7 +98,7 @@ func _start_pulse() -> void:
 	if player == null:
 		return
 	var distance: float = global_position.distance_to(player.global_position)
-	if distance > pulse_range:
+	if distance > _current_range():
 		return
 	var blocked: bool = get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()])
 	if blocked:
@@ -109,12 +121,20 @@ func _on_mode_changed(_in_combat: bool) -> void:
 func _draw() -> void:
 	var halo_color := ColorSystem.glow_color()
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.035 if not AlertSystem.combat_mode else 0.04))
+
+	# Breathing danger ring — shows current effective detection radius
+	var cur_range: float = _current_range()
+	var range_frac: float = cur_range / pulse_range
+	var indicator_color := ColorSystem.enemy_outline()
+	draw_arc(Vector2.ZERO, cur_range, 0.0, TAU, 48,
+			Color(indicator_color.r, indicator_color.g, indicator_color.b, 0.10 + 0.12 * range_frac), 1.2)
+
 	if not ring_visible:
 		return
 	var ring_color := signature_color if AlertSystem.combat_mode else ColorSystem.enemy_outline()
 	ring_color.a = 0.42 if not AlertSystem.combat_mode else 0.7
-	draw_arc(Vector2.ZERO, pulse_range * pulse_progress, 0.0, TAU, 64, ring_color, 3.0)
-	draw_arc(Vector2.ZERO, pulse_range * pulse_progress * 0.82, 0.0, TAU, 64, Color(ring_color.r, ring_color.g, ring_color.b, 0.1), 1.0)
+	draw_arc(Vector2.ZERO, cur_range * pulse_progress, 0.0, TAU, 64, ring_color, 3.0)
+	draw_arc(Vector2.ZERO, cur_range * pulse_progress * 0.82, 0.0, TAU, 64, Color(ring_color.r, ring_color.g, ring_color.b, 0.1), 1.0)
 	var star := PackedVector2Array([
 		Vector2(0.0, -10.0),
 		Vector2(3.0, -3.0),

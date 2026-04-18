@@ -26,6 +26,7 @@ var ship: Node2D = null
 var _waypoints: Array[Vector2] = []
 var _wp_index: int = 0
 var _dwell: float = 0.0
+var _cone_t: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -44,6 +45,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+
+	_cone_t += delta
 
 	if combat_active and is_instance_valid(ship):
 		var chase_vector: Vector2 = ship.global_position - global_position
@@ -92,6 +95,16 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
+func _current_range() -> float:
+	# Range breathes between 55 % and 100 % of the export value
+	return detection_range * (0.55 + 0.45 * (0.5 + 0.5 * sin(_cone_t * 0.9)))
+
+
+func _current_angle() -> float:
+	# Angle breathes between 60 % and 100 %, slightly out of phase with range
+	return cone_angle_degrees * (0.60 + 0.40 * (0.5 + 0.5 * sin(_cone_t * 0.7 + 1.1)))
+
+
 func _run_patrol(delta: float) -> void:
 	if _dwell > 0.0:
 		_dwell -= delta
@@ -119,27 +132,22 @@ func _check_detection() -> void:
 		return
 	var to_player: Vector2 = player.global_position - global_position
 	var distance: float = to_player.length()
-	if distance > detection_range:
+	var cur_range: float = _current_range()
+	if distance > cur_range:
 		return
 
 	var emission: float = player.get_effective_emission()
 
-	# Contact range — almost touching triggers detection regardless of cone facing
 	if distance < 22.0 and emission > 0.015:
 		detected.emit(self)
 		return
 
-	# Cone angle check
-	if facing_vector.dot(to_player.normalized()) < cos(deg_to_rad(cone_angle_degrees * 0.5)):
+	if facing_vector.dot(to_player.normalized()) < cos(deg_to_rad(_current_angle() * 0.5)):
 		return
 
-	# Line-of-sight check
 	if get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()]):
 		return
 
-	# Inside cone with clear LOS:
-	# Normal movement (emission > 0.05) → always detected
-	# Dark mode (emission ≤ 0.05) → only detected if dangerously close
 	if emission > 0.05:
 		detected.emit(self)
 	elif distance < 30.0:
@@ -163,15 +171,21 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, halo_alpha))
 	var cone_color := ColorSystem.enemy_outline()
 	cone_color.a = 0.16 if not AlertSystem.combat_mode else 0.08
-	var start_angle := facing_vector.angle() - deg_to_rad(cone_angle_degrees * 0.5)
-	var end_angle := facing_vector.angle() + deg_to_rad(cone_angle_degrees * 0.5)
-	var left := facing_vector.rotated(-deg_to_rad(cone_angle_degrees * 0.5)) * detection_range
-	var right := facing_vector.rotated(deg_to_rad(cone_angle_degrees * 0.5)) * detection_range
-	draw_colored_polygon(PackedVector2Array([Vector2.ZERO, left, right]), Color(cone_color.r, cone_color.g, cone_color.b, 0.035 if not AlertSystem.combat_mode else 0.03))
-	draw_arc(Vector2.ZERO, detection_range, start_angle, end_angle, 24, cone_color, 2.0)
+	var cur_range: float = _current_range()
+	var cur_angle: float = _current_angle()
+	# Pulse brightness slightly so the player can read the rhythm
+	var range_frac: float = cur_range / detection_range
+	var pulse_bright: float = 0.7 + 0.3 * range_frac
+	cone_color.a *= pulse_bright
+	var start_angle := facing_vector.angle() - deg_to_rad(cur_angle * 0.5)
+	var end_angle := facing_vector.angle() + deg_to_rad(cur_angle * 0.5)
+	var left := facing_vector.rotated(-deg_to_rad(cur_angle * 0.5)) * cur_range
+	var right := facing_vector.rotated(deg_to_rad(cur_angle * 0.5)) * cur_range
+	draw_colored_polygon(PackedVector2Array([Vector2.ZERO, left, right]), Color(cone_color.r, cone_color.g, cone_color.b, (0.035 if not AlertSystem.combat_mode else 0.03) * pulse_bright))
+	draw_arc(Vector2.ZERO, cur_range, start_angle, end_angle, 24, cone_color, 2.0)
 	draw_line(Vector2.ZERO, left, cone_color, 1.0)
 	draw_line(Vector2.ZERO, right, cone_color, 1.0)
-	draw_line(left * 0.3, right * 0.3, Color(cone_color.r, cone_color.g, cone_color.b, 0.1), 1.0)
+	draw_line(left * 0.3, right * 0.3, Color(cone_color.r, cone_color.g, cone_color.b, 0.1 * pulse_bright), 1.0)
 	var inner := PackedVector2Array([
 		Vector2(0.0, -9.0),
 		Vector2(8.0, -4.0),
