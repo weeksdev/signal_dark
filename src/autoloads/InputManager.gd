@@ -34,6 +34,10 @@ func is_restart_just_pressed() -> bool:
 	return Input.is_action_just_pressed("restart")
 
 
+func is_right_stick_active() -> bool:
+	return _get_right_stick().length() > AIM_DEADZONE
+
+
 func get_aim_vector(fallback: Vector2) -> Vector2:
 	var joy_aim := _get_right_stick()
 	if joy_aim.length() > AIM_DEADZONE:

@@ -18,11 +18,12 @@ var boost_cooldown_remaining: float = 0.0
 var dead: bool = false
 var _previous_suppress_pressed: bool = false
 var _previous_probe_pressed: bool = false
+var _thruster_t: float = 0.0
+var _boost_flash: float = 0.0
 
 @onready var weapon_system = $WeaponSystem
 @onready var body_polygon = $Body
 @onready var outline = $Outline
-@onready var trail = $EngineTrail
 @onready var suppress_label = $SuppressLabel
 
 
@@ -49,6 +50,10 @@ func _physics_process(delta: float) -> void:
 		velocity += move_input.normalized() * boost_impulse
 		did_boost = true
 		boost_cooldown_remaining = boost_cooldown
+		_boost_flash = 1.0
+
+	_thruster_t += delta
+	_boost_flash = maxf(0.0, _boost_flash - delta * 4.0)
 
 	move_and_slide()
 	_update_aim_direction(move_input)
@@ -74,16 +79,19 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_aim_direction(move_input: Vector2) -> void:
-	var controller_aim := InputManager.get_aim_vector(Vector2.ZERO)
-	if controller_aim != Vector2.ZERO:
-		aim_direction = controller_aim
+	# Right stick always wins — explicit aim overrides everything
+	if InputManager.is_right_stick_active():
+		aim_direction = InputManager.get_aim_vector(aim_direction)
 		return
+	# Left stick / keyboard movement: face the direction you're moving
+	if move_input.length() > 0.1:
+		aim_direction = move_input.normalized()
+		return
+	# Mouse fallback for desktop
 	var mouse_world := get_global_mouse_position()
 	var mouse_vector := mouse_world - global_position
 	if mouse_vector.length() > 8.0:
 		aim_direction = mouse_vector.normalized()
-	elif move_input != Vector2.ZERO:
-		aim_direction = move_input.normalized()
 
 
 func _update_emission(did_boost: bool) -> void:
@@ -130,16 +138,9 @@ func _update_suppress_prompt() -> void:
 func _update_palette() -> void:
 	body_polygon.color = ColorSystem.player_fill(dark_mode)
 	outline.default_color = ColorSystem.player_outline(dark_mode)
-	trail.default_color = ColorSystem.player_outline(dark_mode)
 	outline.width = 3.0 if not dark_mode else 1.8
 	body_polygon.scale = Vector2.ONE * (1.08 if not dark_mode else 0.98)
 	body_polygon.color.a = 0.18 if not dark_mode else 0.08
-	if dark_mode:
-		trail.points = PackedVector2Array()
-	else:
-		var rear := Vector2(0.0, 18.0)
-		trail.points = PackedVector2Array([rear, rear + Vector2(0.0, 18.0)])
-		trail.width = 3.0
 	suppress_label.modulate = ColorSystem.ui_color()
 
 
@@ -169,9 +170,32 @@ func _check_enemy_contact() -> void:
 			return
 
 
+func _draw_thruster() -> void:
+	var speed_frac := velocity.length() / max_speed
+	if speed_frac < 0.02 and _boost_flash < 0.01:
+		return
+	var base_len := 8.0 + speed_frac * 20.0 + _boost_flash * 18.0
+	var base_alpha := (0.35 + speed_frac * 0.5 + _boost_flash * 0.55) * (0.3 if dark_mode else 1.0)
+	var col := ColorSystem.player_outline(dark_mode)
+	# Five strands spread across the exhaust ports on the swept-wing rear
+	var offsets := [-4.0, -2.0, 0.0, 2.0, 4.0]
+	for i in offsets.size():
+		var flicker := 0.65 + 0.35 * sin(_thruster_t * 18.0 + i * 1.3)
+		var strand_len := base_len * flicker * (0.7 + 0.3 * sin(_thruster_t * 11.0 + i * 2.1))
+		var x := offsets[i]
+		var alpha := base_alpha * flicker
+		draw_line(
+			Vector2(x, 9.0),
+			Vector2(x * 0.4, 9.0 + strand_len),
+			Color(col.r, col.g, col.b, alpha),
+			1.4
+		)
+
+
 func _draw() -> void:
 	if dead:
 		return
+	_draw_thruster()
 	var emission_radius := 10.0 + AlertSystem.emission * 24.0
 	if not ColorSystem.in_combat:
 		var glow := ColorSystem.glow_color()

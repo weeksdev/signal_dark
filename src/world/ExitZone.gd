@@ -8,8 +8,10 @@ var _pulse: float = 0.0
 
 
 func _ready() -> void:
-	body_entered.connect(_on_body_entered)
-	ColorSystem.mode_changed.connect(_on_mode_changed)
+	if not body_entered.is_connected(_on_body_entered):
+		body_entered.connect(_on_body_entered)
+	if not ColorSystem.mode_changed.is_connected(_on_mode_changed):
+		ColorSystem.mode_changed.connect(_on_mode_changed)
 
 
 func _process(delta: float) -> void:
