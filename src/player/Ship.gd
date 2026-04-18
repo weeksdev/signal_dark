@@ -178,11 +178,11 @@ func _draw_thruster() -> void:
 	var base_alpha := (0.35 + speed_frac * 0.5 + _boost_flash * 0.55) * (0.3 if dark_mode else 1.0)
 	var col := ColorSystem.player_outline(dark_mode)
 	# Five strands spread across the exhaust ports on the swept-wing rear
-	var offsets := [-4.0, -2.0, 0.0, 2.0, 4.0]
+	var offsets := [-2.0, -1.0, 0.0, 1.0, 2.0]
 	for i in offsets.size():
 		var flicker := 0.65 + 0.35 * sin(_thruster_t * 18.0 + i * 1.3)
 		var strand_len := base_len * flicker * (0.7 + 0.3 * sin(_thruster_t * 11.0 + i * 2.1))
-		var x := offsets[i]
+		var x: float = offsets[i]
 		var alpha := base_alpha * flicker
 		draw_line(
 			Vector2(x, 9.0),

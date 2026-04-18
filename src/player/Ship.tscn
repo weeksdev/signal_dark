@@ -18,12 +18,12 @@ signal_probe_scene = ExtResource("3")
 shape = SubResource("1")
 
 [node name="Body" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, -16, 5, -5, 16, 5, 5, 3, 3, 11, 0, 8, -3, 11, -5, 3, -16, 5, -5, -5)
+polygon = PackedVector2Array(0, -16, 6, -6, 12, 0, 6, 4, 2, 12, 0, 8, -2, 12, -6, 4, -12, 0, -6, -6)
 
 [node name="Outline" type="Line2D" parent="."]
 width = 2.0
 closed = true
-points = PackedVector2Array(0, -16, 5, -5, 16, 5, 5, 3, 3, 11, 0, 8, -3, 11, -5, 3, -16, 5, -5, -5)
+points = PackedVector2Array(0, -16, 6, -6, 12, 0, 6, 4, 2, 12, 0, 8, -2, 12, -6, 4, -12, 0, -6, -6)
 
 [node name="WeaponSystem" type="Node" parent="."]
 script = ExtResource("2")
