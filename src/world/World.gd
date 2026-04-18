@@ -3,13 +3,16 @@ extends Node2D
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
 @onready var death_overlay = $CanvasLayer/DeathOverlay
+@onready var zone_complete_overlay = $CanvasLayer/ZoneCompleteOverlay
 @onready var grid: Node2D = $Grid
 
 var enemies: Array[Node] = []
 var probe_target: Vector2 = Vector2.ZERO
 var probe_expire_time: float = 0.0
 var restarting: bool = false
+var completing: bool = false
 var combat_cooldown_remaining: float = 0.0
+var _kill_count: int = 0
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
@@ -21,6 +24,7 @@ func _ready() -> void:
 	ColorSystem.reset()
 	_apply_desktop_window_size()
 	restarting = false
+	completing = false
 	death_overlay.visible = false
 	ship.destroyed.connect(_on_ship_destroyed)
 	_configure_camera()
@@ -28,10 +32,13 @@ func _ready() -> void:
 	for enemy in enemies:
 		enemy.detected.connect(_on_enemy_detected)
 		enemy.killed.connect(_on_enemy_killed)
+	var exit := get_node_or_null("ExitZone")
+	if exit:
+		exit.player_reached.connect(_on_exit_reached)
 
 
 func _process(delta: float) -> void:
-	if InputManager.is_restart_just_pressed():
+	if InputManager.is_restart_just_pressed() and not completing:
 		GameState.restart_zone()
 	if probe_expire_time > 0.0 and _now() >= probe_expire_time:
 		probe_expire_time = 0.0
@@ -47,14 +54,22 @@ func _on_enemy_detected(_enemy: Node) -> void:
 
 
 func _on_enemy_killed(_enemy: Node, silent: bool) -> void:
+	_kill_count += 1
 	if not silent and not AlertSystem.combat_mode:
 		trigger_alert()
 	if _living_enemy_count() == 0:
 		_exit_combat_to_stealth()
 
 
+func _on_exit_reached() -> void:
+	if completing or restarting:
+		return
+	completing = true
+	zone_complete_overlay.trigger(_kill_count == 0)
+
+
 func _on_ship_destroyed() -> void:
-	if restarting:
+	if restarting or completing:
 		return
 	restarting = true
 	death_overlay.visible = true
