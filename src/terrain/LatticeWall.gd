@@ -11,8 +11,7 @@ func _ready() -> void:
 
 func _update_palette() -> void:
 	fill.color = ColorSystem.terrain_fill()
-	outline.default_color = ColorSystem.terrain_outline()
-	outline.width = 2.6 if not ColorSystem.in_combat else 2.0
+	outline.visible = false  # drawn manually in _draw() without end caps
 	queue_redraw()
 
 
@@ -36,7 +35,8 @@ func _draw() -> void:
 	while y < rect.end.y:
 		draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), Color(line_color.r, line_color.g, line_color.b, 0.12), 1.0)
 		y += 12.0
-	draw_line(rect.position + Vector2(8.0, 8.0), rect.position + Vector2(24.0, 8.0), Color(0.7, 1.0, 0.8, 0.25), 2.0)
-	draw_line(rect.position + Vector2(8.0, 8.0), rect.position + Vector2(8.0, 20.0), Color(0.7, 1.0, 0.8, 0.25), 2.0)
-	draw_line(rect.end - Vector2(24.0, 8.0), rect.end - Vector2(8.0, 8.0), Color(0.7, 1.0, 0.8, 0.22), 2.0)
-	draw_line(rect.end - Vector2(8.0, 20.0), rect.end - Vector2(8.0, 8.0), Color(0.7, 1.0, 0.8, 0.22), 2.0)
+	# Only the two long face edges — no end caps so adjacent walls merge cleanly
+	var ow := 2.6 if not ColorSystem.in_combat else 2.0
+	var oc := ColorSystem.terrain_outline()
+	draw_line(Vector2(-72.0, -18.0), Vector2(72.0, -18.0), oc, ow)
+	draw_line(Vector2(-72.0,  18.0), Vector2(72.0,  18.0), oc, ow)
