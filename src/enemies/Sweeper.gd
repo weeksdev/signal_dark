@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
+
 signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
 
@@ -53,6 +55,12 @@ func activate_for_combat(target_ship: Node2D) -> void:
 	combat_active = true
 
 
+func deactivate_to_stealth() -> void:
+	combat_active = false
+	ship = null
+	velocity = Vector2.ZERO
+
+
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
 	if not is_alive or combat_active:
 		return false
@@ -69,6 +77,7 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	if not is_alive:
 		return
 	is_alive = false
+	_spawn_burst(silent)
 	killed.emit(self, silent)
 	queue_free()
 
@@ -109,7 +118,9 @@ func _check_detection() -> void:
 
 func _update_palette() -> void:
 	body_polygon.color = ColorSystem.enemy_fill(signature_color)
+	body_polygon.color.a = 0.08 if not AlertSystem.combat_mode else 0.14
 	outline.default_color = ColorSystem.enemy_outline()
+	outline.width = 2.4
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -131,3 +142,29 @@ func _draw() -> void:
 	draw_line(Vector2.ZERO, left, cone_color, 1.0)
 	draw_line(Vector2.ZERO, right, cone_color, 1.0)
 	draw_line(left * 0.3, right * 0.3, Color(cone_color.r, cone_color.g, cone_color.b, 0.1), 1.0)
+	var inner := PackedVector2Array([
+		Vector2(0.0, -9.0),
+		Vector2(8.0, -4.0),
+		Vector2(8.0, 4.0),
+		Vector2(0.0, 9.0),
+		Vector2(-8.0, 4.0),
+		Vector2(-8.0, -4.0),
+		Vector2(0.0, -9.0)
+	])
+	draw_polyline(inner, Color(cone_color.r, cone_color.g, cone_color.b, 0.7), 1.2)
+	var player = get_tree().get_first_node_in_group("player_ship")
+	if player != null and can_be_suppressed_by(player):
+		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
+		draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, marker, 1.2)
+		draw_line(Vector2(-14.0, -14.0), Vector2(-6.0, -14.0), marker, 1.8)
+		draw_line(Vector2(-14.0, -14.0), Vector2(-14.0, -6.0), marker, 1.8)
+		draw_line(Vector2(14.0, 14.0), Vector2(6.0, 14.0), marker, 1.8)
+		draw_line(Vector2(14.0, 14.0), Vector2(14.0, 6.0), marker, 1.8)
+
+
+func _spawn_burst(silent: bool) -> void:
+	var burst = EXPLOSION_SCENE.instantiate()
+	burst.global_position = global_position
+	burst.combat_mode = AlertSystem.combat_mode and not silent
+	burst.signature_color = signature_color
+	get_tree().current_scene.add_child(burst)

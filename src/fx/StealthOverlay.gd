@@ -21,20 +21,20 @@ func _draw() -> void:
 	var rect := get_viewport_rect()
 	var center := rect.size * 0.5
 	if not ColorSystem.in_combat:
-		for i in range(8):
-			var radius := 130.0 + i * 42.0
-			var alpha := 0.03 - i * 0.0028
-			draw_circle(center + Vector2(sin(drift * 0.17), cos(drift * 0.13)) * 18.0, radius, Color(0.0, 0.18, 0.08, maxf(alpha, 0.003)))
-		var edge := 42.0
-		draw_rect(Rect2(Vector2.ZERO, Vector2(rect.size.x, edge)), Color(0, 0, 0, 0.22), true)
-		draw_rect(Rect2(Vector2(0, rect.size.y - edge), Vector2(rect.size.x, edge)), Color(0, 0, 0, 0.24), true)
-		draw_rect(Rect2(Vector2.ZERO, Vector2(edge, rect.size.y)), Color(0, 0, 0, 0.18), true)
-		draw_rect(Rect2(Vector2(rect.size.x - edge, 0), Vector2(edge, rect.size.y)), Color(0, 0, 0, 0.18), true)
+		for i in range(6):
+			var radius := 190.0 + i * 86.0
+			var alpha := 0.016 - i * 0.0018
+			draw_circle(center + Vector2(sin(drift * 0.17), cos(drift * 0.13)) * 24.0, radius, Color(0.0, 0.16, 0.08, maxf(alpha, 0.002)))
+		var edge := 28.0
+		draw_rect(Rect2(Vector2.ZERO, Vector2(rect.size.x, edge)), Color(0, 0, 0, 0.08), true)
+		draw_rect(Rect2(Vector2(0, rect.size.y - edge), Vector2(rect.size.x, edge)), Color(0, 0, 0, 0.1), true)
+		draw_rect(Rect2(Vector2.ZERO, Vector2(edge, rect.size.y)), Color(0, 0, 0, 0.06), true)
+		draw_rect(Rect2(Vector2(rect.size.x - edge, 0), Vector2(edge, rect.size.y)), Color(0, 0, 0, 0.06), true)
 		var y := 0.0
 		while y < rect.size.y:
-			var line_alpha := 0.03 + 0.01 * sin((y * 0.05) + drift * 1.7)
-			draw_line(Vector2(0.0, y), Vector2(rect.size.x, y), Color(0.4, 1.0, 0.7, line_alpha), 1.0)
-			y += 3.0
+			var line_alpha := 0.016 + 0.006 * sin((y * 0.05) + drift * 1.7)
+			draw_line(Vector2(0.0, y), Vector2(rect.size.x, y), Color(0.35, 0.9, 0.6, line_alpha), 1.0)
+			y += 4.0
 	else:
 		for i in range(4):
 			var radius_c := 150.0 + i * 56.0

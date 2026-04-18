@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
@@ -9,31 +9,109 @@
 [ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="8"]
 [ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="9"]
+[ext_resource type="PackedScene" path="res://src/enemies/Hunter.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sentry.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://src/enemies/Wisp.tscn" id="12"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1")
 
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("2")
+world_rect = Rect2(-96, -96, 4096, 2816)
 
 [node name="Ship" parent="." instance=ExtResource("3")]
-position = Vector2(180, 420)
+position = Vector2(640, 1180)
 
-[node name="Sweeper" parent="." instance=ExtResource("4")]
-position = Vector2(220, 180)
+[node name="SweeperA" parent="." instance=ExtResource("4")]
+position = Vector2(900, 840)
 
-[node name="Pulsar" parent="." instance=ExtResource("5")]
-position = Vector2(320, 640)
+[node name="SweeperB" parent="." instance=ExtResource("4")]
+position = Vector2(1380, 1180)
+
+[node name="SweeperC" parent="." instance=ExtResource("4")]
+position = Vector2(2120, 980)
+
+[node name="SweeperD" parent="." instance=ExtResource("4")]
+position = Vector2(2860, 1220)
+
+[node name="PulsarA" parent="." instance=ExtResource("5")]
+position = Vector2(840, 1490)
+
+[node name="PulsarB" parent="." instance=ExtResource("5")]
+position = Vector2(2290, 1710)
+
+[node name="PulsarC" parent="." instance=ExtResource("5")]
+position = Vector2(3520, 620)
+
+[node name="HunterA" parent="." instance=ExtResource("10")]
+position = Vector2(1600, 1040)
+
+[node name="HunterB" parent="." instance=ExtResource("10")]
+position = Vector2(3280, 1980)
+
+[node name="SentryA" parent="." instance=ExtResource("11")]
+position = Vector2(1180, 760)
+
+[node name="SentryB" parent="." instance=ExtResource("11")]
+position = Vector2(2440, 720)
+
+[node name="SentryC" parent="." instance=ExtResource("11")]
+position = Vector2(3600, 1480)
+
+[node name="WispA" parent="." instance=ExtResource("12")]
+position = Vector2(1340, 1900)
+
+[node name="WispB" parent="." instance=ExtResource("12")]
+position = Vector2(2870, 490)
+
+[node name="WispC" parent="." instance=ExtResource("12")]
+position = Vector2(3430, 2280)
 
 [node name="WallA" parent="." instance=ExtResource("6")]
-position = Vector2(238, 355)
+position = Vector2(720, 980)
+scale = Vector2(1.2, 1.4)
 
 [node name="WallB" parent="." instance=ExtResource("6")]
-position = Vector2(120, 630)
-scale = Vector2(0.7, 1.3)
+position = Vector2(1180, 780)
+scale = Vector2(1.6, 1.0)
 
-[node name="DarkPocket" parent="." instance=ExtResource("7")]
-position = Vector2(88, 208)
+[node name="WallSpawnCover" parent="." instance=ExtResource("6")]
+position = Vector2(500, 1320)
+scale = Vector2(1.1, 1.2)
+
+[node name="WallC" parent="." instance=ExtResource("6")]
+position = Vector2(1760, 1560)
+scale = Vector2(0.9, 1.8)
+
+[node name="WallD" parent="." instance=ExtResource("6")]
+position = Vector2(2210, 910)
+scale = Vector2(1.5, 1.0)
+
+[node name="WallE" parent="." instance=ExtResource("6")]
+position = Vector2(2970, 620)
+scale = Vector2(0.8, 1.7)
+
+[node name="WallF" parent="." instance=ExtResource("6")]
+position = Vector2(3360, 1840)
+scale = Vector2(1.4, 1.1)
+
+[node name="WallG" parent="." instance=ExtResource("6")]
+position = Vector2(850, 2140)
+scale = Vector2(1.8, 1.0)
+
+[node name="WallH" parent="." instance=ExtResource("6")]
+position = Vector2(2570, 2180)
+scale = Vector2(1.2, 1.5)
+
+[node name="DarkPocketA" parent="." instance=ExtResource("7")]
+position = Vector2(420, 1120)
+
+[node name="DarkPocketB" parent="." instance=ExtResource("7")]
+position = Vector2(2020, 2260)
+
+[node name="DarkPocketC" parent="." instance=ExtResource("7")]
+position = Vector2(3740, 960)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

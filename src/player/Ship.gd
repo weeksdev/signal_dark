@@ -2,12 +2,12 @@ extends CharacterBody2D
 
 signal destroyed
 
-@export var acceleration: float = 800.0
-@export var drag: float = 700.0
-@export var max_speed: float = 180.0
-@export var dark_mode_speed_scale: float = 0.55
-@export var boost_impulse: float = 260.0
-@export var boost_cooldown: float = 0.45
+@export var acceleration: float = 2400.0
+@export var drag: float = 1650.0
+@export var max_speed: float = 460.0
+@export var dark_mode_speed_scale: float = 0.76
+@export var boost_impulse: float = 560.0
+@export var boost_cooldown: float = 0.22
 @export var signal_probe_scene: PackedScene
 
 var aim_direction: Vector2 = Vector2.UP
@@ -133,6 +133,7 @@ func _update_palette() -> void:
 	trail.default_color = ColorSystem.player_outline(dark_mode)
 	outline.width = 3.0 if not dark_mode else 1.8
 	body_polygon.scale = Vector2.ONE * (1.08 if not dark_mode else 0.98)
+	body_polygon.color.a = 0.18 if not dark_mode else 0.08
 	if dark_mode:
 		trail.points = PackedVector2Array()
 	else:

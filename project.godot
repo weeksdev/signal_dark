@@ -17,12 +17,12 @@ ColorSystem="*res://src/fx/ColorSystem.gd"
 
 [display]
 
-window/size/window_width=936
-window/size/window_height=2026
-window/size/viewport_width=390
-window/size/viewport_height=844
+window/size/window_width=1600
+window/size/window_height=900
+window/size/viewport_width=1600
+window/size/viewport_height=900
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
+window/stretch/aspect="expand"
 
 [input]
 
