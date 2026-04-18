@@ -25,7 +25,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventJoypadButton and event.pressed:
 		pressed = true
 	if pressed:
-		get_tree().change_scene_to_file("res://src/world/World.tscn")
+		GameState.start_run()
 
 
 func _draw() -> void:
@@ -69,7 +69,7 @@ func _draw() -> void:
 
 	# Tagline
 	draw_string(font, Vector2(cx - 68.0, ty + 30.0),
-			"STEALTH PROTOCOL  //  ZONE 01",
+			"STEALTH PROTOCOL  //  ZONES 01-02",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 11,
 			Color(0.22, 0.65, 0.33, 0.5))
 

@@ -23,7 +23,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 	if _elapsed >= TOTAL_DURATION:
 		_active = false
-		GameState.restart_zone()
+		GameState.advance_zone()
 
 
 func _draw() -> void:

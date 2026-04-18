@@ -1,0 +1,443 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://src/world/World.gd" id="1"]
+[ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
+[ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://src/terrain/LatticeWall.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="8"]
+[ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="9"]
+[ext_resource type="PackedScene" path="res://src/enemies/Hunter.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sentry.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://src/enemies/Wisp.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="13"]
+[ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="14"]
+[ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="15"]
+
+[node name="World02" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Grid" type="Node2D" parent="."]
+script = ExtResource("2")
+world_rect = Rect2(-96, -96, 4608, 3200)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; PLAYER
+; Safe start chamber before the tighter level 2 routing begins.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="Ship" parent="." instance=ExtResource("3")]
+position = Vector2(430, 1160)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 1 — ENTRY LOCK
+; Closed box with one east door. Teaches that Zone 02 is denser immediately.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R1Top" parent="." instance=ExtResource("6")]
+position = Vector2(480, 760)
+scale = Vector2(3.9, 1.0)
+
+[node name="R1Bot" parent="." instance=ExtResource("6")]
+position = Vector2(480, 1560)
+scale = Vector2(3.9, 1.0)
+
+[node name="R1Left" parent="." instance=ExtResource("6")]
+position = Vector2(200, 1160)
+rotation = 1.5708
+scale = Vector2(5.7, 1.0)
+
+[node name="R1RightN" parent="." instance=ExtResource("6")]
+position = Vector2(760, 900)
+rotation = 1.5708
+scale = Vector2(2.0, 1.0)
+
+[node name="R1RightS" parent="." instance=ExtResource("6")]
+position = Vector2(760, 1420)
+rotation = 1.5708
+scale = Vector2(2.0, 1.0)
+
+[node name="DarkPocketA" parent="." instance=ExtResource("7")]
+position = Vector2(360, 1360)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 1 — ENTRY LOCK → MAZE ATRIUM
+; First chokepoint. SweeperA crosses the whole neck.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C1Top" parent="." instance=ExtResource("6")]
+position = Vector2(870, 1060)
+scale = Vector2(1.55, 1.0)
+
+[node name="C1Bot" parent="." instance=ExtResource("6")]
+position = Vector2(870, 1260)
+scale = Vector2(1.55, 1.0)
+
+[node name="SweeperA" parent="." instance=ExtResource("4")]
+position = Vector2(870, 1160)
+
+[node name="PatrolA" parent="SweeperA"]
+position = Vector2(-150, 0)
+
+[node name="PatrolB" parent="SweeperA"]
+position = Vector2(150, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 2 — MAZE ATRIUM
+; Big room with internal walls that create upper and lower dead-end branches.
+; The real route stays in the middle; wrong turns force a retreat.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R2Top" parent="." instance=ExtResource("6")]
+position = Vector2(1520, 500)
+scale = Vector2(7.6, 1.0)
+
+[node name="R2Bot" parent="." instance=ExtResource("6")]
+position = Vector2(1520, 1820)
+scale = Vector2(7.6, 1.0)
+
+[node name="R2LeftN" parent="." instance=ExtResource("6")]
+position = Vector2(980, 780)
+rotation = 1.5708
+scale = Vector2(3.9, 1.0)
+
+[node name="R2LeftS" parent="." instance=ExtResource("6")]
+position = Vector2(980, 1540)
+rotation = 1.5708
+scale = Vector2(3.9, 1.0)
+
+[node name="R2RightTop" parent="." instance=ExtResource("6")]
+position = Vector2(2060, 780)
+rotation = 1.5708
+scale = Vector2(3.9, 1.0)
+
+[node name="R2RightBot" parent="." instance=ExtResource("6")]
+position = Vector2(2060, 1540)
+rotation = 1.5708
+scale = Vector2(3.9, 1.0)
+
+[node name="R2NorthShelf" parent="." instance=ExtResource("6")]
+position = Vector2(1360, 760)
+scale = Vector2(2.6, 1.0)
+
+[node name="R2SouthShelf" parent="." instance=ExtResource("6")]
+position = Vector2(1400, 1460)
+scale = Vector2(2.9, 1.0)
+
+[node name="R2CoreWest" parent="." instance=ExtResource("6")]
+position = Vector2(1280, 1120)
+rotation = 1.5708
+scale = Vector2(2.2, 1.0)
+
+[node name="R2CoreEast" parent="." instance=ExtResource("6")]
+position = Vector2(1700, 1180)
+rotation = 1.5708
+scale = Vector2(2.6, 1.0)
+
+[node name="R2DeadNorthCap" parent="." instance=ExtResource("6")]
+position = Vector2(1840, 660)
+scale = Vector2(1.5, 1.0)
+
+[node name="R2DeadNorthWall" parent="." instance=ExtResource("6")]
+position = Vector2(1930, 820)
+rotation = 1.5708
+scale = Vector2(1.3, 1.0)
+
+[node name="R2DeadSouthCap" parent="." instance=ExtResource("6")]
+position = Vector2(1840, 1660)
+scale = Vector2(1.5, 1.0)
+
+[node name="R2DeadSouthWall" parent="." instance=ExtResource("6")]
+position = Vector2(1930, 1500)
+rotation = 1.5708
+scale = Vector2(1.3, 1.0)
+
+[node name="R2Cover" parent="." instance=ExtResource("6")]
+position = Vector2(1510, 1160)
+scale = Vector2(1.2, 1.0)
+
+[node name="DarkPocketB" parent="." instance=ExtResource("7")]
+position = Vector2(1860, 760)
+
+[node name="DarkPocketC" parent="." instance=ExtResource("7")]
+position = Vector2(1840, 1510)
+
+[node name="PulsarA" parent="." instance=ExtResource("5")]
+position = Vector2(1540, 760)
+
+[node name="PulsarB" parent="." instance=ExtResource("5")]
+position = Vector2(1220, 1490)
+
+[node name="SweeperB" parent="." instance=ExtResource("4")]
+position = Vector2(1490, 1160)
+
+[node name="PatrolA" parent="SweeperB"]
+position = Vector2(0, -230)
+
+[node name="PatrolB" parent="SweeperB"]
+position = Vector2(0, 230)
+
+[node name="WispA" parent="." instance=ExtResource("12")]
+position = Vector2(1830, 760)
+
+[node name="HunterA" parent="." instance=ExtResource("10")]
+position = Vector2(1810, 1510)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 2 — MAZE ATRIUM → KILLBOX
+; Second hard neck. SweeperC and a pulse check stack here.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C2Top" parent="." instance=ExtResource("6")]
+position = Vector2(2170, 1080)
+scale = Vector2(1.55, 1.0)
+
+[node name="C2Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2170, 1300)
+scale = Vector2(1.55, 1.0)
+
+[node name="PulsarC" parent="." instance=ExtResource("5")]
+position = Vector2(2100, 1190)
+
+[node name="SweeperC" parent="." instance=ExtResource("4")]
+position = Vector2(2170, 1190)
+
+[node name="PatrolA" parent="SweeperC"]
+position = Vector2(-115, 0)
+
+[node name="PatrolB" parent="SweeperC"]
+position = Vector2(115, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 3 — KILLBOX MAZE
+; Upper route is the real push. Lower-right branch is a trap pocket that dead-ends.
+; More enemies, more overlapping sight lines, still with cover to slip between.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R3Top" parent="." instance=ExtResource("6")]
+position = Vector2(2720, 500)
+scale = Vector2(6.2, 1.0)
+
+[node name="R3Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2720, 1820)
+scale = Vector2(6.2, 1.0)
+
+[node name="R3LeftN" parent="." instance=ExtResource("6")]
+position = Vector2(2280, 800)
+rotation = 1.5708
+scale = Vector2(4.0, 1.0)
+
+[node name="R3LeftS" parent="." instance=ExtResource("6")]
+position = Vector2(2280, 1520)
+rotation = 1.5708
+scale = Vector2(3.9, 1.0)
+
+[node name="R3RightTop" parent="." instance=ExtResource("6")]
+position = Vector2(3160, 660)
+rotation = 1.5708
+scale = Vector2(2.5, 1.0)
+
+[node name="R3RightMid" parent="." instance=ExtResource("6")]
+position = Vector2(3160, 1290)
+rotation = 1.5708
+scale = Vector2(4.5, 1.0)
+
+[node name="R3RightBot" parent="." instance=ExtResource("6")]
+position = Vector2(3160, 1740)
+rotation = 1.5708
+scale = Vector2(1.2, 1.0)
+
+[node name="R3SpineTop" parent="." instance=ExtResource("6")]
+position = Vector2(2620, 780)
+scale = Vector2(2.5, 1.0)
+
+[node name="R3SpineBot" parent="." instance=ExtResource("6")]
+position = Vector2(2680, 1530)
+scale = Vector2(3.0, 1.0)
+
+[node name="R3VertA" parent="." instance=ExtResource("6")]
+position = Vector2(2480, 1040)
+rotation = 1.5708
+scale = Vector2(1.55, 1.0)
+
+[node name="R3VertB" parent="." instance=ExtResource("6")]
+position = Vector2(2760, 1260)
+rotation = 1.5708
+scale = Vector2(2.2, 1.0)
+
+[node name="R3VertC" parent="." instance=ExtResource("6")]
+position = Vector2(2980, 980)
+rotation = 1.5708
+scale = Vector2(1.45, 1.0)
+
+[node name="R3DeadSouthCap" parent="." instance=ExtResource("6")]
+position = Vector2(3000, 1660)
+scale = Vector2(1.7, 1.0)
+
+[node name="R3Cover" parent="." instance=ExtResource("6")]
+position = Vector2(2580, 1180)
+scale = Vector2(1.0, 1.0)
+
+[node name="DarkPocketD" parent="." instance=ExtResource("7")]
+position = Vector2(3050, 1520)
+
+[node name="SentryA" parent="." instance=ExtResource("11")]
+position = Vector2(2470, 720)
+
+[node name="SentryB" parent="." instance=ExtResource("11")]
+position = Vector2(2920, 900)
+
+[node name="WispB" parent="." instance=ExtResource("12")]
+position = Vector2(2870, 760)
+
+[node name="WispC" parent="." instance=ExtResource("12")]
+position = Vector2(2920, 1500)
+
+[node name="HunterB" parent="." instance=ExtResource("10")]
+position = Vector2(2480, 1490)
+
+[node name="SweeperD" parent="." instance=ExtResource("4")]
+position = Vector2(2860, 1190)
+
+[node name="PatrolA" parent="SweeperD"]
+position = Vector2(0, -280)
+
+[node name="PatrolB" parent="SweeperD"]
+position = Vector2(0, 280)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 3 — KILLBOX → VAULT
+; Final narrow transfer before the exit room.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C3Top" parent="." instance=ExtResource("6")]
+position = Vector2(3270, 760)
+scale = Vector2(1.55, 1.0)
+
+[node name="C3Bot" parent="." instance=ExtResource("6")]
+position = Vector2(3270, 980)
+scale = Vector2(1.55, 1.0)
+
+[node name="SweeperE" parent="." instance=ExtResource("4")]
+position = Vector2(3270, 870)
+
+[node name="PatrolA" parent="SweeperE"]
+position = Vector2(-120, 0)
+
+[node name="PatrolB" parent="SweeperE"]
+position = Vector2(120, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 4 — EXIT VAULT
+; Smaller pressure room. Upper nook is another false route; exit is lower-right.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R4Top" parent="." instance=ExtResource("6")]
+position = Vector2(3790, 560)
+scale = Vector2(5.8, 1.0)
+
+[node name="R4Bot" parent="." instance=ExtResource("6")]
+position = Vector2(3790, 1360)
+scale = Vector2(5.8, 1.0)
+
+[node name="R4LeftN" parent="." instance=ExtResource("6")]
+position = Vector2(3380, 660)
+rotation = 1.5708
+scale = Vector2(2.5, 1.0)
+
+[node name="R4LeftS" parent="." instance=ExtResource("6")]
+position = Vector2(3380, 1170)
+rotation = 1.5708
+scale = Vector2(2.7, 1.0)
+
+[node name="R4RightTop" parent="." instance=ExtResource("6")]
+position = Vector2(4200, 760)
+rotation = 1.5708
+scale = Vector2(1.6, 1.0)
+
+[node name="R4RightBot" parent="." instance=ExtResource("6")]
+position = Vector2(4200, 1220)
+rotation = 1.5708
+scale = Vector2(2.0, 1.0)
+
+[node name="R4CoverN" parent="." instance=ExtResource("6")]
+position = Vector2(3710, 760)
+scale = Vector2(1.6, 1.0)
+
+[node name="R4CoverS" parent="." instance=ExtResource("6")]
+position = Vector2(3740, 1140)
+scale = Vector2(1.5, 1.0)
+
+[node name="R4CoreWall" parent="." instance=ExtResource("6")]
+position = Vector2(3900, 980)
+rotation = 1.5708
+scale = Vector2(1.45, 1.0)
+
+[node name="R4TrapCap" parent="." instance=ExtResource("6")]
+position = Vector2(4020, 860)
+scale = Vector2(1.1, 1.0)
+
+[node name="DarkPocketE" parent="." instance=ExtResource("7")]
+position = Vector2(4060, 1210)
+
+[node name="PulsarD" parent="." instance=ExtResource("5")]
+position = Vector2(3860, 930)
+
+[node name="SentryC" parent="." instance=ExtResource("11")]
+position = Vector2(3640, 920)
+
+[node name="SentryD" parent="." instance=ExtResource("11")]
+position = Vector2(4010, 760)
+
+[node name="HunterC" parent="." instance=ExtResource("10")]
+position = Vector2(3650, 1140)
+
+[node name="WispD" parent="." instance=ExtResource("12")]
+position = Vector2(3930, 1080)
+
+[node name="SweeperF" parent="." instance=ExtResource("4")]
+position = Vector2(3910, 1030)
+
+[node name="PatrolA" parent="SweeperF"]
+position = Vector2(-150, 0)
+
+[node name="PatrolB" parent="SweeperF"]
+position = Vector2(150, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; EXIT ZONE — lower-right of the vault.
+; Clearing Zone 02 returns to the title.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="ExitZone" parent="." instance=ExtResource("13")]
+position = Vector2(4120, 1040)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; UI / OVERLAY
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="StealthOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9")
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("8")]
+
+[node name="ZoneCompleteOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14")
+
+[node name="GameOverOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15")
