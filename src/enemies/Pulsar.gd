@@ -88,7 +88,7 @@ func _current_range() -> float:
 	var slow: float = 0.5 + 0.5 * sin(_range_t * 0.78)
 	var med: float  = 0.5 + 0.5 * sin(_range_t * 2.1 + 0.6)
 	var frac: float = slow * 0.65 + med * 0.35
-	return pulse_range * (0.40 + 0.60 * frac)
+	return pulse_range * 1.5 * (0.40 + 0.60 * frac)
 
 
 func _start_pulse() -> void:

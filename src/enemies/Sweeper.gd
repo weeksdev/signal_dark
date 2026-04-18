@@ -6,27 +6,33 @@ signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
 
 @export var signature_color := Color("00ff88")
-@export var detection_range: float = 150.0
+@export var detection_range: float = 225.0
 @export var cone_angle_degrees: float = 65.0
 @export var patrol_speed: float = 60.0
 @export var combat_speed: float = 140.0
 @export var suppress_range: float = 34.0
 
-const ARRIVE_DIST  := 14.0
-const DWELL_TIME   := 0.55
+const ARRIVE_DIST      := 14.0
+const DWELL_TIME       := 0.55
+const PULSE_SPEED      := 115.0
+const PULSE_TOLERANCE  := 13.0
+
+# Rhythm: single pulse, then two quick, then long gap — repeating
+const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]
 
 var is_alive: bool = true
 var combat_active: bool = false
 var facing_vector: Vector2 = Vector2.UP
 var ship: Node2D = null
 
-# Fixed world-space waypoints captured once at startup.
-# PatrolA/B are children of this node and move with it, so we must
-# snapshot their global positions before any movement happens.
 var _waypoints: Array[Vector2] = []
 var _wp_index: int = 0
 var _dwell: float = 0.0
-var _cone_t: float = 0.0
+
+# Each entry is the current radius of an active outbound pulse arc
+var _pulses: Array[float] = []
+var _pulse_timer: float = 0.3
+var _pulse_idx: int = 0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -46,7 +52,19 @@ func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
 
-	_cone_t += delta
+	# Advance all pulses; cull ones past max range
+	for i in range(_pulses.size() - 1, -1, -1):
+		_pulses[i] += PULSE_SPEED * delta
+		if _pulses[i] > detection_range:
+			_pulses.remove_at(i)
+
+	# Fire new pulses on pattern rhythm (stealth only)
+	if not combat_active:
+		_pulse_timer -= delta
+		if _pulse_timer <= 0.0:
+			_pulses.append(0.0)
+			_pulse_idx = (_pulse_idx + 1) % PULSE_PATTERN.size()
+			_pulse_timer = PULSE_PATTERN[_pulse_idx]
 
 	if combat_active and is_instance_valid(ship):
 		var chase_vector: Vector2 = ship.global_position - global_position
@@ -66,12 +84,16 @@ func _physics_process(delta: float) -> void:
 func activate_for_combat(target_ship: Node2D) -> void:
 	ship = target_ship
 	combat_active = true
+	_pulses.clear()
 
 
 func deactivate_to_stealth() -> void:
 	combat_active = false
 	ship = null
 	velocity = Vector2.ZERO
+	_pulses.clear()
+	_pulse_timer = PULSE_PATTERN[0]
+	_pulse_idx = 0
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -93,16 +115,6 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	_spawn_burst(silent)
 	killed.emit(self, silent)
 	queue_free()
-
-
-func _current_range() -> float:
-	# Range breathes between 55 % and 100 % of the export value
-	return detection_range * (0.55 + 0.45 * (0.5 + 0.5 * sin(_cone_t * 0.9)))
-
-
-func _current_angle() -> float:
-	# Angle breathes between 60 % and 100 %, slightly out of phase with range
-	return cone_angle_degrees * (0.60 + 0.40 * (0.5 + 0.5 * sin(_cone_t * 0.7 + 1.1)))
 
 
 func _run_patrol(delta: float) -> void:
@@ -132,26 +144,27 @@ func _check_detection() -> void:
 		return
 	var to_player: Vector2 = player.global_position - global_position
 	var distance: float = to_player.length()
-	var cur_range: float = _current_range()
-	if distance > cur_range:
-		return
-
 	var emission: float = player.get_effective_emission()
 
+	# Contact range — touching the watcher always triggers
 	if distance < 22.0 and emission > 0.015:
 		detected.emit(self)
 		return
 
-	if facing_vector.dot(to_player.normalized()) < cos(deg_to_rad(_current_angle() * 0.5)):
+	# Must be inside cone arc
+	if facing_vector.dot(to_player.normalized()) < cos(deg_to_rad(cone_angle_degrees * 0.5)):
 		return
 
+	# Must have line of sight
 	if get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()]):
 		return
 
-	if emission > 0.05:
-		detected.emit(self)
-	elif distance < 30.0:
-		detected.emit(self)
+	# Check if any pulse arc is passing through the player's distance
+	for pulse_r: float in _pulses:
+		if abs(distance - pulse_r) < PULSE_TOLERANCE:
+			if emission > 0.05 or distance < 40.0:
+				detected.emit(self)
+				return
 
 
 func _update_palette() -> void:
@@ -167,35 +180,34 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 func _draw() -> void:
 	var halo_color := ColorSystem.glow_color()
-	var halo_alpha := 0.05 if not AlertSystem.combat_mode else 0.05
-	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, halo_alpha))
+	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.05))
+
 	var cone_color := ColorSystem.enemy_outline()
-	cone_color.a = 0.16 if not AlertSystem.combat_mode else 0.08
-	var cur_range: float = _current_range()
-	var cur_angle: float = _current_angle()
-	# Pulse brightness slightly so the player can read the rhythm
-	var range_frac: float = cur_range / detection_range
-	var pulse_bright: float = 0.7 + 0.3 * range_frac
-	cone_color.a *= pulse_bright
-	var start_angle := facing_vector.angle() - deg_to_rad(cur_angle * 0.5)
-	var end_angle := facing_vector.angle() + deg_to_rad(cur_angle * 0.5)
-	var left := facing_vector.rotated(-deg_to_rad(cur_angle * 0.5)) * cur_range
-	var right := facing_vector.rotated(deg_to_rad(cur_angle * 0.5)) * cur_range
-	draw_colored_polygon(PackedVector2Array([Vector2.ZERO, left, right]), Color(cone_color.r, cone_color.g, cone_color.b, (0.035 if not AlertSystem.combat_mode else 0.03) * pulse_bright))
-	draw_arc(Vector2.ZERO, cur_range, start_angle, end_angle, 24, cone_color, 2.0)
-	draw_line(Vector2.ZERO, left, cone_color, 1.0)
-	draw_line(Vector2.ZERO, right, cone_color, 1.0)
-	draw_line(left * 0.3, right * 0.3, Color(cone_color.r, cone_color.g, cone_color.b, 0.1 * pulse_bright), 1.0)
-	var inner := PackedVector2Array([
-		Vector2(0.0, -9.0),
-		Vector2(8.0, -4.0),
-		Vector2(8.0, 4.0),
-		Vector2(0.0, 9.0),
-		Vector2(-8.0, 4.0),
-		Vector2(-8.0, -4.0),
-		Vector2(0.0, -9.0)
-	])
-	draw_polyline(inner, Color(cone_color.r, cone_color.g, cone_color.b, 0.7), 1.2)
+	var half_rad := deg_to_rad(cone_angle_degrees * 0.5)
+	var start_angle := facing_vector.angle() - half_rad
+	var end_angle   := facing_vector.angle() + half_rad
+
+	# Expanding pulse arcs — brightest at origin, fade toward max range
+	for pulse_r: float in _pulses:
+		var fade := 1.0 - (pulse_r / detection_range)
+		var arc_col := Color(cone_color.r, cone_color.g, cone_color.b, 0.70 * fade)
+		draw_arc(Vector2.ZERO, pulse_r, start_angle, end_angle, 32, arc_col, 2.4)
+		# Soft echo trail behind the arc
+		if pulse_r > 10.0:
+			draw_arc(Vector2.ZERO, pulse_r - 7.0, start_angle, end_angle, 24,
+					Color(cone_color.r, cone_color.g, cone_color.b, 0.18 * fade), 1.2)
+
+	# Plus / targeting reticle at center
+	var arm := 9.0
+	var gap := 2.5
+	var mc := Color(cone_color.r, cone_color.g, cone_color.b, 0.78)
+	draw_line(Vector2(0.0, -arm), Vector2(0.0, -gap), mc, 2.2)
+	draw_line(Vector2(0.0,  gap), Vector2(0.0,  arm), mc, 2.2)
+	draw_line(Vector2(-arm, 0.0), Vector2(-gap, 0.0), mc, 2.2)
+	draw_line(Vector2( gap, 0.0), Vector2( arm, 0.0), mc, 2.2)
+	draw_arc(Vector2.ZERO, gap, 0.0, TAU, 16, Color(mc.r, mc.g, mc.b, 0.5), 1.2)
+
+	# Suppress indicator
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
