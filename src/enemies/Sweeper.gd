@@ -12,11 +12,20 @@ signal killed(enemy: Node, silent: bool)
 @export var combat_speed: float = 140.0
 @export var suppress_range: float = 34.0
 
+const ARRIVE_DIST  := 14.0
+const DWELL_TIME   := 0.55
+
 var is_alive: bool = true
 var combat_active: bool = false
 var facing_vector: Vector2 = Vector2.UP
 var ship: Node2D = null
-var patrol_target: Node2D = null
+
+# Fixed world-space waypoints captured once at startup.
+# PatrolA/B are children of this node and move with it, so we must
+# snapshot their global positions before any movement happens.
+var _waypoints: Array[Vector2] = []
+var _wp_index: int = 0
+var _dwell: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -28,10 +37,11 @@ func _ready() -> void:
 	add_to_group("zone_enemy")
 	ColorSystem.mode_changed.connect(_on_mode_changed)
 	_update_palette()
-	patrol_target = patrol_b
+	_waypoints = [patrol_a.global_position, patrol_b.global_position]
+	_wp_index = 0
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
 
@@ -44,7 +54,7 @@ func _physics_process(_delta: float) -> void:
 		if global_position.distance_to(ship.global_position) < 18.0:
 			ship.take_hit()
 	else:
-		_run_patrol()
+		_run_patrol(delta)
 		_check_detection()
 
 	queue_redraw()
@@ -82,18 +92,25 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
-func _run_patrol() -> void:
-	var target_position: Vector2 = patrol_target.global_position
+func _run_patrol(delta: float) -> void:
+	if _dwell > 0.0:
+		_dwell -= delta
+		velocity = Vector2.ZERO
+		return
+
+	var target: Vector2 = _waypoints[_wp_index]
 	if get_tree().current_scene.has_method("has_active_probe") and get_tree().current_scene.has_active_probe():
-		target_position = get_tree().current_scene.get_probe_target()
-	var offset: Vector2 = target_position - global_position
-	if offset.length() > 4.0:
+		target = get_tree().current_scene.get_probe_target()
+
+	var offset: Vector2 = target - global_position
+	if offset.length() > ARRIVE_DIST:
 		facing_vector = offset.normalized()
 		velocity = facing_vector * patrol_speed
 		move_and_slide()
 	else:
 		velocity = Vector2.ZERO
-		patrol_target = patrol_b if patrol_target == patrol_a else patrol_a
+		_wp_index = 1 - _wp_index
+		_dwell = DWELL_TIME
 
 
 func _check_detection() -> void:

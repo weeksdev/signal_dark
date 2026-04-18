@@ -20,99 +20,353 @@ script = ExtResource("1")
 script = ExtResource("2")
 world_rect = Rect2(-96, -96, 4096, 2816)
 
+; ═══════════════════════════════════════════════════════════════════════════════
+; PLAYER
+; Spawns centre of Room 1 (Spawn). No enemy has line-of-sight here.
+; ═══════════════════════════════════════════════════════════════════════════════
 [node name="Ship" parent="." instance=ExtResource("3")]
-position = Vector2(640, 1180)
+position = Vector2(450, 1150)
 
-[node name="SweeperA" parent="." instance=ExtResource("4")]
-position = Vector2(900, 840)
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 1 — SPAWN  (x:200-700, y:500-1800)
+; Closed box. Single doorway on the east wall at y:1050-1270.
+; Dark Pocket inside teaches the mechanic before the first threat.
+; No enemies.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R1Top" parent="." instance=ExtResource("6")]
+position = Vector2(450, 500)
+scale = Vector2(3.5, 1.0)
 
-[node name="SweeperB" parent="." instance=ExtResource("4")]
-position = Vector2(1380, 1180)
+[node name="R1Bot" parent="." instance=ExtResource("6")]
+position = Vector2(450, 1800)
+scale = Vector2(3.5, 1.0)
 
-[node name="SweeperC" parent="." instance=ExtResource("4")]
-position = Vector2(2120, 980)
+[node name="R1Left" parent="." instance=ExtResource("6")]
+position = Vector2(200, 1150)
+rotation = 1.5708
+scale = Vector2(9.0, 1.0)
 
-[node name="SweeperD" parent="." instance=ExtResource("4")]
-position = Vector2(2860, 1220)
+[node name="R1RightN" parent="." instance=ExtResource("6")]
+position = Vector2(700, 775)
+rotation = 1.5708
+scale = Vector2(3.8, 1.0)
 
-[node name="PulsarA" parent="." instance=ExtResource("5")]
-position = Vector2(840, 1490)
-
-[node name="PulsarB" parent="." instance=ExtResource("5")]
-position = Vector2(2290, 1710)
-
-[node name="PulsarC" parent="." instance=ExtResource("5")]
-position = Vector2(3520, 620)
-
-[node name="HunterA" parent="." instance=ExtResource("10")]
-position = Vector2(1600, 1040)
-
-[node name="HunterB" parent="." instance=ExtResource("10")]
-position = Vector2(3280, 1980)
-
-[node name="SentryA" parent="." instance=ExtResource("11")]
-position = Vector2(1180, 760)
-
-[node name="SentryB" parent="." instance=ExtResource("11")]
-position = Vector2(2440, 720)
-
-[node name="SentryC" parent="." instance=ExtResource("11")]
-position = Vector2(3600, 1480)
-
-[node name="WispA" parent="." instance=ExtResource("12")]
-position = Vector2(1340, 1900)
-
-[node name="WispB" parent="." instance=ExtResource("12")]
-position = Vector2(2870, 490)
-
-[node name="WispC" parent="." instance=ExtResource("12")]
-position = Vector2(3430, 2280)
-
-[node name="WallA" parent="." instance=ExtResource("6")]
-position = Vector2(720, 980)
-scale = Vector2(1.2, 1.4)
-
-[node name="WallB" parent="." instance=ExtResource("6")]
-position = Vector2(1180, 780)
-scale = Vector2(1.6, 1.0)
-
-[node name="WallSpawnCover" parent="." instance=ExtResource("6")]
-position = Vector2(500, 1320)
-scale = Vector2(1.1, 1.2)
-
-[node name="WallC" parent="." instance=ExtResource("6")]
-position = Vector2(1760, 1560)
-scale = Vector2(0.9, 1.8)
-
-[node name="WallD" parent="." instance=ExtResource("6")]
-position = Vector2(2210, 910)
-scale = Vector2(1.5, 1.0)
-
-[node name="WallE" parent="." instance=ExtResource("6")]
-position = Vector2(2970, 620)
-scale = Vector2(0.8, 1.7)
-
-[node name="WallF" parent="." instance=ExtResource("6")]
-position = Vector2(3360, 1840)
-scale = Vector2(1.4, 1.1)
-
-[node name="WallG" parent="." instance=ExtResource("6")]
-position = Vector2(850, 2140)
-scale = Vector2(1.8, 1.0)
-
-[node name="WallH" parent="." instance=ExtResource("6")]
-position = Vector2(2570, 2180)
-scale = Vector2(1.2, 1.5)
+[node name="R1RightS" parent="." instance=ExtResource("6")]
+position = Vector2(700, 1535)
+rotation = 1.5708
+scale = Vector2(3.7, 1.0)
 
 [node name="DarkPocketA" parent="." instance=ExtResource("7")]
-position = Vector2(420, 1120)
+position = Vector2(350, 1400)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 1 — SPAWN → HUB  (x:700-900, y:1050-1270)
+; 220px wide bottleneck. SweeperA patrols left-right across it.
+; Player must time the crossing or suppress from behind.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C1Top" parent="." instance=ExtResource("6")]
+position = Vector2(800, 1050)
+scale = Vector2(1.4, 1.0)
+
+[node name="C1Bot" parent="." instance=ExtResource("6")]
+position = Vector2(800, 1270)
+scale = Vector2(1.4, 1.0)
+
+[node name="SweeperA" parent="." instance=ExtResource("4")]
+position = Vector2(800, 1160)
+
+[node name="PatrolA" parent="SweeperA"]
+position = Vector2(-190, 0)
+
+[node name="PatrolB" parent="SweeperA"]
+position = Vector2(190, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 2 — THE HUB  (x:900-1500, y:500-1800)
+; Closed box. West door from Corridor 1. Two east doors:
+;   Upper door y:700-920 → Corridor 2 (stealth route)
+;   Lower door y:1380-1600 → Corridor 3 (combat route)
+; PulsarA fires detection rings from upper-left — forces timing.
+; SweeperD patrols vertically across the full room height — forces timing.
+; Player must read both threats before committing to a door.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R2Top" parent="." instance=ExtResource("6")]
+position = Vector2(1200, 500)
+scale = Vector2(4.2, 1.0)
+
+[node name="R2Bot" parent="." instance=ExtResource("6")]
+position = Vector2(1200, 1800)
+scale = Vector2(4.2, 1.0)
+
+[node name="R2LeftN" parent="." instance=ExtResource("6")]
+position = Vector2(900, 775)
+rotation = 1.5708
+scale = Vector2(3.8, 1.0)
+
+[node name="R2LeftS" parent="." instance=ExtResource("6")]
+position = Vector2(900, 1535)
+rotation = 1.5708
+scale = Vector2(3.7, 1.0)
+
+[node name="R2RightTop" parent="." instance=ExtResource("6")]
+position = Vector2(1500, 600)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R2RightMid" parent="." instance=ExtResource("6")]
+position = Vector2(1500, 1150)
+rotation = 1.5708
+scale = Vector2(3.2, 1.0)
+
+[node name="R2RightBot" parent="." instance=ExtResource("6")]
+position = Vector2(1500, 1700)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R2Cover" parent="." instance=ExtResource("6")]
+position = Vector2(1350, 1150)
+scale = Vector2(1.5, 1.0)
+
+[node name="PulsarA" parent="." instance=ExtResource("5")]
+position = Vector2(1050, 900)
+
+[node name="SweeperD" parent="." instance=ExtResource("4")]
+position = Vector2(1200, 1150)
+
+[node name="PatrolA" parent="SweeperD"]
+position = Vector2(0, -450)
+
+[node name="PatrolB" parent="SweeperD"]
+position = Vector2(0, 450)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 2 — HUB → UPPER BUNKER  (x:1500-1700, y:700-920)  STEALTH ROUTE
+; 220px wide. SweeperB patrols left-right. Dark Pocket at entrance.
+; Intended for dark mode + timing. Fighting here triggers alert into both rooms.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C2Top" parent="." instance=ExtResource("6")]
+position = Vector2(1600, 700)
+scale = Vector2(1.4, 1.0)
+
+[node name="C2Bot" parent="." instance=ExtResource("6")]
+position = Vector2(1600, 920)
+scale = Vector2(1.4, 1.0)
 
 [node name="DarkPocketB" parent="." instance=ExtResource("7")]
-position = Vector2(2020, 2260)
+position = Vector2(1530, 810)
+
+[node name="SweeperB" parent="." instance=ExtResource("4")]
+position = Vector2(1600, 810)
+
+[node name="PatrolA" parent="SweeperB"]
+position = Vector2(-155, 0)
+
+[node name="PatrolB" parent="SweeperB"]
+position = Vector2(155, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 3 — HUB → LOWER LAB  (x:1500-1700, y:1380-1600)  COMBAT ROUTE
+; 220px wide. HunterA roams the corridor. No dark pocket.
+; Designed to fight through — HunterA will chase aggressively.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C3Top" parent="." instance=ExtResource("6")]
+position = Vector2(1600, 1380)
+scale = Vector2(1.4, 1.0)
+
+[node name="C3Bot" parent="." instance=ExtResource("6")]
+position = Vector2(1600, 1600)
+scale = Vector2(1.4, 1.0)
+
+[node name="HunterA" parent="." instance=ExtResource("10")]
+position = Vector2(1600, 1490)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 3 — UPPER BUNKER  (x:1700-2300, y:500-1100)
+; Entry from Corridor 2 (west, y:700-920). Exit to Corridor 4 (east, y:700-920).
+; SentryA watches from inside toward the west entrance.
+; WispA orbits centre — orbital threat while navigating toward east exit.
+; Cover block gives player a hide spot against SentryA detection.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R3Top" parent="." instance=ExtResource("6")]
+position = Vector2(2000, 500)
+scale = Vector2(4.2, 1.0)
+
+[node name="R3Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2000, 1100)
+scale = Vector2(4.2, 1.0)
+
+[node name="R3LeftN" parent="." instance=ExtResource("6")]
+position = Vector2(1700, 600)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R3LeftS" parent="." instance=ExtResource("6")]
+position = Vector2(1700, 1010)
+rotation = 1.5708
+scale = Vector2(1.25, 1.0)
+
+[node name="R3RightN" parent="." instance=ExtResource("6")]
+position = Vector2(2300, 600)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R3RightS" parent="." instance=ExtResource("6")]
+position = Vector2(2300, 1010)
+rotation = 1.5708
+scale = Vector2(1.25, 1.0)
+
+[node name="R3Cover" parent="." instance=ExtResource("6")]
+position = Vector2(1900, 800)
+scale = Vector2(1.5, 1.0)
+
+[node name="SentryA" parent="." instance=ExtResource("11")]
+position = Vector2(2100, 850)
+
+[node name="WispA" parent="." instance=ExtResource("12")]
+position = Vector2(2050, 800)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 4 — UPPER BUNKER → NEST  (x:2300-2500, y:700-920)
+; 220px wide. SweeperC patrols left-right. Final gate before the Nest.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C4Top" parent="." instance=ExtResource("6")]
+position = Vector2(2400, 700)
+scale = Vector2(1.4, 1.0)
+
+[node name="C4Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2400, 920)
+scale = Vector2(1.4, 1.0)
+
+[node name="SweeperC" parent="." instance=ExtResource("4")]
+position = Vector2(2400, 810)
+
+[node name="PatrolA" parent="SweeperC"]
+position = Vector2(-155, 0)
+
+[node name="PatrolB" parent="SweeperC"]
+position = Vector2(155, 0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 4 — LOWER LAB  (x:1700-2300, y:1250-1800)
+; Entry from Corridor 3 (west, y:1380-1600). Exit to Corridor 5 (east, y:1380-1600).
+; PulsarB fires detection rings from centre — can't run through without timing.
+; HunterB roams the full room — intended to be cleared before exiting.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R4Top" parent="." instance=ExtResource("6")]
+position = Vector2(2000, 1250)
+scale = Vector2(4.2, 1.0)
+
+[node name="R4Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2000, 1800)
+scale = Vector2(4.2, 1.0)
+
+[node name="R4LeftN" parent="." instance=ExtResource("6")]
+position = Vector2(1700, 1315)
+rotation = 1.5708
+scale = Vector2(0.9, 1.0)
+
+[node name="R4LeftS" parent="." instance=ExtResource("6")]
+position = Vector2(1700, 1700)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R4RightN" parent="." instance=ExtResource("6")]
+position = Vector2(2300, 1315)
+rotation = 1.5708
+scale = Vector2(0.9, 1.0)
+
+[node name="R4RightS" parent="." instance=ExtResource("6")]
+position = Vector2(2300, 1700)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="PulsarB" parent="." instance=ExtResource("5")]
+position = Vector2(2100, 1475)
+
+[node name="HunterB" parent="." instance=ExtResource("10")]
+position = Vector2(1950, 1500)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; CORRIDOR 5 — LOWER LAB → NEST  (x:2300-2500, y:1380-1600)
+; 220px wide. No dedicated guard — the threat here is the open Nest entrance.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="C5Top" parent="." instance=ExtResource("6")]
+position = Vector2(2400, 1380)
+scale = Vector2(1.4, 1.0)
+
+[node name="C5Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2400, 1600)
+scale = Vector2(1.4, 1.0)
+
+; ═══════════════════════════════════════════════════════════════════════════════
+; ROOM 5 — THE NEST  (x:2500-3200, y:500-1800)
+; Entry from Corridor 4 (upper, y:700-920) and Corridor 5 (lower, y:1380-1600).
+; PulsarC at centre — detection rings fill most of the room.
+; SentryB watches the upper entrance. SentryC watches the lower entrance.
+; WispB and WispC orbit north and south halves.
+; Cover blocks give player fighting options. Dark Pocket near far wall.
+; ═══════════════════════════════════════════════════════════════════════════════
+[node name="R5Top" parent="." instance=ExtResource("6")]
+position = Vector2(2850, 500)
+scale = Vector2(4.9, 1.0)
+
+[node name="R5Bot" parent="." instance=ExtResource("6")]
+position = Vector2(2850, 1800)
+scale = Vector2(4.9, 1.0)
+
+[node name="R5LeftTop" parent="." instance=ExtResource("6")]
+position = Vector2(2500, 600)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R5LeftMid" parent="." instance=ExtResource("6")]
+position = Vector2(2500, 1150)
+rotation = 1.5708
+scale = Vector2(3.2, 1.0)
+
+[node name="R5LeftBot" parent="." instance=ExtResource("6")]
+position = Vector2(2500, 1700)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="R5Right" parent="." instance=ExtResource("6")]
+position = Vector2(3200, 1150)
+rotation = 1.5708
+scale = Vector2(9.0, 1.0)
+
+[node name="R5CoverN" parent="." instance=ExtResource("6")]
+position = Vector2(2900, 780)
+scale = Vector2(2.0, 1.0)
+
+[node name="R5CoverS" parent="." instance=ExtResource("6")]
+position = Vector2(2900, 1520)
+scale = Vector2(2.0, 1.0)
+
+[node name="R5CoverC" parent="." instance=ExtResource("6")]
+position = Vector2(2700, 1150)
+scale = Vector2(1.5, 1.0)
+
+[node name="PulsarC" parent="." instance=ExtResource("5")]
+position = Vector2(2800, 1150)
+
+[node name="SentryB" parent="." instance=ExtResource("11")]
+position = Vector2(3000, 720)
+
+[node name="SentryC" parent="." instance=ExtResource("11")]
+position = Vector2(3000, 1580)
+
+[node name="WispB" parent="." instance=ExtResource("12")]
+position = Vector2(2750, 820)
+
+[node name="WispC" parent="." instance=ExtResource("12")]
+position = Vector2(2750, 1480)
 
 [node name="DarkPocketC" parent="." instance=ExtResource("7")]
-position = Vector2(3740, 960)
+position = Vector2(3100, 1150)
 
+; ═══════════════════════════════════════════════════════════════════════════════
+; UI / OVERLAY
+; ═══════════════════════════════════════════════════════════════════════════════
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="StealthOverlay" type="Control" parent="CanvasLayer"]
