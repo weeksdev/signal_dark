@@ -1,0 +1,47 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/player/Ship.gd" id="1"]
+[ext_resource type="Script" path="res://src/player/WeaponSystem.gd" id="2"]
+[ext_resource type="PackedScene" path="res://src/player/SignalProbe.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://src/weapons/PulseShot.tscn" id="4"]
+
+[sub_resource type="CircleShape2D" id="1"]
+radius = 11.0
+
+[node name="Ship" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 6
+script = ExtResource("1")
+signal_probe_scene = ExtResource("3")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="Body" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -18, 12, 14, 0, 8, -12, 14)
+
+[node name="Outline" type="Line2D" parent="."]
+width = 2.0
+closed = true
+points = PackedVector2Array(0, -18, 12, 14, 0, 8, -12, 14)
+
+[node name="EngineTrail" type="Line2D" parent="."]
+width = 2.0
+
+[node name="WeaponSystem" type="Node" parent="."]
+script = ExtResource("2")
+pulse_shot_scene = ExtResource("4")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+enabled = true
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+
+[node name="SuppressLabel" type="Label" parent="."]
+offset_left = -44.0
+offset_top = -42.0
+offset_right = 42.0
+offset_bottom = -12.0
+horizontal_alignment = 1
+text = "E EXECUTE"
+visible = false

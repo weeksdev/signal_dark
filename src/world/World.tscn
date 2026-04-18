@@ -1,0 +1,61 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://src/world/World.gd" id="1"]
+[ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
+[ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://src/terrain/LatticeWall.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="8"]
+[ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="9"]
+
+[node name="World" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Grid" type="Node2D" parent="."]
+script = ExtResource("2")
+
+[node name="Ship" parent="." instance=ExtResource("3")]
+position = Vector2(180, 420)
+
+[node name="Sweeper" parent="." instance=ExtResource("4")]
+position = Vector2(220, 180)
+
+[node name="Pulsar" parent="." instance=ExtResource("5")]
+position = Vector2(320, 640)
+
+[node name="WallA" parent="." instance=ExtResource("6")]
+position = Vector2(238, 355)
+
+[node name="WallB" parent="." instance=ExtResource("6")]
+position = Vector2(120, 630)
+scale = Vector2(0.7, 1.3)
+
+[node name="DarkPocket" parent="." instance=ExtResource("7")]
+position = Vector2(88, 208)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="StealthOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9")
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("8")]
+
+[node name="DeathOverlay" type="ColorRect" parent="CanvasLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.18)

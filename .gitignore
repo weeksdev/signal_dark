@@ -1,0 +1,7 @@
+.godot/
+.import/
+imported/
+export/
+.DS_Store
+*.tmp
+*.swp
