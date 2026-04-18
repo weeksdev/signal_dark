@@ -16,6 +16,7 @@ const ARRIVE_DIST      := 14.0
 const DWELL_TIME       := 0.55
 const PULSE_SPEED      := 115.0
 const PULSE_TOLERANCE  := 13.0
+const ALERT_HOLD_SECONDS := 3.0
 
 # Rhythm: single pulse, then two quick, then long gap — repeating
 const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]
@@ -28,8 +29,9 @@ var ship: Node2D = null
 var _waypoints: Array[Vector2] = []
 var _wp_index: int = 0
 var _dwell: float = 0.0
+var _alerting: bool = false
+var _alert_hold: float = 0.0
 
-# Each entry is the current radius of an active outbound pulse arc
 var _pulses: Array[float] = []
 var _pulse_timer: float = 0.3
 var _pulse_idx: int = 0
@@ -51,6 +53,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+
+	if _alert_hold > 0.0:
+		_alert_hold -= delta
+		if _alert_hold <= 0.0:
+			_alerting = false
 
 	# Advance all pulses; cull ones past max range
 	for i in range(_pulses.size() - 1, -1, -1):
@@ -94,6 +101,8 @@ func deactivate_to_stealth() -> void:
 	_pulses.clear()
 	_pulse_timer = PULSE_PATTERN[0]
 	_pulse_idx = 0
+	_alerting = false
+	_alert_hold = 0.0
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -146,25 +155,40 @@ func _check_detection() -> void:
 	var distance: float = to_player.length()
 	var emission: float = player.get_effective_emission()
 
-	# Contact range — touching the watcher always triggers
-	if distance < 22.0 and emission > 0.015:
-		detected.emit(self)
+	# Dark pocket completely masks the player beyond contact range
+	if player.in_dark_pocket and distance > 28.0:
 		return
 
-	# Must be inside cone arc
+	# Contact range — always triggers
+	if distance < 22.0 and emission > 0.015:
+		_begin_alert_hold()
+		return
+
+	# Cone arc check
 	if facing_vector.dot(to_player.normalized()) < cos(deg_to_rad(cone_angle_degrees * 0.5)):
 		return
 
-	# Must have line of sight
+	# Line of sight
 	if get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()]):
 		return
 
-	# Check if any pulse arc is passing through the player's distance
+	# Pulse arc hit
+	var hit := false
 	for pulse_r: float in _pulses:
 		if abs(distance - pulse_r) < PULSE_TOLERANCE:
 			if emission > 0.05 or distance < 40.0:
-				detected.emit(self)
-				return
+				hit = true
+				break
+
+	if hit:
+		_begin_alert_hold()
+
+
+func _begin_alert_hold() -> void:
+	if not _alerting:
+		_alerting = true
+		detected.emit(self)
+	_alert_hold = ALERT_HOLD_SECONDS
 
 
 func _update_palette() -> void:
@@ -206,6 +230,16 @@ func _draw() -> void:
 	draw_line(Vector2(-arm, 0.0), Vector2(-gap, 0.0), mc, 2.2)
 	draw_line(Vector2( gap, 0.0), Vector2( arm, 0.0), mc, 2.2)
 	draw_arc(Vector2.ZERO, gap, 0.0, TAU, 16, Color(mc.r, mc.g, mc.b, 0.5), 1.2)
+
+	# MGS-style "!" alert marker
+	if _alerting and not combat_active:
+		var t_ms: float = Time.get_ticks_msec() / 1000.0
+		var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
+		var font := ThemeDB.fallback_font
+		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
+		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
+		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
+				Color(1.0, 0.90, 0.0, pulse))
 
 	# Suppress indicator
 	var player = get_tree().get_first_node_in_group("player_ship")
