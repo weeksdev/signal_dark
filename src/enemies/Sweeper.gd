@@ -122,7 +122,7 @@ func _check_detection() -> void:
 	if distance > detection_range:
 		return
 
-	var emission := player.get_effective_emission()
+	var emission: float = player.get_effective_emission()
 
 	# Contact range — almost touching triggers detection regardless of cone facing
 	if distance < 22.0 and emission > 0.015:
