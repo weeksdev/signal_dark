@@ -121,15 +121,28 @@ func _check_detection() -> void:
 	var distance: float = to_player.length()
 	if distance > detection_range:
 		return
-	var direction: Vector2 = to_player.normalized()
-	var angle_ok: bool = facing_vector.dot(direction) >= cos(deg_to_rad(cone_angle_degrees * 0.5))
-	if not angle_ok:
+
+	var emission := player.get_effective_emission()
+
+	# Contact range — almost touching triggers detection regardless of cone facing
+	if distance < 22.0 and emission > 0.015:
+		detected.emit(self)
 		return
-	var blocked: bool = get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()])
-	if blocked:
+
+	# Cone angle check
+	if facing_vector.dot(to_player.normalized()) < cos(deg_to_rad(cone_angle_degrees * 0.5)):
 		return
-	var detection_score: float = player.get_effective_emission() * (1.2 - distance / detection_range)
-	if detection_score >= 0.12 or (player.get_effective_emission() > 0.015 and distance < 26.0):
+
+	# Line-of-sight check
+	if get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()]):
+		return
+
+	# Inside cone with clear LOS:
+	# Normal movement (emission > 0.05) → always detected
+	# Dark mode (emission ≤ 0.05) → only detected if dangerously close
+	if emission > 0.05:
+		detected.emit(self)
+	elif distance < 30.0:
 		detected.emit(self)
 
 

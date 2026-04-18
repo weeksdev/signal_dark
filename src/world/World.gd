@@ -120,7 +120,7 @@ func _configure_camera() -> void:
 	camera.limit_right = int(rect.end.x)
 	camera.limit_bottom = int(rect.end.y)
 	if not OS.has_feature("web") and not OS.has_feature("mobile"):
-		camera.zoom = Vector2(0.48, 0.48)
+		camera.zoom = Vector2(0.96, 0.96)
 		camera.position_smoothing_speed = 9.0
 
 
