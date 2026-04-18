@@ -165,7 +165,7 @@ func _check_enemy_contact() -> void:
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy == null or not enemy.is_alive:
 			continue
-		if global_position.distance_to(enemy.global_position) <= 20.0:
+		if global_position.distance_to(enemy.global_position) <= 22.0:
 			take_hit()
 			return
 

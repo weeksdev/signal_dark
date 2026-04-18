@@ -75,8 +75,9 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 
 
 func _emit_contact_hit() -> void:
-	if ship != null and global_position.distance_to(ship.global_position) <= 18.0:
-		ship.take_hit()
+	var target = ship if ship != null else get_tree().get_first_node_in_group("player_ship")
+	if target != null and global_position.distance_to(target.global_position) <= 18.0:
+		target.take_hit()
 
 
 func _update_palette() -> void:
