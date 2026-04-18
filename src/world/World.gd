@@ -2,7 +2,7 @@ extends Node2D
 
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
-@onready var death_overlay = $CanvasLayer/DeathOverlay
+@onready var game_over_overlay = $CanvasLayer/GameOverOverlay
 @onready var zone_complete_overlay = $CanvasLayer/ZoneCompleteOverlay
 @onready var grid: Node2D = $Grid
 
@@ -25,7 +25,6 @@ func _ready() -> void:
 	_apply_desktop_window_size()
 	restarting = false
 	completing = false
-	death_overlay.visible = false
 	ship.destroyed.connect(_on_ship_destroyed)
 	_configure_camera()
 	enemies = get_tree().get_nodes_in_group("zone_enemy")
@@ -72,9 +71,7 @@ func _on_ship_destroyed() -> void:
 	if restarting or completing:
 		return
 	restarting = true
-	death_overlay.visible = true
-	var timer := get_tree().create_timer(0.45)
-	timer.timeout.connect(GameState.restart_zone)
+	game_over_overlay.trigger()
 
 
 func trigger_alert() -> void:
