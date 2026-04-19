@@ -1,0 +1,459 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/world/World.gd" id="1"]
+[ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
+[ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://src/terrain/LatticeWall.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="8"]
+[ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="9"]
+[ext_resource type="PackedScene" path="res://src/enemies/Hunter.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sentry.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://src/enemies/Wisp.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="13"]
+[ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="14"]
+[ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="15"]
+[ext_resource type="PackedScene" path="res://src/enemies/Prism.tscn" id="16"]
+
+[node name="World03" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Grid" type="Node2D" parent="."]
+script = ExtResource("2")
+world_rect = Rect2(-96, -96, 5376, 3328)
+
+; OUTER SHELL — fully sealed megastructure
+[node name="NorthA" parent="." instance=ExtResource("6")]
+position = Vector2(776, 420)
+scale = Vector2(8.0, 1.0)
+
+[node name="NorthB" parent="." instance=ExtResource("6")]
+position = Vector2(1892, 420)
+scale = Vector2(8.0, 1.0)
+
+[node name="NorthC" parent="." instance=ExtResource("6")]
+position = Vector2(3008, 420)
+scale = Vector2(8.0, 1.0)
+
+[node name="NorthD" parent="." instance=ExtResource("6")]
+position = Vector2(4124, 420)
+scale = Vector2(8.0, 1.0)
+
+[node name="SouthA" parent="." instance=ExtResource("6")]
+position = Vector2(776, 2350)
+scale = Vector2(8.0, 1.0)
+
+[node name="SouthB" parent="." instance=ExtResource("6")]
+position = Vector2(1892, 2350)
+scale = Vector2(8.0, 1.0)
+
+[node name="SouthC" parent="." instance=ExtResource("6")]
+position = Vector2(3008, 2350)
+scale = Vector2(8.0, 1.0)
+
+[node name="SouthD" parent="." instance=ExtResource("6")]
+position = Vector2(4124, 2350)
+scale = Vector2(8.0, 1.0)
+
+[node name="WestA" parent="." instance=ExtResource("6")]
+position = Vector2(200, 758)
+rotation = 1.5708
+scale = Vector2(4.7, 1.0)
+
+[node name="WestB" parent="." instance=ExtResource("6")]
+position = Vector2(200, 1385)
+rotation = 1.5708
+scale = Vector2(4.7, 1.0)
+
+[node name="WestC" parent="." instance=ExtResource("6")]
+position = Vector2(200, 2012)
+rotation = 1.5708
+scale = Vector2(4.7, 1.0)
+
+[node name="EastA" parent="." instance=ExtResource("6")]
+position = Vector2(4700, 758)
+rotation = 1.5708
+scale = Vector2(4.7, 1.0)
+
+[node name="EastB" parent="." instance=ExtResource("6")]
+position = Vector2(4700, 1385)
+rotation = 1.5708
+scale = Vector2(4.7, 1.0)
+
+[node name="EastC" parent="." instance=ExtResource("6")]
+position = Vector2(4700, 2012)
+rotation = 1.5708
+scale = Vector2(4.7, 1.0)
+
+; ENTRY BLOCK
+[node name="Ship" parent="." instance=ExtResource("3")]
+position = Vector2(430, 1350)
+
+[node name="EntryNorth" parent="." instance=ExtResource("6")]
+position = Vector2(760, 1180)
+scale = Vector2(4.7, 1.0)
+
+[node name="EntrySouth" parent="." instance=ExtResource("6")]
+position = Vector2(760, 1520)
+scale = Vector2(4.7, 1.0)
+
+[node name="EntrySealTop" parent="." instance=ExtResource("6")]
+position = Vector2(1120, 980)
+rotation = 1.5708
+scale = Vector2(1.9, 1.0)
+
+[node name="EntrySealBot" parent="." instance=ExtResource("6")]
+position = Vector2(1120, 1720)
+rotation = 1.5708
+scale = Vector2(1.9, 1.0)
+
+[node name="DarkPocketA" parent="." instance=ExtResource("7")]
+position = Vector2(520, 1520)
+
+[node name="PrismA" parent="." instance=ExtResource("16")]
+position = Vector2(1030, 1350)
+
+[node name="BypassNorthA" parent="." instance=ExtResource("6")]
+position = Vector2(1760, 700)
+scale = Vector2(9.2, 1.0)
+
+[node name="BypassSouthA" parent="." instance=ExtResource("6")]
+position = Vector2(1760, 2000)
+scale = Vector2(9.2, 1.0)
+
+; LAYER 1 — SCANNER GALLERY
+[node name="GalleryNorth" parent="." instance=ExtResource("6")]
+position = Vector2(1600, 980)
+scale = Vector2(4.9, 1.0)
+
+[node name="GallerySouth" parent="." instance=ExtResource("6")]
+position = Vector2(1600, 1720)
+scale = Vector2(4.9, 1.0)
+
+[node name="GallerySpineA" parent="." instance=ExtResource("6")]
+position = Vector2(1440, 1210)
+rotation = 1.5708
+scale = Vector2(1.5, 1.0)
+
+[node name="GallerySpineB" parent="." instance=ExtResource("6")]
+position = Vector2(1740, 1490)
+rotation = 1.5708
+scale = Vector2(1.5, 1.0)
+
+[node name="GallerySpineC" parent="." instance=ExtResource("6")]
+position = Vector2(2020, 1210)
+rotation = 1.5708
+scale = Vector2(1.5, 1.0)
+
+[node name="GallerySpineD" parent="." instance=ExtResource("6")]
+position = Vector2(2320, 1490)
+rotation = 1.5708
+scale = Vector2(1.5, 1.0)
+
+[node name="GalleryTrapNorth" parent="." instance=ExtResource("6")]
+position = Vector2(2200, 820)
+scale = Vector2(1.7, 1.0)
+
+[node name="GalleryTrapSouth" parent="." instance=ExtResource("6")]
+position = Vector2(2200, 1880)
+scale = Vector2(1.7, 1.0)
+
+[node name="DarkPocketB" parent="." instance=ExtResource("7")]
+position = Vector2(2280, 1100)
+
+[node name="DarkPocketC" parent="." instance=ExtResource("7")]
+position = Vector2(1500, 1620)
+
+[node name="SweeperA" parent="." instance=ExtResource("4")]
+position = Vector2(1460, 1350)
+
+[node name="PatrolA" parent="SweeperA"]
+position = Vector2(0, -185)
+
+[node name="PatrolB" parent="SweeperA"]
+position = Vector2(0, 185)
+
+[node name="PrismB" parent="." instance=ExtResource("16")]
+position = Vector2(1860, 1110)
+
+[node name="PrismC" parent="." instance=ExtResource("16")]
+position = Vector2(2120, 1590)
+
+[node name="PulsarA" parent="." instance=ExtResource("5")]
+position = Vector2(2330, 1340)
+
+[node name="WispA" parent="." instance=ExtResource("12")]
+position = Vector2(1660, 1320)
+
+[node name="HunterA" parent="." instance=ExtResource("10")]
+position = Vector2(1960, 1360)
+
+[node name="ReinforceHunterGalleryN" type="Marker2D" parent="."]
+position = Vector2(1420, 1080)
+
+[node name="ReinforceWispGalleryS" type="Marker2D" parent="."]
+position = Vector2(2260, 1640)
+
+[node name="BypassNorthB" parent="." instance=ExtResource("6")]
+position = Vector2(2920, 640)
+scale = Vector2(7.0, 1.0)
+
+[node name="BypassSouthB" parent="." instance=ExtResource("6")]
+position = Vector2(2920, 2080)
+scale = Vector2(7.0, 1.0)
+
+; LAYER 2 — CENTER PRESSURE CROSS
+[node name="CrossNorth" parent="." instance=ExtResource("6")]
+position = Vector2(2820, 760)
+scale = Vector2(5.6, 1.0)
+
+[node name="CrossSouth" parent="." instance=ExtResource("6")]
+position = Vector2(2820, 1940)
+scale = Vector2(5.6, 1.0)
+
+[node name="CrossWestTop" parent="." instance=ExtResource("6")]
+position = Vector2(2520, 980)
+rotation = 1.5708
+scale = Vector2(1.55, 1.0)
+
+[node name="CrossWestBot" parent="." instance=ExtResource("6")]
+position = Vector2(2520, 1720)
+rotation = 1.5708
+scale = Vector2(1.55, 1.0)
+
+[node name="CrossEastTop" parent="." instance=ExtResource("6")]
+position = Vector2(3120, 980)
+rotation = 1.5708
+scale = Vector2(1.55, 1.0)
+
+[node name="CrossEastBot" parent="." instance=ExtResource("6")]
+position = Vector2(3120, 1720)
+rotation = 1.5708
+scale = Vector2(1.55, 1.0)
+
+[node name="CrossMiddleNorth" parent="." instance=ExtResource("6")]
+position = Vector2(2820, 1100)
+scale = Vector2(2.0, 1.0)
+
+[node name="CrossMiddleSouth" parent="." instance=ExtResource("6")]
+position = Vector2(2820, 1600)
+scale = Vector2(2.0, 1.0)
+
+[node name="CrossPillarA" parent="." instance=ExtResource("6")]
+position = Vector2(2720, 1360)
+rotation = 1.5708
+scale = Vector2(1.1, 1.0)
+
+[node name="CrossPillarB" parent="." instance=ExtResource("6")]
+position = Vector2(2920, 1360)
+rotation = 1.5708
+scale = Vector2(1.1, 1.0)
+
+[node name="CrossTrapTop" parent="." instance=ExtResource("6")]
+position = Vector2(3280, 980)
+rotation = 1.5708
+scale = Vector2(1.6, 1.0)
+
+[node name="CrossTrapBot" parent="." instance=ExtResource("6")]
+position = Vector2(3280, 1720)
+rotation = 1.5708
+scale = Vector2(1.6, 1.0)
+
+[node name="CrossTrapCap" parent="." instance=ExtResource("6")]
+position = Vector2(3420, 1360)
+scale = Vector2(1.4, 1.0)
+
+[node name="DarkPocketD" parent="." instance=ExtResource("7")]
+position = Vector2(2860, 900)
+
+[node name="DarkPocketE" parent="." instance=ExtResource("7")]
+position = Vector2(3400, 1540)
+
+[node name="SweeperB" parent="." instance=ExtResource("4")]
+position = Vector2(2610, 1360)
+
+[node name="PatrolA" parent="SweeperB"]
+position = Vector2(0, -220)
+
+[node name="PatrolB" parent="SweeperB"]
+position = Vector2(0, 220)
+
+[node name="SweeperC" parent="." instance=ExtResource("4")]
+position = Vector2(3030, 1360)
+
+[node name="PatrolA" parent="SweeperC"]
+position = Vector2(0, -220)
+
+[node name="PatrolB" parent="SweeperC"]
+position = Vector2(0, 220)
+
+[node name="PrismD" parent="." instance=ExtResource("16")]
+position = Vector2(2820, 1360)
+
+[node name="PulsarB" parent="." instance=ExtResource("5")]
+position = Vector2(2670, 940)
+
+[node name="PulsarC" parent="." instance=ExtResource("5")]
+position = Vector2(2990, 1780)
+
+[node name="SentryA" parent="." instance=ExtResource("11")]
+position = Vector2(3340, 1120)
+
+[node name="SentryB" parent="." instance=ExtResource("11")]
+position = Vector2(3340, 1600)
+
+[node name="WispB" parent="." instance=ExtResource("12")]
+position = Vector2(2820, 980)
+
+[node name="HunterB" parent="." instance=ExtResource("10")]
+position = Vector2(3200, 1360)
+
+[node name="ReinforceHunterCrossW" type="Marker2D" parent="."]
+position = Vector2(2560, 1080)
+
+[node name="ReinforcePrismCrossE" type="Marker2D" parent="."]
+position = Vector2(3260, 1640)
+
+[node name="BypassNorthC" parent="." instance=ExtResource("6")]
+position = Vector2(4080, 700)
+scale = Vector2(5.4, 1.0)
+
+[node name="BypassSouthC" parent="." instance=ExtResource("6")]
+position = Vector2(4080, 2000)
+scale = Vector2(5.4, 1.0)
+
+; LAYER 3 — REACTOR WEAVE
+[node name="ReactorNorth" parent="." instance=ExtResource("6")]
+position = Vector2(3900, 860)
+scale = Vector2(4.8, 1.0)
+
+[node name="ReactorSouth" parent="." instance=ExtResource("6")]
+position = Vector2(3900, 1840)
+scale = Vector2(4.8, 1.0)
+
+[node name="ReactorGateA" parent="." instance=ExtResource("6")]
+position = Vector2(3560, 1120)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="ReactorGateB" parent="." instance=ExtResource("6")]
+position = Vector2(3560, 1600)
+rotation = 1.5708
+scale = Vector2(1.4, 1.0)
+
+[node name="ReactorSpineA" parent="." instance=ExtResource("6")]
+position = Vector2(3840, 1180)
+rotation = 1.5708
+scale = Vector2(1.45, 1.0)
+
+[node name="ReactorSpineB" parent="." instance=ExtResource("6")]
+position = Vector2(4080, 1520)
+rotation = 1.5708
+scale = Vector2(1.45, 1.0)
+
+[node name="ReactorSpineC" parent="." instance=ExtResource("6")]
+position = Vector2(4300, 1180)
+rotation = 1.5708
+scale = Vector2(1.45, 1.0)
+
+[node name="ReactorCapA" parent="." instance=ExtResource("6")]
+position = Vector2(4200, 980)
+scale = Vector2(1.8, 1.0)
+
+[node name="ReactorCapB" parent="." instance=ExtResource("6")]
+position = Vector2(3940, 1700)
+scale = Vector2(1.8, 1.0)
+
+[node name="ReactorCapC" parent="." instance=ExtResource("6")]
+position = Vector2(4460, 1700)
+scale = Vector2(1.3, 1.0)
+
+[node name="DarkPocketF" parent="." instance=ExtResource("7")]
+position = Vector2(4400, 1120)
+
+[node name="DarkPocketG" parent="." instance=ExtResource("7")]
+position = Vector2(3720, 1700)
+
+[node name="PrismE" parent="." instance=ExtResource("16")]
+position = Vector2(3720, 1040)
+
+[node name="PrismF" parent="." instance=ExtResource("16")]
+position = Vector2(4230, 1500)
+
+[node name="SweeperD" parent="." instance=ExtResource("4")]
+position = Vector2(3900, 1420)
+
+[node name="PatrolA" parent="SweeperD"]
+position = Vector2(-180, 0)
+
+[node name="PatrolB" parent="SweeperD"]
+position = Vector2(180, 0)
+
+[node name="PulsarD" parent="." instance=ExtResource("5")]
+position = Vector2(4470, 1420)
+
+[node name="SentryC" parent="." instance=ExtResource("11")]
+position = Vector2(4050, 980)
+
+[node name="SentryD" parent="." instance=ExtResource("11")]
+position = Vector2(4500, 1710)
+
+[node name="WispC" parent="." instance=ExtResource("12")]
+position = Vector2(4360, 1010)
+
+[node name="WispD" parent="." instance=ExtResource("12")]
+position = Vector2(3900, 1730)
+
+[node name="HunterC" parent="." instance=ExtResource("10")]
+position = Vector2(3610, 1420)
+
+[node name="HunterD" parent="." instance=ExtResource("10")]
+position = Vector2(4310, 1260)
+
+[node name="ReinforceHunterReactorA" type="Marker2D" parent="."]
+position = Vector2(3620, 1100)
+
+[node name="ReinforceWispReactorB" type="Marker2D" parent="."]
+position = Vector2(4450, 1600)
+
+[node name="ReinforcePrismReactorC" type="Marker2D" parent="."]
+position = Vector2(4100, 900)
+
+[node name="ExitZone" parent="." instance=ExtResource("13")]
+position = Vector2(4520, 1120)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="StealthOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9")
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("8")]
+
+[node name="ZoneCompleteOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14")
+
+[node name="GameOverOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15")

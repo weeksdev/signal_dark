@@ -4,6 +4,8 @@ const START_SCENE := "res://src/ui/StartScreen.tscn"
 const ZONE_SCENES := [
 	"res://src/world/World.tscn",
 	"res://src/world/World02.tscn",
+	"res://src/world/World03.tscn",
+	"res://src/world/World04.tscn",
 ]
 
 var current_world: Node = null
@@ -17,6 +19,13 @@ func register_world(world: Node) -> void:
 
 func start_run() -> void:
 	current_zone_index = 0
+	_change_scene(ZONE_SCENES[current_zone_index])
+
+
+func start_zone(zone_index: int) -> void:
+	if zone_index < 0 or zone_index >= ZONE_SCENES.size():
+		return
+	current_zone_index = zone_index
 	_change_scene(ZONE_SCENES[current_zone_index])
 
 

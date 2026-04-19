@@ -1,5 +1,9 @@
 extends Node2D
 
+const HUNTER_SCENE := preload("res://src/enemies/Hunter.tscn")
+const WISP_SCENE := preload("res://src/enemies/Wisp.tscn")
+const PRISM_SCENE := preload("res://src/enemies/Prism.tscn")
+
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
 @onready var game_over_overlay = $CanvasLayer/GameOverOverlay
@@ -16,6 +20,7 @@ var _kill_count: int = 0
 var _caution_active: bool = false
 var _caution_timer: float = 0.0
 var _caution_enemy: Node = null
+var _reinforcements_spawned: bool = false
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
@@ -115,10 +120,22 @@ func trigger_alert() -> void:
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
 	AlertSystem.enter_combat()
+	_spawn_reinforcements_for_alert()
 	combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.is_alive:
 			enemy.activate_for_combat(ship)
+
+
+func register_spawned_enemy(enemy: Node) -> void:
+	add_child(enemy)
+	enemies.append(enemy)
+	if enemy.has_signal("detected"):
+		enemy.detected.connect(_on_enemy_detected)
+	if enemy.has_signal("killed"):
+		enemy.killed.connect(_on_enemy_killed)
+	if AlertSystem.combat_mode and enemy.has_method("activate_for_combat"):
+		enemy.activate_for_combat(ship)
 
 
 func register_probe(position: Vector2, duration: float) -> void:
@@ -199,3 +216,81 @@ func _exit_combat_to_stealth() -> void:
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
 			enemy.deactivate_to_stealth()
+
+
+func _spawn_reinforcements_for_alert() -> void:
+	if _reinforcements_spawned:
+		return
+	var spawn_points := _get_reinforcement_points()
+	if spawn_points.is_empty():
+		return
+
+	var desired_count := 4
+	var min_distance := 280.0
+	var max_distance := 980.0
+	var candidates: Array[Dictionary] = []
+
+	for point in spawn_points:
+		var marker: Marker2D = point["marker"]
+		var distance := marker.global_position.distance_to(ship.global_position)
+		if distance < min_distance or distance > max_distance:
+			continue
+		candidates.append({
+			"marker": marker,
+			"kind": point["kind"],
+			"distance": distance,
+		})
+
+	if candidates.is_empty():
+		return
+
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return a["distance"] < b["distance"]
+	)
+
+	var spawned := 0
+	for candidate in candidates:
+		if spawned >= desired_count:
+			break
+		var enemy := _instantiate_reinforcement(candidate["kind"])
+		if enemy == null:
+			continue
+		enemy.global_position = candidate["marker"].global_position
+		register_spawned_enemy(enemy)
+		spawned += 1
+
+	if spawned > 0:
+		_reinforcements_spawned = true
+
+
+func _get_reinforcement_points() -> Array[Dictionary]:
+	var points: Array[Dictionary] = []
+	for node in find_children("*", "Marker2D", true, false):
+		if not node.name.begins_with("Reinforce"):
+			continue
+		var marker := node as Marker2D
+		if marker == null:
+			continue
+		points.append({
+			"marker": marker,
+			"kind": _reinforcement_kind_from_name(marker.name),
+		})
+	return points
+
+
+func _reinforcement_kind_from_name(node_name: String) -> String:
+	if node_name.contains("Prism"):
+		return "prism"
+	if node_name.contains("Wisp"):
+		return "wisp"
+	return "hunter"
+
+
+func _instantiate_reinforcement(kind: String) -> Node:
+	match kind:
+		"prism":
+			return PRISM_SCENE.instantiate()
+		"wisp":
+			return WISP_SCENE.instantiate()
+		_:
+			return HUNTER_SCENE.instantiate()

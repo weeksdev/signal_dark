@@ -1,0 +1,365 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://src/world/World.gd" id="1"]
+[ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
+[ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://src/terrain/LatticeWall.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="8"]
+[ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="9"]
+[ext_resource type="PackedScene" path="res://src/enemies/Hunter.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sentry.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://src/enemies/Wisp.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="13"]
+[ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="14"]
+[ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="15"]
+[ext_resource type="PackedScene" path="res://src/enemies/Prism.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://src/terrain/GateLock.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://src/enemies/WarpMine.tscn" id="18"]
+
+[node name="World04" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Grid" type="Node2D" parent="."]
+script = ExtResource("2")
+world_rect = Rect2(-96, -96, 5632, 3456)
+
+; OUTER SHELL
+[node name="NorthA" parent="." instance=ExtResource("6")]
+position = Vector2(776, 420)
+scale = Vector2(8.6, 1.0)
+
+[node name="NorthB" parent="." instance=ExtResource("6")]
+position = Vector2(1992, 420)
+scale = Vector2(8.6, 1.0)
+
+[node name="NorthC" parent="." instance=ExtResource("6")]
+position = Vector2(3208, 420)
+scale = Vector2(8.6, 1.0)
+
+[node name="NorthD" parent="." instance=ExtResource("6")]
+position = Vector2(4424, 420)
+scale = Vector2(8.6, 1.0)
+
+[node name="SouthA" parent="." instance=ExtResource("6")]
+position = Vector2(776, 2450)
+scale = Vector2(8.6, 1.0)
+
+[node name="SouthB" parent="." instance=ExtResource("6")]
+position = Vector2(1992, 2450)
+scale = Vector2(8.6, 1.0)
+
+[node name="SouthC" parent="." instance=ExtResource("6")]
+position = Vector2(3208, 2450)
+scale = Vector2(8.6, 1.0)
+
+[node name="SouthD" parent="." instance=ExtResource("6")]
+position = Vector2(4424, 2450)
+scale = Vector2(8.6, 1.0)
+
+[node name="WestA" parent="." instance=ExtResource("6")]
+position = Vector2(200, 758)
+rotation = 1.5708
+scale = Vector2(5.2, 1.0)
+
+[node name="WestB" parent="." instance=ExtResource("6")]
+position = Vector2(200, 1435)
+rotation = 1.5708
+scale = Vector2(5.2, 1.0)
+
+[node name="WestC" parent="." instance=ExtResource("6")]
+position = Vector2(200, 2112)
+rotation = 1.5708
+scale = Vector2(5.2, 1.0)
+
+[node name="EastA" parent="." instance=ExtResource("6")]
+position = Vector2(5000, 758)
+rotation = 1.5708
+scale = Vector2(5.2, 1.0)
+
+[node name="EastB" parent="." instance=ExtResource("6")]
+position = Vector2(5000, 1435)
+rotation = 1.5708
+scale = Vector2(5.2, 1.0)
+
+[node name="EastC" parent="." instance=ExtResource("6")]
+position = Vector2(5000, 2112)
+rotation = 1.5708
+scale = Vector2(5.2, 1.0)
+
+; ENTRY
+[node name="Ship" parent="." instance=ExtResource("3")]
+position = Vector2(430, 1430)
+
+[node name="EntryNorth" parent="." instance=ExtResource("6")]
+position = Vector2(820, 1260)
+scale = Vector2(5.0, 1.0)
+
+[node name="EntrySouth" parent="." instance=ExtResource("6")]
+position = Vector2(820, 1600)
+scale = Vector2(5.0, 1.0)
+
+[node name="EntrySealTop" parent="." instance=ExtResource("6")]
+position = Vector2(1180, 1080)
+rotation = 1.5708
+scale = Vector2(2.0, 1.0)
+
+[node name="EntrySealBot" parent="." instance=ExtResource("6")]
+position = Vector2(1180, 1780)
+rotation = 1.5708
+scale = Vector2(2.0, 1.0)
+
+[node name="DarkPocketA" parent="." instance=ExtResource("7")]
+position = Vector2(560, 1600)
+
+[node name="BypassNorthA" parent="." instance=ExtResource("6")]
+position = Vector2(1780, 760)
+scale = Vector2(9.0, 1.0)
+
+[node name="BypassSouthA" parent="." instance=ExtResource("6")]
+position = Vector2(1780, 2110)
+scale = Vector2(9.0, 1.0)
+
+; SECTION 1
+[node name="CorridorPillarA" parent="." instance=ExtResource("6")]
+position = Vector2(1480, 1430)
+rotation = 1.5708
+scale = Vector2(1.0, 1.0)
+
+[node name="CorridorPillarB" parent="." instance=ExtResource("6")]
+position = Vector2(1870, 1430)
+rotation = 1.5708
+scale = Vector2(1.3, 1.0)
+
+[node name="CorridorPillarC" parent="." instance=ExtResource("6")]
+position = Vector2(2260, 1430)
+rotation = 1.5708
+scale = Vector2(1.0, 1.0)
+
+[node name="GateNorthA" parent="." instance=ExtResource("17")]
+position = Vector2(1600, 1210)
+rotation = 1.5708
+
+[node name="GateSouthA" parent="." instance=ExtResource("17")]
+position = Vector2(2020, 1650)
+rotation = 1.5708
+
+[node name="WarpMineA" parent="." instance=ExtResource("18")]
+position = Vector2(1600, 960)
+payload_kind = "hunter"
+
+[node name="SpawnA" parent="WarpMineA"]
+position = Vector2(-54, 0)
+
+[node name="SpawnB" parent="WarpMineA"]
+position = Vector2(54, 0)
+
+[node name="WarpMineB" parent="." instance=ExtResource("18")]
+position = Vector2(2020, 1910)
+payload_kind = "wisp"
+
+[node name="SpawnA" parent="WarpMineB"]
+position = Vector2(-48, 0)
+
+[node name="SpawnB" parent="WarpMineB"]
+position = Vector2(48, 0)
+
+[node name="PrismA" parent="." instance=ExtResource("16")]
+position = Vector2(1520, 1430)
+
+[node name="SweeperA" parent="." instance=ExtResource("4")]
+position = Vector2(1920, 1430)
+
+[node name="PatrolA" parent="SweeperA"]
+position = Vector2(0, -210)
+
+[node name="PatrolB" parent="SweeperA"]
+position = Vector2(0, 210)
+
+[node name="HunterA" parent="." instance=ExtResource("10")]
+position = Vector2(2240, 1410)
+
+[node name="DarkPocketB" parent="." instance=ExtResource("7")]
+position = Vector2(2320, 960)
+
+[node name="DarkPocketC" parent="." instance=ExtResource("7")]
+position = Vector2(1730, 1910)
+
+[node name="BypassNorthB" parent="." instance=ExtResource("6")]
+position = Vector2(3080, 720)
+scale = Vector2(7.5, 1.0)
+
+[node name="BypassSouthB" parent="." instance=ExtResource("6")]
+position = Vector2(3080, 2150)
+scale = Vector2(7.5, 1.0)
+
+; SECTION 2
+[node name="CrossNorth" parent="." instance=ExtResource("6")]
+position = Vector2(2920, 1110)
+scale = Vector2(3.4, 1.0)
+
+[node name="CrossSouth" parent="." instance=ExtResource("6")]
+position = Vector2(2920, 1750)
+scale = Vector2(3.4, 1.0)
+
+[node name="CrossWest" parent="." instance=ExtResource("6")]
+position = Vector2(2640, 1430)
+rotation = 1.5708
+scale = Vector2(1.6, 1.0)
+
+[node name="CrossEast" parent="." instance=ExtResource("6")]
+position = Vector2(3200, 1430)
+rotation = 1.5708
+scale = Vector2(1.6, 1.0)
+
+[node name="GateNorthB" parent="." instance=ExtResource("17")]
+position = Vector2(2820, 1210)
+rotation = 1.5708
+
+[node name="GateSouthB" parent="." instance=ExtResource("17")]
+position = Vector2(3080, 1650)
+rotation = 1.5708
+
+[node name="WarpMineC" parent="." instance=ExtResource("18")]
+position = Vector2(2820, 950)
+payload_kind = "hunter"
+
+[node name="WarpMineD" parent="." instance=ExtResource("18")]
+position = Vector2(3080, 1910)
+payload_kind = "wisp"
+
+[node name="PulsarA" parent="." instance=ExtResource("5")]
+position = Vector2(2860, 1420)
+
+[node name="PrismB" parent="." instance=ExtResource("16")]
+position = Vector2(3360, 1360)
+
+[node name="SweeperB" parent="." instance=ExtResource("4")]
+position = Vector2(3400, 1430)
+
+[node name="PatrolA" parent="SweeperB"]
+position = Vector2(-180, 0)
+
+[node name="PatrolB" parent="SweeperB"]
+position = Vector2(180, 0)
+
+[node name="WispA" parent="." instance=ExtResource("12")]
+position = Vector2(2580, 1370)
+
+[node name="HunterB" parent="." instance=ExtResource("10")]
+position = Vector2(3290, 1500)
+
+[node name="DarkPocketD" parent="." instance=ExtResource("7")]
+position = Vector2(3440, 960)
+
+[node name="DarkPocketE" parent="." instance=ExtResource("7")]
+position = Vector2(2610, 1910)
+
+[node name="BypassNorthC" parent="." instance=ExtResource("6")]
+position = Vector2(4260, 760)
+scale = Vector2(5.2, 1.0)
+
+[node name="BypassSouthC" parent="." instance=ExtResource("6")]
+position = Vector2(4260, 2110)
+scale = Vector2(5.2, 1.0)
+
+; SECTION 3
+[node name="ReactorNorth" parent="." instance=ExtResource("6")]
+position = Vector2(4120, 1080)
+scale = Vector2(3.8, 1.0)
+
+[node name="ReactorSouth" parent="." instance=ExtResource("6")]
+position = Vector2(4120, 1780)
+scale = Vector2(3.8, 1.0)
+
+[node name="ReactorPillarA" parent="." instance=ExtResource("6")]
+position = Vector2(3880, 1430)
+rotation = 1.5708
+scale = Vector2(1.3, 1.0)
+
+[node name="ReactorPillarB" parent="." instance=ExtResource("6")]
+position = Vector2(4360, 1430)
+rotation = 1.5708
+scale = Vector2(1.3, 1.0)
+
+[node name="GateNorthC" parent="." instance=ExtResource("17")]
+position = Vector2(3920, 1210)
+rotation = 1.5708
+
+[node name="GateSouthC" parent="." instance=ExtResource("17")]
+position = Vector2(4300, 1650)
+rotation = 1.5708
+
+[node name="WarpMineE" parent="." instance=ExtResource("18")]
+position = Vector2(3920, 950)
+payload_kind = "hunter"
+
+[node name="WarpMineF" parent="." instance=ExtResource("18")]
+position = Vector2(4300, 1910)
+payload_kind = "hunter"
+
+[node name="PulsarB" parent="." instance=ExtResource("5")]
+position = Vector2(4500, 1420)
+
+[node name="PrismC" parent="." instance=ExtResource("16")]
+position = Vector2(4040, 1430)
+
+[node name="SentryA" parent="." instance=ExtResource("11")]
+position = Vector2(3920, 1410)
+
+[node name="SentryB" parent="." instance=ExtResource("11")]
+position = Vector2(4480, 1410)
+
+[node name="WispB" parent="." instance=ExtResource("12")]
+position = Vector2(4180, 1110)
+
+[node name="WispC" parent="." instance=ExtResource("12")]
+position = Vector2(4180, 1760)
+
+[node name="HunterC" parent="." instance=ExtResource("10")]
+position = Vector2(4700, 1420)
+
+[node name="DarkPocketF" parent="." instance=ExtResource("7")]
+position = Vector2(4460, 950)
+
+[node name="DarkPocketG" parent="." instance=ExtResource("7")]
+position = Vector2(3820, 1910)
+
+[node name="ExitZone" parent="." instance=ExtResource("13")]
+position = Vector2(4790, 1430)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="StealthOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9")
+
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("8")]
+
+[node name="ZoneCompleteOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14")
+
+[node name="GameOverOverlay" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15")
