@@ -18,6 +18,8 @@ var pulse_progress: float = 0.0
 var pulse_cooldown: float = 1.0
 var ring_visible: bool = false
 var _range_t: float = 0.0
+var _alerting: bool = false
+var _alert_hold: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -34,6 +36,11 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_range_t += delta
+
+	if _alert_hold > 0.0:
+		_alert_hold -= delta
+		if _alert_hold <= 0.0:
+			_alerting = false
 
 	if combat_active and is_instance_valid(ship):
 		var to_ship: Vector2 = ship.global_position - global_position
@@ -97,6 +104,9 @@ func _start_pulse() -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player == null:
 		return
+	# Dark pocket masks the player
+	if player.in_dark_pocket:
+		return
 	var distance: float = global_position.distance_to(player.global_position)
 	if distance > _current_range():
 		return
@@ -104,7 +114,10 @@ func _start_pulse() -> void:
 	if blocked:
 		return
 	if player.get_effective_emission() > 0.05 and not player.dark_mode:
-		detected.emit(self)
+		if not _alerting:
+			_alerting = true
+			detected.emit(self)
+		_alert_hold = 3.0
 
 
 func _update_palette() -> void:
@@ -119,6 +132,16 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
+	# MGS "!" alert marker
+	if _alerting and not combat_active:
+		var t_ms: float = Time.get_ticks_msec() / 1000.0
+		var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
+		var font := ThemeDB.fallback_font
+		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
+		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
+		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
+				Color(1.0, 0.90, 0.0, pulse))
+
 	var halo_color := ColorSystem.glow_color()
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.035 if not AlertSystem.combat_mode else 0.04))
 

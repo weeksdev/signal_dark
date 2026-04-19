@@ -50,12 +50,12 @@ scale = Vector2(5.7, 1.0)
 [node name="R1RightN" parent="." instance=ExtResource("6")]
 position = Vector2(760, 900)
 rotation = 1.5708
-scale = Vector2(2.0, 1.0)
+scale = Vector2(2.1, 1.0)
 
 [node name="R1RightS" parent="." instance=ExtResource("6")]
 position = Vector2(760, 1420)
 rotation = 1.5708
-scale = Vector2(2.0, 1.0)
+scale = Vector2(2.1, 1.0)
 
 [node name="DarkPocketA" parent="." instance=ExtResource("7")]
 position = Vector2(360, 1360)
@@ -107,12 +107,12 @@ scale = Vector2(3.9, 1.0)
 [node name="R2RightTop" parent="." instance=ExtResource("6")]
 position = Vector2(2060, 780)
 rotation = 1.5708
-scale = Vector2(3.9, 1.0)
+scale = Vector2(4.0, 1.0)
 
 [node name="R2RightBot" parent="." instance=ExtResource("6")]
 position = Vector2(2060, 1540)
 rotation = 1.5708
-scale = Vector2(3.9, 1.0)
+scale = Vector2(4.0, 1.0)
 
 [node name="R2NorthShelf" parent="." instance=ExtResource("6")]
 position = Vector2(1360, 760)
@@ -236,7 +236,7 @@ scale = Vector2(2.5, 1.0)
 [node name="R3RightMid" parent="." instance=ExtResource("6")]
 position = Vector2(3160, 1290)
 rotation = 1.5708
-scale = Vector2(4.5, 1.0)
+scale = Vector2(4.7, 1.0)
 
 [node name="R3RightBot" parent="." instance=ExtResource("6")]
 position = Vector2(3160, 1740)
@@ -342,12 +342,17 @@ scale = Vector2(2.5, 1.0)
 [node name="R4LeftS" parent="." instance=ExtResource("6")]
 position = Vector2(3380, 1170)
 rotation = 1.5708
-scale = Vector2(2.7, 1.0)
+scale = Vector2(2.8, 1.0)
 
 [node name="R4RightTop" parent="." instance=ExtResource("6")]
 position = Vector2(4200, 760)
 rotation = 1.5708
-scale = Vector2(1.6, 1.0)
+scale = Vector2(2.8, 1.0)
+
+[node name="R4RightMid" parent="." instance=ExtResource("6")]
+position = Vector2(4200, 980)
+rotation = 1.5708
+scale = Vector2(1.5, 1.0)
 
 [node name="R4RightBot" parent="." instance=ExtResource("6")]
 position = Vector2(4200, 1220)
@@ -384,7 +389,7 @@ position = Vector2(3640, 920)
 position = Vector2(4010, 760)
 
 [node name="HunterC" parent="." instance=ExtResource("10")]
-position = Vector2(3650, 1140)
+position = Vector2(3560, 1210)
 
 [node name="WispD" parent="." instance=ExtResource("12")]
 position = Vector2(3930, 1080)

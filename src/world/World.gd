@@ -13,9 +13,13 @@ var restarting: bool = false
 var completing: bool = false
 var combat_cooldown_remaining: float = 0.0
 var _kill_count: int = 0
+var _caution_active: bool = false
+var _caution_timer: float = 0.0
+var _caution_enemy: Node = null
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
+const CAUTION_DURATION := 1.8
 
 
 func _ready() -> void:
@@ -43,17 +47,49 @@ func _process(delta: float) -> void:
 		probe_expire_time = 0.0
 	if AlertSystem.combat_mode and not restarting:
 		_update_combat_cooldown(delta)
+	if _caution_active and not AlertSystem.combat_mode:
+		_update_caution(delta)
 
 
-func _on_enemy_detected(_enemy: Node) -> void:
+func _update_caution(delta: float) -> void:
+	# Cancel if the detecting enemy died or lost sight of the player
+	if not is_instance_valid(_caution_enemy) or not _caution_enemy.is_alive:
+		_cancel_caution()
+		return
+	if not _caution_enemy._alerting:
+		_cancel_caution()
+		return
+	_caution_timer -= delta
+	if _caution_timer <= 0.0:
+		_cancel_caution()
+		trigger_alert()
+
+
+func _cancel_caution() -> void:
+	_caution_active = false
+	_caution_timer = 0.0
+	_caution_enemy = null
+
+
+func _on_enemy_detected(enemy: Node) -> void:
 	if AlertSystem.combat_mode:
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
-	trigger_alert()
+	if _caution_active:
+		# Spotted again during caution window → straight to combat
+		_cancel_caution()
+		trigger_alert()
+		return
+	# First detection → caution window (player can escape before full alert)
+	_caution_active = true
+	_caution_timer = CAUTION_DURATION
+	_caution_enemy = enemy
 
 
-func _on_enemy_killed(_enemy: Node, silent: bool) -> void:
+func _on_enemy_killed(enemy: Node, silent: bool) -> void:
 	_kill_count += 1
+	if _caution_enemy == enemy:
+		_cancel_caution()
 	if not silent and not AlertSystem.combat_mode:
 		trigger_alert()
 	if _living_enemy_count() == 0:
