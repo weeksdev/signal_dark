@@ -18,11 +18,15 @@ var _ready_to_start: bool = false
 var _level_select_unlocked: bool = false
 var _combo_index: int = 0
 var _selected_zone: int = 0
+var _arcade_mode: bool = false
+var _arcade_seed: int = 0
 
 
 func _ready() -> void:
 	AlertSystem.reset()
 	ColorSystem.reset()
+	ArcadeState.reset()
+	_arcade_seed = randi() % 90000 + 10000
 	var t := get_tree().create_timer(0.6)
 	t.timeout.connect(func(): _ready_to_start = true)
 
@@ -37,25 +41,64 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		var action := _handle_level_select_key(event.keycode)
-		if action == "consumed":
+		if event.keycode == KEY_TAB:
+			_arcade_mode = not _arcade_mode
 			return
-		if action == "start_selected":
-			GameState.start_zone(_selected_zone)
+		# Left/right arrows switch modes (when level select not active)
+		if not _level_select_unlocked:
+			if event.keycode == KEY_LEFT:
+				_arcade_mode = false
+				return
+			if event.keycode == KEY_RIGHT:
+				_arcade_mode = true
+				return
+		if _arcade_mode and event.keycode == KEY_R:
+			_arcade_seed = randi() % 90000 + 10000
 			return
+		if not _arcade_mode:
+			var action := _handle_level_select_key(event.keycode)
+			if action == "consumed":
+				return
+			if action == "start_selected":
+				GameState.start_zone(_selected_zone)
+				return
 		if keycode_is_confirm(event.keycode):
-			GameState.start_run()
+			if _arcade_mode:
+				GameState.start_arcade_run(_arcade_seed)
+			else:
+				GameState.start_run()
 		return
 
 	if event is InputEventJoypadButton and event.pressed:
-		var combo_action := _handle_level_select_joypad(event.button_index)
-		if combo_action == "consumed":
+		if event.button_index == JOY_BUTTON_BACK:
+			_arcade_mode = not _arcade_mode
 			return
-		if combo_action == "start_selected":
-			GameState.start_zone(_selected_zone)
-			return
+		# D-pad left/right switch modes (when level select not active)
+		if not _level_select_unlocked:
+			if event.button_index == JOY_BUTTON_DPAD_LEFT:
+				_arcade_mode = false
+				return
+			if event.button_index == JOY_BUTTON_DPAD_RIGHT:
+				_arcade_mode = true
+				return
+		if not _arcade_mode:
+			var combo_action := _handle_level_select_joypad(event.button_index)
+			if combo_action == "consumed":
+				return
+			if combo_action == "start_selected":
+				GameState.start_zone(_selected_zone)
+				return
 		if event.button_index == JOY_BUTTON_START or event.button_index == JOY_BUTTON_A:
-			GameState.start_run()
+			if _arcade_mode:
+				GameState.start_arcade_run(_arcade_seed)
+			else:
+				GameState.start_run()
+
+	if event is InputEventJoypadMotion:
+		if not _ready_to_start:
+			return
+		if event.axis == JOY_AXIS_LEFT_X and absf(event.axis_value) > 0.5:
+			_arcade_mode = event.axis_value > 0.0
 
 
 func keycode_is_confirm(keycode: Key) -> bool:
@@ -194,34 +237,78 @@ func _draw() -> void:
 
 	# Divider
 	draw_line(Vector2(cx - 120.0, ty + 50.0), Vector2(cx + 120.0, ty + 50.0),
-			Color(0.22, 0.6, 0.32, 0.28), 1.0)
+			Color(0.22, 0.6, 0.32, 0.22), 1.0)
 
-	# Blinking prompt
-	if _level_select_unlocked:
-		draw_string(font, Vector2(cx - 118.0, vp.y * 0.56),
-				"LEVEL SELECT UNLOCKED",
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
-				Color(0.48, 1.0, 0.62, 0.92))
-	else:
-		if fmod(t, 1.3) < 0.82:
-			draw_string(font, Vector2(cx - 96.0, vp.y * 0.58),
-					"PRESS ENTER TO START",
-					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
-					Color(0.38, 1.0, 0.52, 0.9))
+	# ── Mode selector ────────────────────────────────────────────────────────
+	var mode_y := vp.y * 0.52
+	var story_col  := Color(0.55, 1.0, 0.65, 0.95) if not _arcade_mode else Color(0.22, 0.55, 0.30, 0.45)
+	var arcade_col := Color(0.45, 0.82, 1.0, 0.95) if _arcade_mode     else Color(0.18, 0.48, 0.72, 0.45)
 
-	if _level_select_unlocked:
-		var menu_y := vp.y * 0.615
-		for i in GameState.ZONE_SCENES.size():
-			var selected := i == _selected_zone
-			var label := "ZONE %02d" % (i + 1)
-			var color := Color(0.60, 1.0, 0.70, 0.95) if selected else Color(0.24, 0.62, 0.34, 0.58)
-			draw_string(font, Vector2(cx - 78.0 + i * 86.0, menu_y),
-					"%d:%s" % [i + 1, label],
-					HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
-		draw_string(font, Vector2(cx - 138.0, menu_y + 22.0),
-				"ARROWS OR D-PAD TO CHOOSE  //  ENTER OR A TO DEPLOY",
+	# Story option
+	if not _arcade_mode:
+		draw_rect(Rect2(cx - 130.0, mode_y - 16.0, 114.0, 22.0),
+				Color(0.18, 0.55, 0.28, 0.18), true)
+		draw_rect(Rect2(cx - 130.0, mode_y - 16.0, 114.0, 22.0),
+				Color(0.35, 0.9, 0.48, 0.35), false, 1.0)
+	draw_string(font, Vector2(cx - 122.0, mode_y),
+			"▶ STORY MODE" if not _arcade_mode else "  STORY MODE",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, story_col)
+
+	# Arcade option
+	if _arcade_mode:
+		draw_rect(Rect2(cx + 4.0, mode_y - 16.0, 126.0, 22.0),
+				Color(0.08, 0.25, 0.55, 0.22), true)
+		draw_rect(Rect2(cx + 4.0, mode_y - 16.0, 126.0, 22.0),
+				Color(0.30, 0.65, 1.0, 0.45), false, 1.0)
+	draw_string(font, Vector2(cx + 12.0, mode_y),
+			"▶ ARCADE MODE" if _arcade_mode else "  ARCADE MODE",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, arcade_col)
+
+	draw_string(font, Vector2(cx - 130.0, mode_y + 14.0),
+			"TAB  /  SELECT BUTTON  to switch",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+			Color(0.28, 0.62, 0.36, 0.50))
+
+	# ── Mode-specific prompts ─────────────────────────────────────────────────
+	if _arcade_mode:
+		var seed_y := mode_y + 48.0
+		draw_string(font, Vector2(cx - 60.0, seed_y),
+				"SEED  %d" % _arcade_seed,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+				Color(0.45, 0.82, 1.0, 0.95))
+		draw_string(font, Vector2(cx - 60.0, seed_y + 24.0),
+				"R  —  NEW SEED",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
-				Color(0.28, 0.78, 0.42, 0.62))
+				Color(0.28, 0.60, 0.88, 0.50))
+		if fmod(t, 1.3) < 0.82:
+			draw_string(font, Vector2(cx - 96.0, seed_y + 52.0),
+					"PRESS ENTER TO LAUNCH RUN",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
+					Color(0.40, 0.82, 1.0, 0.92))
+	else:
+		if _level_select_unlocked:
+			draw_string(font, Vector2(cx - 118.0, mode_y + 48.0),
+					"LEVEL SELECT UNLOCKED",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
+					Color(0.48, 1.0, 0.62, 0.92))
+			var menu_y := mode_y + 72.0
+			for i in GameState.ZONE_SCENES.size():
+				var sel := i == _selected_zone
+				var label := "ZONE %02d" % (i + 1)
+				var col := Color(0.60, 1.0, 0.70, 0.95) if sel else Color(0.24, 0.62, 0.34, 0.58)
+				draw_string(font, Vector2(cx - 78.0 + i * 86.0, menu_y),
+						"%d:%s" % [i + 1, label],
+						HORIZONTAL_ALIGNMENT_LEFT, -1, 12, col)
+			draw_string(font, Vector2(cx - 138.0, menu_y + 22.0),
+					"ARROWS OR D-PAD TO CHOOSE  //  ENTER OR A TO DEPLOY",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+					Color(0.28, 0.78, 0.42, 0.62))
+		else:
+			if fmod(t, 1.3) < 0.82:
+				draw_string(font, Vector2(cx - 96.0, mode_y + 48.0),
+						"PRESS ENTER TO START",
+						HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
+						Color(0.38, 1.0, 0.52, 0.90))
 
 	# Controls block
 	var hy    := vp.y * 0.73

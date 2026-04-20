@@ -30,6 +30,10 @@ func is_probe_pressed() -> bool:
 	return Input.is_action_pressed("probe") or _joy_button_pressed(JOY_BUTTON_X)
 
 
+func is_hack_pressed() -> bool:
+	return Input.is_action_pressed("hack") or _joy_button_pressed(JOY_BUTTON_Y)
+
+
 func is_restart_just_pressed() -> bool:
 	return Input.is_action_just_pressed("restart")
 

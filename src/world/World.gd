@@ -21,6 +21,10 @@ var _caution_active: bool = false
 var _caution_timer: float = 0.0
 var _caution_enemy: Node = null
 var _reinforcements_spawned: bool = false
+var _active_dark_pockets: Dictionary = {}
+var _defeated_enemy_snapshots: Array[Dictionary] = []
+var _hack_target: Node2D = null
+var _hack_progress: float = 0.0
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
@@ -57,6 +61,9 @@ func _process(delta: float) -> void:
 
 
 func _update_caution(delta: float) -> void:
+	if ship.in_dark_pocket:
+		_cancel_caution()
+		return
 	# Cancel if the detecting enemy died or lost sight of the player
 	if not is_instance_valid(_caution_enemy) or not _caution_enemy.is_alive:
 		_cancel_caution()
@@ -77,6 +84,9 @@ func _cancel_caution() -> void:
 
 
 func _on_enemy_detected(enemy: Node) -> void:
+	if ship.in_dark_pocket:
+		_cancel_caution()
+		return
 	if AlertSystem.combat_mode:
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
@@ -92,6 +102,9 @@ func _on_enemy_detected(enemy: Node) -> void:
 
 
 func _on_enemy_killed(enemy: Node, silent: bool) -> void:
+	var snapshot := _snapshot_enemy(enemy)
+	if not snapshot.is_empty():
+		_defeated_enemy_snapshots.append(snapshot)
 	_kill_count += 1
 	if _caution_enemy == enemy:
 		_cancel_caution()
@@ -159,6 +172,51 @@ func is_line_blocked(from_point: Vector2, to_point: Vector2, exclusions := []) -
 	return not hit.is_empty()
 
 
+func set_player_dark_pocket_state(pocket: Area2D, active: bool) -> void:
+	if active:
+		_active_dark_pockets[pocket.get_instance_id()] = pocket
+		_cancel_caution()
+		if AlertSystem.combat_mode:
+			_exit_combat_to_stealth()
+	else:
+		_active_dark_pockets.erase(pocket.get_instance_id())
+	ship.in_dark_pocket = not _active_dark_pockets.is_empty()
+	_refresh_dark_pocket_gates()
+
+
+func update_gate_hacking(ship_node: Node2D, hack_pressed: bool, delta: float) -> Dictionary:
+	var gate := _find_nearest_hack_gate(ship_node)
+	if gate == null:
+		_hack_target = null
+		_hack_progress = 0.0
+		return {"visible": false}
+
+	if gate != _hack_target:
+		_hack_target = gate
+		_hack_progress = 0.0
+
+	if not hack_pressed:
+		_hack_progress = 0.0
+	else:
+		_hack_progress = minf(_hack_progress + delta, gate.hack_duration)
+		if _hack_progress >= gate.hack_duration:
+			gate.set_hacked_open(true)
+			_respawn_defeated_enemies()
+			_hack_target = null
+			_hack_progress = 0.0
+			return {
+				"visible": true,
+				"text": "ACCESS GRANTED  ENEMIES RESET"
+			}
+
+	var pct: int = int(round((_hack_progress / gate.hack_duration) * 100.0))
+	var remaining: float = maxf(0.0, gate.hack_duration - _hack_progress)
+	return {
+		"visible": true,
+		"text": "HOLD Y / F / RMB HACK  %02ds  %d%%  RESET ENEMIES" % [int(ceil(remaining)), pct]
+	}
+
+
 func _living_enemy_count() -> int:
 	var count := 0
 	for enemy in enemies:
@@ -199,6 +257,8 @@ func _update_combat_cooldown(delta: float) -> void:
 
 
 func _enemy_still_threatening() -> bool:
+	if ship.in_dark_pocket:
+		return false
 	for enemy in enemies:
 		if not is_instance_valid(enemy) or not enemy.is_alive:
 			continue
@@ -216,6 +276,78 @@ func _exit_combat_to_stealth() -> void:
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
 			enemy.deactivate_to_stealth()
+
+
+func _refresh_dark_pocket_gates() -> void:
+	for child in get_children():
+		if child == null or not child.has_method("set_dark_pocket_open"):
+			continue
+		child.set_dark_pocket_open(false)
+
+	for pocket in _active_dark_pockets.values():
+		_open_gates_for_pocket(pocket)
+
+
+func _open_gates_for_pocket(pocket: Area2D) -> void:
+	var unlock_radius: float = pocket.get("gate_unlock_radius")
+	for child in get_children():
+		if child == null or not child.has_method("set_dark_pocket_open"):
+			continue
+		if pocket.global_position.distance_to(child.global_position) > unlock_radius:
+			continue
+		child.set_dark_pocket_open(true)
+
+
+func _find_nearest_hack_gate(ship_node: Node2D) -> Node2D:
+	var nearest: Node2D = null
+	var nearest_dist := INF
+	for child in get_children():
+		if child == null or not child.has_method("can_be_hacked_by"):
+			continue
+		if not child.can_be_hacked_by(ship_node):
+			continue
+		var dist: float = ship_node.global_position.distance_to(child.global_position)
+		if dist >= nearest_dist:
+			continue
+		nearest = child
+		nearest_dist = dist
+	return nearest
+
+
+func _snapshot_enemy(enemy: Node) -> Dictionary:
+	if enemy == null or not is_instance_valid(enemy):
+		return {}
+	if enemy.scene_file_path.is_empty():
+		return {}
+	var snapshot := {
+		"scene_path": enemy.scene_file_path,
+		"global_position": enemy.global_position,
+		"rotation": enemy.rotation,
+	}
+	if enemy.has_node("PatrolA"):
+		snapshot["patrol_a"] = enemy.get_node("PatrolA").position
+	if enemy.has_node("PatrolB"):
+		snapshot["patrol_b"] = enemy.get_node("PatrolB").position
+	return snapshot
+
+
+func _respawn_defeated_enemies() -> void:
+	if _defeated_enemy_snapshots.is_empty():
+		return
+	var snapshots := _defeated_enemy_snapshots.duplicate(true)
+	_defeated_enemy_snapshots.clear()
+	for snapshot in snapshots:
+		var scene: PackedScene = load(snapshot["scene_path"])
+		if scene == null:
+			continue
+		var enemy := scene.instantiate()
+		enemy.global_position = snapshot["global_position"]
+		enemy.rotation = snapshot["rotation"]
+		if snapshot.has("patrol_a") and enemy.has_node("PatrolA"):
+			enemy.get_node("PatrolA").position = snapshot["patrol_a"]
+		if snapshot.has("patrol_b") and enemy.has_node("PatrolB"):
+			enemy.get_node("PatrolB").position = snapshot["patrol_b"]
+		register_spawned_enemy(enemy)
 
 
 func _spawn_reinforcements_for_alert() -> void:

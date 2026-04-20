@@ -29,9 +29,19 @@ func start_zone(zone_index: int) -> void:
 	_change_scene(ZONE_SCENES[current_zone_index])
 
 
+func start_arcade_run(seed_val: int) -> void:
+	ArcadeState.start_run(seed_val)
+	AlertSystem.reset()
+	ColorSystem.reset()
+	_change_scene(ArcadeState.get_current_scene_path())
+
+
 func restart_zone() -> void:
 	AlertSystem.reset()
 	ColorSystem.reset()
+	if ArcadeState.is_active:
+		_change_scene(ArcadeState.get_current_scene_path())
+		return
 	if current_world != null and current_world.scene_file_path != "":
 		_change_scene(current_world.scene_file_path)
 		return
@@ -44,6 +54,13 @@ func restart_zone() -> void:
 func advance_zone() -> void:
 	AlertSystem.reset()
 	ColorSystem.reset()
+	if ArcadeState.is_active:
+		if ArcadeState.advance():
+			_change_scene(ArcadeState.get_current_scene_path())
+		else:
+			ArcadeState.reset()
+			_change_scene(START_SCENE)
+		return
 	if current_zone_index >= 0 and current_zone_index < ZONE_SCENES.size() - 1:
 		current_zone_index += 1
 		_change_scene(ZONE_SCENES[current_zone_index])

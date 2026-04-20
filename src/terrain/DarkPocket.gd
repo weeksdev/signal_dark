@@ -1,5 +1,7 @@
 extends Area2D
 
+@export var gate_unlock_radius: float = 220.0
+
 @onready var shape = $Shape
 
 
@@ -9,21 +11,62 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, 68.0, Color(0.0, 0.0, 0.0, 0.14))
-	draw_circle(Vector2.ZERO, 58.0, Color("0a160d"))
-	draw_circle(Vector2.ZERO, 42.0, Color("081109"))
-	draw_arc(Vector2.ZERO, 58.0, 0.0, TAU, 48, Color(0.23, 0.83, 0.42, 0.55), 2.0)
-	draw_arc(Vector2.ZERO, 44.0, 0.0, TAU, 48, Color(0.18, 0.7, 0.36, 0.22), 1.0)
+	var ui := ColorSystem.ui_color()
+	var outer := PackedVector2Array([
+		Vector2(0.0, -68.0),
+		Vector2(48.0, -48.0),
+		Vector2(68.0, 0.0),
+		Vector2(48.0, 48.0),
+		Vector2(0.0, 68.0),
+		Vector2(-48.0, 48.0),
+		Vector2(-68.0, 0.0),
+		Vector2(-48.0, -48.0),
+		Vector2(0.0, -68.0),
+	])
+	var inner := PackedVector2Array([
+		Vector2(0.0, -46.0),
+		Vector2(32.0, -32.0),
+		Vector2(46.0, 0.0),
+		Vector2(32.0, 32.0),
+		Vector2(0.0, 46.0),
+		Vector2(-32.0, 32.0),
+		Vector2(-46.0, 0.0),
+		Vector2(-32.0, -32.0),
+		Vector2(0.0, -46.0),
+	])
+
+	draw_polygon(outer, [Color(0.0, 0.0, 0.0, 0.22)])
+	draw_polygon(inner, [Color("081109")])
+	draw_polyline(outer, Color(ui.r, ui.g, ui.b, 0.62), 2.2)
+	draw_polyline(inner, Color(ui.r, ui.g, ui.b, 0.24), 1.2)
+
+	draw_line(Vector2(-22.0, -22.0), Vector2(22.0, -22.0), Color(ui.r, ui.g, ui.b, 0.16), 1.0)
+	draw_line(Vector2(-22.0, 0.0), Vector2(22.0, 0.0), Color(ui.r, ui.g, ui.b, 0.2), 1.0)
+	draw_line(Vector2(-22.0, 22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.16), 1.0)
+	draw_line(Vector2(-22.0, -22.0), Vector2(-22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 1.0)
+	draw_line(Vector2(0.0, -22.0), Vector2(0.0, 22.0), Color(ui.r, ui.g, ui.b, 0.2), 1.0)
+	draw_line(Vector2(22.0, -22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 1.0)
+
+	draw_line(Vector2(-54.0, -8.0), Vector2(-38.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
+	draw_line(Vector2(38.0, -8.0), Vector2(54.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
+	draw_line(Vector2(-54.0, 8.0), Vector2(-38.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
+	draw_line(Vector2(38.0, 8.0), Vector2(54.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
 
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player_ship"):
 		body.in_dark_pocket = true
+		var world := get_tree().current_scene
+		if world != null and world.has_method("set_player_dark_pocket_state"):
+			world.set_player_dark_pocket_state(self, true)
 
 
 func _on_body_exited(body: Node) -> void:
 	if body.is_in_group("player_ship"):
 		body.in_dark_pocket = false
+		var world := get_tree().current_scene
+		if world != null and world.has_method("set_player_dark_pocket_state"):
+			world.set_player_dark_pocket_state(self, false)
 
 
 func _update_palette() -> void:
