@@ -415,6 +415,9 @@ position = Vector2(4120, 1040)
 ; ═══════════════════════════════════════════════════════════════════════════════
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
+[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer"]
+copy_mode = 2
+
 [node name="StealthOverlay" type="Control" parent="CanvasLayer"]
 layout_mode = 3
 anchors_preset = 15
