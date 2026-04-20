@@ -8,7 +8,8 @@ uniform vec2 light_center = vec2(800.0, 450.0);
 uniform vec2 viewport_size = vec2(1600.0, 900.0);
 uniform float inner_radius_px = 110.0;
 uniform float outer_radius_px = 250.0;
-uniform float max_darkness = 0.9;
+uniform float max_darkness = 0.72;
+uniform float ambient_floor = 0.24;
 uniform float stealth_mix = 1.0;
 
 vec4 blur5(vec2 uv, float blur_px) {
@@ -28,12 +29,13 @@ void fragment() {
 	float dist_px = distance(screen_pos, light_center);
 	float falloff = smoothstep(inner_radius_px, outer_radius_px, dist_px);
 
-	float blur_amount = mix(0.0, 6.0, falloff);
+	float blur_amount = mix(0.0, 10.0, falloff);
 	vec4 blurred = blur5(SCREEN_UV, blur_amount);
 	vec4 mixed_col = mix(base, blurred, falloff);
 
 	float darkness = mix(0.0, max_darkness, falloff);
-	mixed_col.rgb *= (1.0 - darkness);
+	float visibility = max(ambient_floor, 1.0 - darkness);
+	mixed_col.rgb *= visibility;
 
 	COLOR = mix(base, vec4(mixed_col.rgb, 1.0), stealth_mix);
 }
@@ -81,6 +83,7 @@ func _update_shader_params() -> void:
 	_shader_material.set_shader_parameter("light_center", _signal_center(rect))
 	_shader_material.set_shader_parameter("viewport_size", rect.size)
 	_shader_material.set_shader_parameter("stealth_mix", 1.0 if not ColorSystem.in_combat else 0.0)
-	_shader_material.set_shader_parameter("inner_radius_px", 105.0)
-	_shader_material.set_shader_parameter("outer_radius_px", 230.0)
-	_shader_material.set_shader_parameter("max_darkness", 0.92)
+	_shader_material.set_shader_parameter("inner_radius_px", 115.0)
+	_shader_material.set_shader_parameter("outer_radius_px", 255.0)
+	_shader_material.set_shader_parameter("max_darkness", 0.72)
+	_shader_material.set_shader_parameter("ambient_floor", 0.24)
