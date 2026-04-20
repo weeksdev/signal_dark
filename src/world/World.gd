@@ -24,7 +24,9 @@ var _reinforcements_spawned: bool = false
 var _active_dark_pockets: Dictionary = {}
 var _defeated_enemy_snapshots: Array[Dictionary] = []
 var _hack_target: Node2D = null
-var _hack_progress: float = 0.0
+var _hack_sequence: Array = []
+var _hack_index: int = 0
+var _hack_wrong_flash: bool = false
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
@@ -184,37 +186,67 @@ func set_player_dark_pocket_state(pocket: Area2D, active: bool) -> void:
 	_refresh_dark_pocket_gates()
 
 
-func update_gate_hacking(ship_node: Node2D, hack_pressed: bool, delta: float) -> Dictionary:
+func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 	var gate := _find_nearest_hack_gate(ship_node)
 	if gate == null:
-		_hack_target = null
-		_hack_progress = 0.0
-		return {"visible": false}
+		_reset_hack_state()
+		return {
+			"visible": false,
+			"sequence": [],
+			"current_index": 0,
+			"wrong_flash": false,
+		}
 
 	if gate != _hack_target:
 		_hack_target = gate
-		_hack_progress = 0.0
+		_hack_sequence = _make_hack_sequence()
+		_hack_index = 0
 
-	if not hack_pressed:
-		_hack_progress = 0.0
-	else:
-		_hack_progress = minf(_hack_progress + delta, gate.hack_duration)
-		if _hack_progress >= gate.hack_duration:
+	_hack_wrong_flash = false
+	var pressed := InputManager.get_hack_button_just_pressed()
+	if pressed != "":
+		if pressed == _hack_sequence[_hack_index]:
+			_hack_index += 1
+		else:
+			_hack_index = 0
+			_hack_wrong_flash = true
+
+		if _hack_index >= _hack_sequence.size():
 			gate.set_hacked_open(true)
 			_respawn_defeated_enemies()
-			_hack_target = null
-			_hack_progress = 0.0
+			var success_pos := gate.global_position + Vector2(0.0, -54.0)
+			_reset_hack_state()
 			return {
 				"visible": true,
-				"text": "ACCESS GRANTED  ENEMIES RESET"
+				"world_pos": success_pos,
+				"sequence": ["O", "P", "E", "N"],
+				"current_index": 4,
+				"wrong_flash": false,
 			}
 
-	var pct: int = int(round((_hack_progress / gate.hack_duration) * 100.0))
-	var remaining: float = maxf(0.0, gate.hack_duration - _hack_progress)
 	return {
 		"visible": true,
-		"text": "HOLD Y / F / RMB HACK  %02ds  %d%%  RESET ENEMIES" % [int(ceil(remaining)), pct]
+		"world_pos": gate.global_position + Vector2(0.0, -54.0),
+		"sequence": _hack_sequence,
+		"current_index": _hack_index,
+		"wrong_flash": _hack_wrong_flash,
 	}
+
+
+func _reset_hack_state() -> void:
+	_hack_target = null
+	_hack_sequence.clear()
+	_hack_index = 0
+	_hack_wrong_flash = false
+
+
+func _make_hack_sequence() -> Array:
+	var buttons := ["A", "B", "X", "Y"]
+	var length := 3 if ArcadeState.floor_index <= 1 else 4
+	var sequence: Array = []
+	for _i in range(length):
+		sequence.append(buttons[randi() % buttons.size()])
+	return sequence
 
 
 func _living_enemy_count() -> int:

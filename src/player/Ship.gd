@@ -25,7 +25,7 @@ var _boost_flash: float = 0.0
 @onready var body_polygon = $Body
 @onready var outline = $Outline
 @onready var suppress_label = $SuppressLabel
-@onready var hack_label = $HackLabel
+@onready var hack_indicator = $HackIndicator
 
 
 func _ready() -> void:
@@ -62,8 +62,6 @@ func _physics_process(delta: float) -> void:
 
 	var suppress_pressed := InputManager.is_suppress_pressed()
 	var probe_pressed := InputManager.is_probe_pressed()
-	var hack_pressed := InputManager.is_hack_pressed()
-
 	if InputManager.is_fire_pressed():
 		weapon_system.try_fire(aim_direction)
 	if probe_pressed and not _previous_probe_pressed:
@@ -76,7 +74,7 @@ func _physics_process(delta: float) -> void:
 	_update_emission(did_boost)
 	_check_enemy_contact()
 	_update_suppress_prompt()
-	_update_hack_prompt(delta, hack_pressed)
+	_update_hack_prompt(delta)
 	_update_palette()
 	queue_redraw()
 
@@ -138,14 +136,19 @@ func _update_suppress_prompt() -> void:
 	suppress_label.visible = can_suppress
 
 
-func _update_hack_prompt(delta: float, hack_pressed: bool) -> void:
+func _update_hack_prompt(delta: float) -> void:
 	var world := get_tree().current_scene
 	if world == null or not world.has_method("update_gate_hacking"):
-		hack_label.visible = false
+		hack_indicator.update_indicator(false, global_position, [], 0, false)
 		return
-	var status: Dictionary = world.update_gate_hacking(self, hack_pressed, delta)
-	hack_label.visible = status.get("visible", false)
-	hack_label.text = status.get("text", "HOLD Y / F / RMB HACK")
+	var status: Dictionary = world.update_gate_hacking(self, delta)
+	hack_indicator.update_indicator(
+		status.get("visible", false),
+		status.get("world_pos", global_position + Vector2(0.0, -56.0)),
+		status.get("sequence", []),
+		status.get("current_index", 0),
+		status.get("wrong_flash", false)
+	)
 
 
 func _update_palette() -> void:
@@ -155,7 +158,6 @@ func _update_palette() -> void:
 	body_polygon.scale = Vector2.ONE * (1.08 if not dark_mode else 0.98)
 	body_polygon.color.a = 0.18 if not dark_mode else 0.08
 	suppress_label.modulate = ColorSystem.ui_color()
-	hack_label.modulate = ColorSystem.ui_color()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:

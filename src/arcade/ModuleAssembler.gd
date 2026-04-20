@@ -34,9 +34,9 @@ func assemble(world: Node2D, graph) -> Dictionary:
 # ── Grid layout ──────────────────────────────────────────────────────────────
 
 func _assign_grid_positions(graph) -> void:
-	for node in graph.nodes:
-		if not node.is_branch:
-			_node_cells[node.id] = Vector2i(node.depth, 0)
+	_node_cells.clear()
+	_col_branch_count.clear()
+	_assign_main_path_positions(graph)
 
 	for edge in graph.edges:
 		if not edge.is_branch:
@@ -51,12 +51,53 @@ func _assign_grid_positions(graph) -> void:
 		_node_cells[edge.to_id] = Vector2i(col, _next_branch_row(col))
 
 
+func _assign_main_path_positions(graph) -> void:
+	var path_ids: Array = _main_path_ids(graph)
+	if path_ids.is_empty():
+		return
+
+	var cell := Vector2i.ZERO
+	var vertical_dir := -1
+	_node_cells[path_ids[0]] = cell
+
+	for i in range(1, path_ids.size()):
+		if i % 2 == 1:
+			cell += Vector2i(1, 0)
+		else:
+			cell += Vector2i(0, vertical_dir)
+			vertical_dir *= -1
+		_node_cells[path_ids[i]] = cell
+
+
+func _main_path_ids(graph) -> Array:
+	var ids: Array = [graph.start_node_id]
+	var current_id: int = graph.start_node_id
+	var visited: Dictionary = {current_id: true}
+
+	while current_id != graph.exit_node_id:
+		var next_id := -1
+		for edge in graph.edges:
+			if edge.is_branch:
+				continue
+			if edge.from_id != current_id:
+				continue
+			next_id = edge.to_id
+			break
+		if next_id < 0 or visited.has(next_id):
+			break
+		ids.append(next_id)
+		visited[next_id] = true
+		current_id = next_id
+
+	return ids
+
+
 func _next_branch_row(col: int) -> int:
 	if not _col_branch_count.has(col):
 		_col_branch_count[col] = 0
 	var idx: int = _col_branch_count[col]
 	_col_branch_count[col] = idx + 1
-	var half := (idx / 2) + 1
+	var half := (idx / 2) + 2
 	return half if idx % 2 == 0 else -half
 
 

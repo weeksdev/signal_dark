@@ -34,6 +34,18 @@ func is_hack_pressed() -> bool:
 	return Input.is_action_pressed("hack") or _joy_button_pressed(JOY_BUTTON_Y)
 
 
+func get_hack_button_just_pressed() -> String:
+	if Input.is_action_just_pressed("hack_a"):
+		return "A"
+	if Input.is_action_just_pressed("hack_b"):
+		return "B"
+	if Input.is_action_just_pressed("hack_x"):
+		return "X"
+	if Input.is_action_just_pressed("hack_y"):
+		return "Y"
+	return ""
+
+
 func is_restart_just_pressed() -> bool:
 	return Input.is_action_just_pressed("restart")
 

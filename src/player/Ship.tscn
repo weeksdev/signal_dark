@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/player/Ship.gd" id="1"]
 [ext_resource type="Script" path="res://src/player/WeaponSystem.gd" id="2"]
 [ext_resource type="PackedScene" path="res://src/player/SignalProbe.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://src/weapons/PulseShot.tscn" id="4"]
+[ext_resource type="Script" path="res://src/ui/HackIndicator.gd" id="5"]
 
 [sub_resource type="CircleShape2D" id="1"]
 radius = 11.0
@@ -43,11 +44,5 @@ horizontal_alignment = 1
 text = "E EXECUTE"
 visible = false
 
-[node name="HackLabel" type="Label" parent="."]
-offset_left = -92.0
-offset_top = 18.0
-offset_right = 92.0
-offset_bottom = 48.0
-horizontal_alignment = 1
-text = "HOLD Y / F / RMB HACK"
-visible = false
+[node name="HackIndicator" type="Node2D" parent="."]
+script = ExtResource("5")

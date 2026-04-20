@@ -4,13 +4,15 @@ extends RefCounted
 const SeedRng := preload("res://src/arcade/ArcadeSeedRng.gd")
 const ZoneGraph := preload("res://src/arcade/ArcadeZoneGraph.gd")
 
-# Critical path: 2 nodes on floor 0, grows to 4 by floor 4+
+# Critical path should feel like a small maze run, not a straight hallway.
 static func _path_length(floor_index: int) -> int:
-	return clamp(2 + floor_index / 2, 2, 4)
+	return clamp(4 + floor_index, 4, 7)
 
-# 1-3 branches, more on later floors
+# Side branches should meaningfully complicate routing.
 static func _branch_count(rng, floor_index: int) -> int:
-	return rng.randi_range(1, clamp(1 + floor_index / 2, 1, 3))
+	var min_branches := 2 + floor_index / 2
+	var max_branches := 3 + floor_index
+	return rng.randi_range(min_branches, min(max_branches, 5))
 
 
 func build(rng, floor_index: int):
