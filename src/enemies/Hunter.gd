@@ -1,7 +1,6 @@
 extends CharacterBody2D
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
-
 signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
 
@@ -16,7 +15,6 @@ var facing_vector: Vector2 = Vector2.UP
 var ship: Node2D = null
 var drift_phase: float = 0.0
 var spawn_point: Vector2 = Vector2.ZERO
-
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
 
@@ -93,7 +91,7 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 func _draw() -> void:
 	var halo := signature_color if AlertSystem.combat_mode else ColorSystem.glow_color()
-	draw_circle(Vector2.ZERO, 16.0, Color(halo.r, halo.g, halo.b, 0.05))
+	draw_circle(Vector2.ZERO, 16.0, Color(halo.r, halo.g, halo.b, 0.08))
 	draw_line(Vector2.ZERO, facing_vector * 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 2.0)
 	draw_polyline(PackedVector2Array([
 		Vector2(0.0, -9.0),

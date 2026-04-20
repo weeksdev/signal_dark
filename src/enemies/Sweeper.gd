@@ -17,6 +17,8 @@ const DWELL_TIME       := 0.55
 const PULSE_SPEED      := 115.0
 const PULSE_TOLERANCE  := 13.0
 const ALERT_HOLD_SECONDS := 3.0
+const SUSPICION_DECAY  := 0.75
+const WARN_RANGE       := 200.0
 
 # Rhythm: single pulse, then two quick, then long gap — repeating
 const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]
@@ -31,6 +33,7 @@ var _wp_index: int = 0
 var _dwell: float = 0.0
 var _alerting: bool = false
 var _alert_hold: float = 0.0
+var _suspicion: float = 0.0
 
 var _pulses: Array[float] = []
 var _pulse_timer: float = 0.3
@@ -58,6 +61,8 @@ func _physics_process(delta: float) -> void:
 		_alert_hold -= delta
 		if _alert_hold <= 0.0:
 			_alerting = false
+	if not combat_active:
+		_suspicion = maxf(0.0, _suspicion - delta * SUSPICION_DECAY)
 
 	# Advance all pulses; cull ones past max range
 	for i in range(_pulses.size() - 1, -1, -1):
@@ -154,9 +159,11 @@ func _check_detection() -> void:
 	var to_player: Vector2 = player.global_position - global_position
 	var distance: float = to_player.length()
 	var emission: float = player.get_effective_emission()
+	var speed_ratio: float = clampf(player.velocity.length() / maxf(player.max_speed, 1.0), 0.0, 1.0)
 
 	# Dark pocket completely masks the player beyond contact range
 	if player.in_dark_pocket and distance > 28.0:
+		_suspicion = 0.0
 		return
 
 	# Contact range — always triggers
@@ -172,6 +179,13 @@ func _check_detection() -> void:
 	if get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()]):
 		return
 
+	var risk := _proximity_risk(distance, emission, speed_ratio, player.dark_mode)
+	if risk > 0.0:
+		_suspicion = minf(1.0, _suspicion + risk * 0.04)
+		if _suspicion >= 1.0:
+			_begin_alert_hold()
+			return
+
 	# Pulse arc hit
 	var hit := false
 	for pulse_r: float in _pulses:
@@ -185,10 +199,21 @@ func _check_detection() -> void:
 
 
 func _begin_alert_hold() -> void:
+	_suspicion = 1.0
 	if not _alerting:
 		_alerting = true
 		detected.emit(self)
 	_alert_hold = ALERT_HOLD_SECONDS
+
+
+func _proximity_risk(distance: float, emission: float, speed_ratio: float, dark_mode: bool) -> float:
+	if distance > WARN_RANGE:
+		return 0.0
+	var closeness := 1.0 - (distance / WARN_RANGE)
+	var speed_risk := 0.3 + speed_ratio * 0.9
+	var emission_risk := emission * 2.8
+	var dark_penalty := 0.55 if dark_mode else 1.0
+	return (closeness * (speed_risk + emission_risk)) * dark_penalty
 
 
 func _update_palette() -> void:
@@ -250,6 +275,10 @@ func _draw() -> void:
 		draw_line(Vector2(-14.0, -14.0), Vector2(-14.0, -6.0), marker, 1.8)
 		draw_line(Vector2(14.0, 14.0), Vector2(6.0, 14.0), marker, 1.8)
 		draw_line(Vector2(14.0, 14.0), Vector2(14.0, 6.0), marker, 1.8)
+	if not _alerting and _suspicion > 0.06 and not combat_active:
+		var warning := Color(1.0, 0.86, 0.18, 0.45 + _suspicion * 0.45)
+		draw_arc(Vector2.ZERO, 28.0, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.4)
+		draw_arc(Vector2.ZERO, 24.0, 0.0, TAU, 24, Color(warning.r, warning.g, warning.b, 0.18), 1.0)
 
 
 func _spawn_burst(silent: bool) -> void:

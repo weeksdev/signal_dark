@@ -20,6 +20,7 @@ var _combo_index: int = 0
 var _selected_zone: int = 0
 var _arcade_mode: bool = false
 var _arcade_seed: int = 0
+var _arcade_difficulty: int = ArcadeState.Difficulty.MEDIUM
 
 
 func _ready() -> void:
@@ -27,6 +28,7 @@ func _ready() -> void:
 	ColorSystem.reset()
 	ArcadeState.reset()
 	_arcade_seed = randi() % 90000 + 10000
+	_arcade_difficulty = ArcadeState.Difficulty.MEDIUM
 	var t := get_tree().create_timer(0.6)
 	t.timeout.connect(func(): _ready_to_start = true)
 
@@ -41,6 +43,9 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_I:
+			GameState.start_enemy_info()
+			return
 		if event.keycode == KEY_TAB:
 			_arcade_mode = not _arcade_mode
 			return
@@ -55,6 +60,12 @@ func _input(event: InputEvent) -> void:
 		if _arcade_mode and event.keycode == KEY_R:
 			_arcade_seed = randi() % 90000 + 10000
 			return
+		if _arcade_mode and (event.keycode == KEY_UP or event.keycode == KEY_W):
+			_arcade_difficulty = posmod(_arcade_difficulty - 1, ArcadeState.DIFFICULTY_NAMES.size())
+			return
+		if _arcade_mode and (event.keycode == KEY_DOWN or event.keycode == KEY_S):
+			_arcade_difficulty = posmod(_arcade_difficulty + 1, ArcadeState.DIFFICULTY_NAMES.size())
+			return
 		if not _arcade_mode:
 			var action := _handle_level_select_key(event.keycode)
 			if action == "consumed":
@@ -64,12 +75,15 @@ func _input(event: InputEvent) -> void:
 				return
 		if keycode_is_confirm(event.keycode):
 			if _arcade_mode:
-				GameState.start_arcade_run(_arcade_seed)
+				GameState.start_arcade_run(_arcade_seed, _arcade_difficulty)
 			else:
 				GameState.start_run()
 		return
 
 	if event is InputEventJoypadButton and event.pressed:
+		if event.button_index == JOY_BUTTON_Y:
+			GameState.start_enemy_info()
+			return
 		if event.button_index == JOY_BUTTON_BACK:
 			_arcade_mode = not _arcade_mode
 			return
@@ -88,9 +102,16 @@ func _input(event: InputEvent) -> void:
 			if combo_action == "start_selected":
 				GameState.start_zone(_selected_zone)
 				return
+		if _arcade_mode:
+			if event.button_index == JOY_BUTTON_DPAD_UP:
+				_arcade_difficulty = posmod(_arcade_difficulty - 1, ArcadeState.DIFFICULTY_NAMES.size())
+				return
+			if event.button_index == JOY_BUTTON_DPAD_DOWN:
+				_arcade_difficulty = posmod(_arcade_difficulty + 1, ArcadeState.DIFFICULTY_NAMES.size())
+				return
 		if event.button_index == JOY_BUTTON_START or event.button_index == JOY_BUTTON_A:
 			if _arcade_mode:
-				GameState.start_arcade_run(_arcade_seed)
+				GameState.start_arcade_run(_arcade_seed, _arcade_difficulty)
 			else:
 				GameState.start_run()
 
@@ -99,6 +120,11 @@ func _input(event: InputEvent) -> void:
 			return
 		if event.axis == JOY_AXIS_LEFT_X and absf(event.axis_value) > 0.5:
 			_arcade_mode = event.axis_value > 0.0
+		if _arcade_mode and event.axis == JOY_AXIS_LEFT_Y and absf(event.axis_value) > 0.6:
+			_arcade_difficulty = posmod(
+				_arcade_difficulty + (1 if event.axis_value > 0.0 else -1),
+				ArcadeState.DIFFICULTY_NAMES.size()
+			)
 
 
 func keycode_is_confirm(keycode: Key) -> bool:
@@ -268,6 +294,10 @@ func _draw() -> void:
 			"TAB  /  SELECT BUTTON  to switch",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
 			Color(0.28, 0.62, 0.36, 0.50))
+	draw_string(font, Vector2(cx - 130.0, mode_y + 28.0),
+			"I  /  Y  —  ENEMY INDEX",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+			Color(0.32, 0.70, 0.42, 0.54))
 
 	# ── Mode-specific prompts ─────────────────────────────────────────────────
 	if _arcade_mode:
@@ -276,12 +306,20 @@ func _draw() -> void:
 				"SEED  %d" % _arcade_seed,
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
 				Color(0.45, 0.82, 1.0, 0.95))
-		draw_string(font, Vector2(cx - 60.0, seed_y + 24.0),
+		draw_string(font, Vector2(cx - 60.0, seed_y + 22.0),
+				"DIFFICULTY  %s" % ArcadeState.DIFFICULTY_NAMES[_arcade_difficulty],
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
+				Color(0.62, 0.90, 1.0, 0.86))
+		draw_string(font, Vector2(cx - 60.0, seed_y + 38.0),
 				"R  —  NEW SEED",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.28, 0.60, 0.88, 0.50))
+		draw_string(font, Vector2(cx - 60.0, seed_y + 54.0),
+				"UP/DOWN  —  CHANGE DIFFICULTY",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+				Color(0.32, 0.72, 0.92, 0.58))
 		if fmod(t, 1.3) < 0.82:
-			draw_string(font, Vector2(cx - 96.0, seed_y + 52.0),
+			draw_string(font, Vector2(cx - 96.0, seed_y + 82.0),
 					"PRESS ENTER TO LAUNCH RUN",
 					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
 					Color(0.40, 0.82, 1.0, 0.92))

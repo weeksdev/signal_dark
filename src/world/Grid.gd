@@ -181,11 +181,18 @@ func _get_attractors() -> Array:
 			continue
 		if attractors.size() >= 5:
 			break
+		var strength := 9000.0 if not ColorSystem.in_combat else 14000.0
+		var twist := 0.12 if not ColorSystem.in_combat else 0.22
+		var radius := 210.0
+		if enemy.scene_file_path.ends_with("Wisp.tscn"):
+			strength = 18000.0 if not ColorSystem.in_combat else 24000.0
+			twist = 0.18 if not ColorSystem.in_combat else 0.28
+			radius = 320.0
 		attractors.append({
 			"position": enemy.global_position,
-			"strength": 9000.0 if not ColorSystem.in_combat else 14000.0,
-			"twist": 0.12 if not ColorSystem.in_combat else 0.22,
-			"radius": 210.0
+			"strength": strength,
+			"twist": twist,
+			"radius": radius
 		})
 	return attractors
 

@@ -64,6 +64,7 @@ func place(world: Node2D, graph,
 		var doorways := _doorway_centers(node.id, graph, node_cells, node_rects)
 		var budget   := _room_budget(node, floor_index, max_depth)
 		var types    := _pick_enemies(budget, node.preferred_threat, pool, rng)
+		types = _tune_corridor_loadout(node, types, pool, rng)
 
 		_place_enemies(world, rect, types, doorways, rng)
 		_place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
@@ -84,9 +85,14 @@ func _max_depth(graph) -> int:
 func _room_budget(node, floor_index: int, max_depth: int) -> int:
 	var depth_ratio := float(node.depth) / float(max_depth)
 	var raw := 2.0 + float(floor_index) + depth_ratio * float(floor_index)
+	match ArcadeState.difficulty:
+		ArcadeState.Difficulty.EASY:
+			raw *= 0.82
+		ArcadeState.Difficulty.HARDCORE:
+			raw *= 1.22
 	match node.type:
 		ZoneGraph.NodeType.CORRIDOR:
-			raw *= 0.6
+			raw *= 0.72 if ArcadeState.difficulty == ArcadeState.Difficulty.HARDCORE else 0.6
 		ZoneGraph.NodeType.BRANCH_ROOM:
 			raw *= 0.7
 		ZoneGraph.NodeType.SETPIECE_ROOM:
@@ -116,6 +122,31 @@ func _pick_enemies(budget: int, preferred_threat: int, pool: Array, rng) -> Arra
 		var pick: String = candidates[rng.randi() % candidates.size()]
 		result.append(pick)
 		remaining -= COSTS[pick]
+
+	return result
+
+
+func _tune_corridor_loadout(node, types: Array, pool: Array, rng) -> Array:
+	if node.type != ZoneGraph.NodeType.CORRIDOR:
+		return types
+
+	var result: Array = types.duplicate()
+	if ArcadeState.difficulty == ArcadeState.Difficulty.EASY:
+		return result
+
+	var corridor_pick := ""
+	if "sweeper" in pool:
+		corridor_pick = "sweeper"
+	elif "sentry" in pool:
+		corridor_pick = "sentry"
+	elif "wisp" in pool:
+		corridor_pick = "wisp"
+
+	if corridor_pick != "" and not result.has(corridor_pick):
+		result.push_front(corridor_pick)
+
+	if ArcadeState.difficulty == ArcadeState.Difficulty.HARDCORE and "wisp" in pool and not result.has("wisp") and rng.randi() % 2 == 0:
+		result.append("wisp")
 
 	return result
 
@@ -210,6 +241,11 @@ func _place_gatelocks(world: Node2D, graph,
 
 	# Probability per corridor edge: floor 1=30%, floor 2=50%, floor 3+=66%
 	var gate_pct: int = [0, 30, 50, 66][mini(floor_index, 3)]
+	match ArcadeState.difficulty:
+		ArcadeState.Difficulty.EASY:
+			gate_pct = maxi(gate_pct - 18, 0)
+		ArcadeState.Difficulty.HARDCORE:
+			gate_pct = mini(gate_pct + 18, 90)
 
 	# PRISM_LOCKDOWN and WARP_NEST themes emphasise gates
 	if _theme == ZoneGraph.ZoneTheme.PRISM_LOCKDOWN:
@@ -271,6 +307,10 @@ func _place_dark_pockets(world: Node2D, rect: Rect2, node,
 	# STEALTH_MAZE theme adds an extra pocket chance in regular rooms
 	if _theme == ZoneGraph.ZoneTheme.STEALTH_MAZE and count == 0 and rng.randi() % 2 == 0:
 		count = 1
+	if ArcadeState.difficulty == ArcadeState.Difficulty.EASY and count == 0 and rng.randi() % 2 == 0:
+		count = 1
+	if ArcadeState.difficulty == ArcadeState.Difficulty.HARDCORE and node.type == ZoneGraph.NodeType.CORRIDOR:
+		count = maxi(0, count - 1)
 
 	var placed: Array = []
 	for _i in count:

@@ -120,7 +120,7 @@ func _generate_walls(world: Node2D, graph) -> void:
 		var cell: Vector2i = _node_cells[node.id]
 
 		# Collect connected directions and their neighbour rects
-		var connected: Dictionary = {}     # dir → true
+		var connected: Dictionary = {}     # dir → door width
 		var neighbours: Dictionary = {}   # dir → other_id
 
 		for edge in graph.edges:
@@ -133,7 +133,7 @@ func _generate_walls(world: Node2D, graph) -> void:
 				continue
 			var dir := _cell_dir(cell, _node_cells[other_id])
 			if dir != "":
-				connected[dir] = true
+				connected[dir] = _door_width_for_edge(edge.traversal_width)
 				neighbours[dir] = other_id
 
 		_gen_room_walls(world, rect, connected)
@@ -144,7 +144,7 @@ func _generate_walls(world: Node2D, graph) -> void:
 			if corridors_done.has(key):
 				continue
 			corridors_done[key] = true
-			_gen_corridor_walls(world, rect, _node_rects[other_id], dir)
+			_gen_corridor_walls(world, rect, _node_rects[other_id], dir, _shared_edge_width(graph, node.id, other_id))
 
 
 func _cell_dir(from: Vector2i, to: Vector2i) -> String:
@@ -166,59 +166,82 @@ func _gen_room_walls(world: Node2D, rect: Rect2, connected: Dictionary) -> void:
 
 	# Top
 	if connected.has("up"):
-		_h_wall(world, x0, cx - DOOR_W * 0.5, y0)
-		_h_wall(world, cx + DOOR_W * 0.5, x1, y0)
+		var door_up: float = connected["up"]
+		_h_wall(world, x0, cx - door_up * 0.5, y0)
+		_h_wall(world, cx + door_up * 0.5, x1, y0)
 	else:
 		_h_wall(world, x0, x1, y0)
 
 	# Bottom
 	if connected.has("down"):
-		_h_wall(world, x0, cx - DOOR_W * 0.5, y1)
-		_h_wall(world, cx + DOOR_W * 0.5, x1, y1)
+		var door_down: float = connected["down"]
+		_h_wall(world, x0, cx - door_down * 0.5, y1)
+		_h_wall(world, cx + door_down * 0.5, x1, y1)
 	else:
 		_h_wall(world, x0, x1, y1)
 
 	# Left
 	if connected.has("left"):
-		_v_wall(world, x0, y0, cy - DOOR_W * 0.5)
-		_v_wall(world, x0, cy + DOOR_W * 0.5, y1)
+		var door_left: float = connected["left"]
+		_v_wall(world, x0, y0, cy - door_left * 0.5)
+		_v_wall(world, x0, cy + door_left * 0.5, y1)
 	else:
 		_v_wall(world, x0, y0, y1)
 
 	# Right
 	if connected.has("right"):
-		_v_wall(world, x1, y0, cy - DOOR_W * 0.5)
-		_v_wall(world, x1, cy + DOOR_W * 0.5, y1)
+		var door_right: float = connected["right"]
+		_v_wall(world, x1, y0, cy - door_right * 0.5)
+		_v_wall(world, x1, cy + door_right * 0.5, y1)
 	else:
 		_v_wall(world, x1, y0, y1)
 
 
-func _gen_corridor_walls(world: Node2D, ra: Rect2, rb: Rect2, dir: String) -> void:
+func _gen_corridor_walls(world: Node2D, ra: Rect2, rb: Rect2, dir: String, door_width: float) -> void:
 	match dir:
 		"right":
 			var x0 := ra.position.x + ROOM_W
 			var x1 := rb.position.x
 			var cy := ra.position.y + ROOM_H * 0.5
-			_h_wall(world, x0, x1, cy - DOOR_W * 0.5)
-			_h_wall(world, x0, x1, cy + DOOR_W * 0.5)
+			_h_wall(world, x0, x1, cy - door_width * 0.5)
+			_h_wall(world, x0, x1, cy + door_width * 0.5)
 		"left":
 			var x0 := rb.position.x + ROOM_W
 			var x1 := ra.position.x
 			var cy := ra.position.y + ROOM_H * 0.5
-			_h_wall(world, x0, x1, cy - DOOR_W * 0.5)
-			_h_wall(world, x0, x1, cy + DOOR_W * 0.5)
+			_h_wall(world, x0, x1, cy - door_width * 0.5)
+			_h_wall(world, x0, x1, cy + door_width * 0.5)
 		"down":
 			var y0 := ra.position.y + ROOM_H
 			var y1 := rb.position.y
 			var cx := ra.position.x + ROOM_W * 0.5
-			_v_wall(world, cx - DOOR_W * 0.5, y0, y1)
-			_v_wall(world, cx + DOOR_W * 0.5, y0, y1)
+			_v_wall(world, cx - door_width * 0.5, y0, y1)
+			_v_wall(world, cx + door_width * 0.5, y0, y1)
 		"up":
 			var y0 := rb.position.y + ROOM_H
 			var y1 := ra.position.y
 			var cx := ra.position.x + ROOM_W * 0.5
-			_v_wall(world, cx - DOOR_W * 0.5, y0, y1)
-			_v_wall(world, cx + DOOR_W * 0.5, y0, y1)
+			_v_wall(world, cx - door_width * 0.5, y0, y1)
+			_v_wall(world, cx + door_width * 0.5, y0, y1)
+
+
+func _door_width_for_edge(width_class: int) -> float:
+	match width_class:
+		1:
+			return 96.0
+		3:
+			return 220.0
+		_:
+			return DOOR_W
+
+
+func _shared_edge_width(graph, a_id: int, b_id: int) -> float:
+	for edge in graph.edges:
+		if edge.from_id == a_id and edge.to_id == b_id:
+			return _door_width_for_edge(edge.traversal_width)
+		if edge.from_id == b_id and edge.to_id == a_id:
+			return _door_width_for_edge(edge.traversal_width)
+	return DOOR_W
 
 
 func _h_wall(world: Node2D, x0: float, x1: float, y: float) -> void:

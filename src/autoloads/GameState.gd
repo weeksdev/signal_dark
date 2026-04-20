@@ -1,6 +1,7 @@
 extends Node
 
 const START_SCENE := "res://src/ui/StartScreen.tscn"
+const ENEMY_INFO_SCENE := "res://src/ui/EnemyInfoScreen.tscn"
 const ZONE_SCENES := [
 	"res://src/world/World.tscn",
 	"res://src/world/World02.tscn",
@@ -29,8 +30,16 @@ func start_zone(zone_index: int) -> void:
 	_change_scene(ZONE_SCENES[current_zone_index])
 
 
-func start_arcade_run(seed_val: int) -> void:
-	ArcadeState.start_run(seed_val)
+func start_menu() -> void:
+	_change_scene(START_SCENE)
+
+
+func start_enemy_info() -> void:
+	_change_scene(ENEMY_INFO_SCENE)
+
+
+func start_arcade_run(seed_val: int, difficulty_val: int = ArcadeState.Difficulty.MEDIUM) -> void:
+	ArcadeState.start_run(seed_val, difficulty_val)
 	AlertSystem.reset()
 	ColorSystem.reset()
 	_change_scene(ArcadeState.get_current_scene_path())

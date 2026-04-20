@@ -20,6 +20,7 @@ var ring_visible: bool = false
 var _range_t: float = 0.0
 var _alerting: bool = false
 var _alert_hold: float = 0.0
+var _suspicion: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -41,6 +42,8 @@ func _physics_process(delta: float) -> void:
 		_alert_hold -= delta
 		if _alert_hold <= 0.0:
 			_alerting = false
+	if not combat_active:
+		_suspicion = maxf(0.0, _suspicion - delta * 0.7)
 
 	if combat_active and is_instance_valid(ship):
 		var to_ship: Vector2 = ship.global_position - global_position
@@ -106,6 +109,7 @@ func _start_pulse() -> void:
 		return
 	# Dark pocket masks the player
 	if player.in_dark_pocket:
+		_suspicion = 0.0
 		return
 	var distance: float = global_position.distance_to(player.global_position)
 	if distance > _current_range():
@@ -114,6 +118,20 @@ func _start_pulse() -> void:
 	if blocked:
 		return
 	if player.get_effective_emission() > 0.05 and not player.dark_mode:
+		if not _alerting:
+			_alerting = true
+			detected.emit(self)
+		_alert_hold = 3.0
+		_suspicion = 1.0
+		return
+	var speed_ratio: float = clampf(player.velocity.length() / maxf(player.max_speed, 1.0), 0.0, 1.0)
+	var risk: float = player.get_effective_emission() * 2.6 + speed_ratio * 0.8
+	if player.dark_mode:
+		risk *= 0.45
+	if risk <= 0.08:
+		return
+	_suspicion = minf(1.0, _suspicion + risk * 0.32)
+	if _suspicion >= 1.0:
 		if not _alerting:
 			_alerting = true
 			detected.emit(self)
@@ -141,6 +159,9 @@ func _draw() -> void:
 		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
 		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
 				Color(1.0, 0.90, 0.0, pulse))
+	elif _suspicion > 0.06 and not combat_active:
+		var warning := Color(1.0, 0.86, 0.18, 0.42 + _suspicion * 0.4)
+		draw_arc(Vector2.ZERO, 26.0, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.3)
 
 	var halo_color := ColorSystem.glow_color()
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.035 if not AlertSystem.combat_mode else 0.04))

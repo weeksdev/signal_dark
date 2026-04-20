@@ -6,12 +6,25 @@ const ZoneGraph := preload("res://src/arcade/ArcadeZoneGraph.gd")
 
 # Critical path should feel like a small maze run, not a straight hallway.
 static func _path_length(floor_index: int) -> int:
-	return clamp(4 + floor_index, 4, 7)
+	var base := 4 + floor_index
+	match ArcadeState.difficulty:
+		ArcadeState.Difficulty.EASY:
+			base -= 1
+		ArcadeState.Difficulty.HARDCORE:
+			base += 1
+	return clamp(base, 3, 8)
 
 # Side branches should meaningfully complicate routing.
 static func _branch_count(rng, floor_index: int) -> int:
 	var min_branches := 2 + floor_index / 2
 	var max_branches := 3 + floor_index
+	match ArcadeState.difficulty:
+		ArcadeState.Difficulty.EASY:
+			min_branches -= 1
+			max_branches -= 1
+		ArcadeState.Difficulty.HARDCORE:
+			min_branches += 1
+			max_branches += 1
 	return rng.randi_range(min_branches, min(max_branches, 5))
 
 
@@ -52,11 +65,23 @@ static func _pick_node_type(rng, depth: int, path_len: int) -> int:
 
 
 static func _pick_width(rng, depth: int, path_len: int) -> int:
-	if depth == 1:
-		return 2
-	if depth == path_len:
-		return 1 + rng.randi() % 2
-	return 1 + rng.randi() % 3
+	match ArcadeState.difficulty:
+		ArcadeState.Difficulty.EASY:
+			if depth <= 2:
+				return 3
+			return 2 + rng.randi() % 2
+		ArcadeState.Difficulty.HARDCORE:
+			if depth == 1:
+				return 1 + rng.randi() % 2
+			if depth == path_len:
+				return 1
+			return 1 + rng.randi() % 2
+		_:
+			if depth == 1:
+				return 2
+			if depth == path_len:
+				return 1 + rng.randi() % 2
+			return 1 + rng.randi() % 3
 
 
 static func _pick_threat(rng, depth: int, path_len: int, floor_index: int) -> int:
@@ -108,6 +133,9 @@ static func _add_branches(graph, rng, count: int, floor_index: int) -> void:
 		var parent_id: int = eligible[rng.randi() % eligible.size()]
 		var parent = graph.get_node(parent_id)
 		var branch_id: int = graph.add_node(ZoneGraph.NodeType.BRANCH_ROOM, parent.depth, true)
-		graph.add_edge(parent_id, branch_id, 1 + rng.randi() % 2, true)
+		var branch_width: int = 1
+		if ArcadeState.difficulty != ArcadeState.Difficulty.HARDCORE:
+			branch_width = 1 + rng.randi() % 2
+		graph.add_edge(parent_id, branch_id, branch_width, true)
 		graph.get_node(branch_id).preferred_threat = \
 			_pick_threat(rng, parent.depth, parent.depth + 1, floor_index)

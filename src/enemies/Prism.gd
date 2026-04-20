@@ -19,6 +19,7 @@ var ship: Node2D = null
 var facing_angle: float = 0.0
 var _alerting: bool = false
 var _alert_hold: float = 0.0
+var _suspicion: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -42,6 +43,8 @@ func _physics_process(delta: float) -> void:
 		_alert_hold -= delta
 		if _alert_hold <= 0.0:
 			_alerting = false
+	if not combat_active:
+		_suspicion = maxf(0.0, _suspicion - delta * 0.7)
 
 	if not combat_active:
 		_check_detection()
@@ -83,10 +86,12 @@ func _check_detection() -> void:
 	if player == null:
 		return
 	if player.in_dark_pocket:
+		_suspicion = 0.0
 		return
 
 	var emission: float = player.get_effective_emission()
-	if emission <= 0.018:
+	var speed_ratio: float = clampf(player.velocity.length() / maxf(player.max_speed, 1.0), 0.0, 1.0)
+	if emission <= 0.018 and speed_ratio < 0.22:
 		return
 
 	var to_player: Vector2 = player.global_position - global_position
@@ -104,8 +109,20 @@ func _check_detection() -> void:
 			continue
 		var perpendicular := absf(to_player.cross(beam_dir))
 		var tolerance := beam_width + (10.0 if player.dark_mode else 14.0)
-		if perpendicular <= tolerance and (emission > 0.05 or not player.dark_mode or distance < 36.0):
-			_begin_alert()
+		if perpendicular <= tolerance:
+			if emission > 0.05 and not player.dark_mode:
+				_begin_alert()
+				return
+			var risk: float = emission * 2.8 + speed_ratio * 0.95
+			if player.dark_mode:
+				risk *= 0.5
+			if distance < 36.0:
+				risk += 0.4
+			if risk <= 0.06:
+				continue
+			_suspicion = minf(1.0, _suspicion + risk * 0.08)
+			if _suspicion >= 1.0:
+				_begin_alert()
 			return
 
 
@@ -118,6 +135,7 @@ func _beam_directions() -> Array[Vector2]:
 
 
 func _begin_alert() -> void:
+	_suspicion = 1.0
 	if not _alerting:
 		_alerting = true
 		detected.emit(self)
@@ -162,6 +180,9 @@ func _draw() -> void:
 		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
 		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
 				Color(1.0, 0.90, 0.0, pulse))
+	elif _suspicion > 0.06 and not combat_active:
+		var warning := Color(1.0, 0.86, 0.18, 0.42 + _suspicion * 0.4)
+		draw_arc(Vector2.ZERO, 25.0, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.2)
 
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):

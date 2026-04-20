@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
+const ALERT_HOLD_SECONDS := 2.4
 
 signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
@@ -10,6 +11,7 @@ signal killed(enemy: Node, silent: bool)
 @export var patrol_speed: float = 72.0
 @export var combat_speed: float = 110.0
 @export var suppress_range: float = 28.0
+@export var alert_radius: float = 36.0
 
 var is_alive: bool = true
 var combat_active: bool = false
@@ -17,6 +19,8 @@ var facing_vector: Vector2 = Vector2.UP
 var ship: Node2D = null
 var anchor: Vector2 = Vector2.ZERO
 var phase: float = 0.0
+var _alerting: bool = false
+var _alert_hold: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -33,6 +37,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+	if _alert_hold > 0.0:
+		_alert_hold -= delta
+		if _alert_hold <= 0.0:
+			_alerting = false
 	phase += delta
 	if combat_active and ship != null:
 		var to_ship: Vector2 = ship.global_position - global_position
@@ -49,6 +57,7 @@ func _physics_process(delta: float) -> void:
 			facing_vector = offset.normalized()
 			velocity = facing_vector * patrol_speed
 			move_and_slide()
+		_check_alert_radius()
 	queue_redraw()
 
 
@@ -61,6 +70,8 @@ func deactivate_to_stealth() -> void:
 	combat_active = false
 	ship = null
 	velocity = Vector2.ZERO
+	_alerting = false
+	_alert_hold = 0.0
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -80,6 +91,24 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
+func _check_alert_radius() -> void:
+	var player = get_tree().get_first_node_in_group("player_ship")
+	if player == null:
+		return
+	if player.in_dark_pocket:
+		return
+	if global_position.distance_to(player.global_position) > alert_radius:
+		return
+	_begin_alert()
+
+
+func _begin_alert() -> void:
+	if not _alerting:
+		_alerting = true
+		detected.emit(self)
+	_alert_hold = ALERT_HOLD_SECONDS
+
+
 func _update_palette() -> void:
 	body_polygon.color = ColorSystem.enemy_fill(signature_color)
 	body_polygon.color.a = 0.05 if not AlertSystem.combat_mode else 0.12
@@ -93,7 +122,16 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 func _draw() -> void:
 	var tint := signature_color if AlertSystem.combat_mode else ColorSystem.enemy_outline()
-	draw_circle(Vector2.ZERO, 15.0, Color(tint.r, tint.g, tint.b, 0.04))
+	draw_circle(Vector2.ZERO, 58.0, Color(tint.r, tint.g, tint.b, 0.045))
+	draw_circle(Vector2.ZERO, 42.0, Color(tint.r, tint.g, tint.b, 0.075))
+	draw_circle(Vector2.ZERO, 29.0, Color(tint.r, tint.g, tint.b, 0.11))
+	draw_circle(Vector2.ZERO, 18.0, Color(tint.r, tint.g, tint.b, 0.085))
+	if not combat_active:
+		draw_circle(Vector2.ZERO, alert_radius + 18.0, Color(tint.r, tint.g, tint.b, 0.06))
+		draw_circle(Vector2.ZERO, alert_radius + 8.0, Color(tint.r, tint.g, tint.b, 0.08))
+		draw_circle(Vector2.ZERO, alert_radius, Color(tint.r, tint.g, tint.b, 0.10))
+		draw_arc(Vector2.ZERO, alert_radius, 0.0, TAU, 40, Color(tint.r, tint.g, tint.b, 0.52), 2.2)
+		draw_arc(Vector2.ZERO, alert_radius * 0.7, 0.0, TAU, 28, Color(tint.r, tint.g, tint.b, 0.28), 1.4)
 	var whisker := Vector2(0.0, -20.0).rotated(phase * 2.0)
 	draw_line(Vector2.ZERO, whisker, Color(tint.r, tint.g, tint.b, 0.28), 1.5)
 	draw_polyline(PackedVector2Array([
@@ -107,6 +145,13 @@ func _draw() -> void:
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 17.0, 0.0, TAU, 24, marker, 1.1)
+	if _alerting and not combat_active:
+		var t_ms: float = Time.get_ticks_msec() / 1000.0
+		var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
+		var font := ThemeDB.fallback_font
+		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
+		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
+		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.90, 0.0, pulse))
 
 
 func _spawn_burst(silent: bool) -> void:
