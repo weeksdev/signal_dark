@@ -20,6 +20,7 @@ var _previous_suppress_pressed: bool = false
 var _previous_probe_pressed: bool = false
 var _thruster_t: float = 0.0
 var _boost_flash: float = 0.0
+var _hack_prompt_active: bool = false
 
 @onready var weapon_system = $WeaponSystem
 @onready var body_polygon = $Body
@@ -60,21 +61,24 @@ func _physics_process(delta: float) -> void:
 	_update_aim_direction(move_input)
 	rotation = aim_direction.angle() + PI / 2.0
 
+	_update_hack_prompt(delta)
+
 	var suppress_pressed := InputManager.is_suppress_pressed()
 	var probe_pressed := InputManager.is_probe_pressed()
 	if InputManager.is_fire_pressed():
 		weapon_system.try_fire(aim_direction)
 	if probe_pressed and not _previous_probe_pressed:
-		_try_launch_probe()
+		if not _hack_prompt_active:
+			_try_launch_probe()
 	if suppress_pressed and not _previous_suppress_pressed:
-		_try_suppressed_kill()
+		if not _hack_prompt_active:
+			_try_suppressed_kill()
 	_previous_probe_pressed = probe_pressed
 	_previous_suppress_pressed = suppress_pressed
 
 	_update_emission(did_boost)
 	_check_enemy_contact()
 	_update_suppress_prompt()
-	_update_hack_prompt(delta)
 	_update_palette()
 	queue_redraw()
 
@@ -139,11 +143,13 @@ func _update_suppress_prompt() -> void:
 func _update_hack_prompt(delta: float) -> void:
 	var world := get_tree().current_scene
 	if world == null or not world.has_method("update_gate_hacking"):
+		_hack_prompt_active = false
 		hack_indicator.update_indicator(false, global_position, [], 0, false)
 		return
 	var status: Dictionary = world.update_gate_hacking(self, delta)
+	_hack_prompt_active = status.get("visible", false)
 	hack_indicator.update_indicator(
-		status.get("visible", false),
+		_hack_prompt_active,
 		status.get("world_pos", global_position + Vector2(0.0, -56.0)),
 		status.get("sequence", []),
 		status.get("current_index", 0),
