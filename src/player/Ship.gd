@@ -9,11 +9,14 @@ signal destroyed
 @export var boost_impulse: float = 560.0
 @export var boost_cooldown: float = 0.22
 @export var signal_probe_scene: PackedScene
+@export var jammer_radius: float = 148.0
+@export var jammer_duration: float = 2.4
 
 var aim_direction: Vector2 = Vector2.UP
 var dark_mode: bool = false
 var in_dark_pocket: bool = false
 var probe_charges: int = 3
+var jammer_charges: int = 2
 var boost_cooldown_remaining: float = 0.0
 var dead: bool = false
 var _previous_suppress_pressed: bool = false
@@ -72,7 +75,8 @@ func _physics_process(delta: float) -> void:
 			_try_launch_probe()
 	if suppress_pressed and not _previous_suppress_pressed:
 		if not _hack_prompt_active:
-			_try_suppressed_kill()
+			if not _try_suppressed_kill():
+				_try_signal_jammer()
 	_previous_probe_pressed = probe_pressed
 	_previous_suppress_pressed = suppress_pressed
 
@@ -110,6 +114,12 @@ func _update_emission(did_boost: bool) -> void:
 	if did_boost:
 		emission = maxf(emission, 0.85)
 	AlertSystem.set_emission(emission)
+	var world := get_tree().current_scene
+	if world != null and world.has_method("notify_player_noise"):
+		if did_boost:
+			world.notify_player_noise(global_position, 1.0)
+		elif velocity.length() > max_speed * 0.92 and not dark_mode:
+			world.notify_player_noise(global_position, 0.18)
 
 
 func _try_launch_probe() -> void:
@@ -122,13 +132,24 @@ func _try_launch_probe() -> void:
 	get_tree().current_scene.add_child(probe)
 
 
-func _try_suppressed_kill() -> void:
+func _try_suppressed_kill() -> bool:
 	if not dark_mode:
-		return
+		return false
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy.can_be_suppressed_by(self):
 			enemy.take_damage(true, global_position)
-			return
+			return true
+	return false
+
+
+func _try_signal_jammer() -> void:
+	if jammer_charges <= 0:
+		return
+	var world := get_tree().current_scene
+	if world == null or not world.has_method("trigger_signal_jammer"):
+		return
+	jammer_charges -= 1
+	world.trigger_signal_jammer(global_position, jammer_radius, jammer_duration)
 
 
 func _update_suppress_prompt() -> void:

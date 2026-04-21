@@ -5,6 +5,8 @@ signal player_reached
 @export var radius: float = 52.0
 
 var _pulse: float = 0.0
+var _locked: bool = false
+var _locked_label: String = "LOCKED"
 
 
 func _ready() -> void:
@@ -21,7 +23,15 @@ func _process(delta: float) -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player_ship"):
+		if _locked:
+			return
 		player_reached.emit()
+
+
+func set_locked(active: bool, label: String = "LOCKED") -> void:
+	_locked = active
+	_locked_label = label
+	queue_redraw()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -35,11 +45,11 @@ func _draw() -> void:
 
 	# Outer beacon ring
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48,
-			Color(color.r, color.g, color.b, breathe * 0.85), 2.2)
+			Color(color.r, color.g, color.b, breathe * (0.45 if _locked else 0.85)), 2.2)
 
 	# Inner fill
 	draw_circle(Vector2.ZERO, radius,
-			Color(color.r, color.g, color.b, 0.06 * breathe))
+			Color(color.r, color.g, color.b, (0.03 if _locked else 0.06) * breathe))
 
 	# Second ring — tighter, slower pulse
 	var breathe2 := 0.4 + 0.6 * sin(t * 1.1 + 1.0)
@@ -47,13 +57,13 @@ func _draw() -> void:
 			Color(color.r, color.g, color.b, breathe2 * 0.4), 1.2)
 
 	# Arrow pointing right — direction of progression
-	var arr_color := Color(color.r, color.g, color.b, breathe * 0.9)
+	var arr_color := Color(color.r, color.g, color.b, breathe * (0.45 if _locked else 0.9))
 	draw_line(Vector2(-18.0, 0.0), Vector2(18.0, 0.0), arr_color, 2.5)
 	draw_line(Vector2(8.0, -11.0), Vector2(18.0, 0.0), arr_color, 2.5)
 	draw_line(Vector2(8.0, 11.0), Vector2(18.0, 0.0), arr_color, 2.5)
 
 	# "EXIT" label
 	var font := ThemeDB.fallback_font
-	draw_string(font, Vector2(-14.0, radius + 16.0), "EXIT",
+	draw_string(font, Vector2(-14.0, radius + 16.0), "EXIT" if not _locked else _locked_label,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
-			Color(color.r, color.g, color.b, breathe * 0.7))
+			Color(color.r, color.g, color.b, breathe * (0.45 if _locked else 0.7)))

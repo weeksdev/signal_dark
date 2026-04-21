@@ -13,8 +13,8 @@ uniform float max_darkness = 0.84;
 uniform float ambient_floor = 0.19;
 uniform float stealth_mix = 1.0;
 uniform int reveal_count = 0;
-uniform vec2 reveal_centers[4];
-uniform float reveal_radii[4];
+uniform vec2 reveal_centers[8];
+uniform float reveal_radii[8];
 uniform float reveal_strength = 0.22;
 
 vec4 blur5(vec2 uv, float blur_px) {
@@ -43,7 +43,7 @@ void fragment() {
 	float visibility = max(ambient_floor, 1.0 - darkness);
 	float reveal_visibility = 0.0;
 	float reveal_clarity = 0.0;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 8; i++) {
 		if (i >= reveal_count) {
 			break;
 		}
@@ -108,22 +108,39 @@ func _wisp_reveal_data(rect: Rect2) -> Dictionary:
 		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0)
 	]
-	var radii: Array = [0.0, 0.0, 0.0, 0.0]
+	var radii: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	var count: int = 0
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy == null:
 			continue
 		if not enemy.scene_file_path.ends_with("Wisp.tscn"):
 			continue
-		if count >= 4:
+		if count >= 8:
 			break
 		var center: Vector2 = _screen_from_world(enemy.global_position, rect)
 		if not Rect2(Vector2.ZERO, rect.size).grow(96.0).has_point(center):
 			continue
 		centers[count] = center
 		radii[count] = 110.0
+		count += 1
+	for node in get_tree().get_nodes_in_group("arcade_objective"):
+		if node == null:
+			continue
+		if count >= 8:
+			break
+		if node.completed:
+			continue
+		var objective_center: Vector2 = _screen_from_world(node.global_position, rect)
+		if not Rect2(Vector2.ZERO, rect.size).grow(120.0).has_point(objective_center):
+			continue
+		centers[count] = objective_center
+		radii[count] = 150.0
 		count += 1
 	return {
 		"count": count,
@@ -148,4 +165,4 @@ func _update_shader_params() -> void:
 	_shader_material.set_shader_parameter("reveal_count", reveal_data["count"])
 	_shader_material.set_shader_parameter("reveal_centers", reveal_data["centers"])
 	_shader_material.set_shader_parameter("reveal_radii", reveal_data["radii"])
-	_shader_material.set_shader_parameter("reveal_strength", 0.7)
+	_shader_material.set_shader_parameter("reveal_strength", 0.82)

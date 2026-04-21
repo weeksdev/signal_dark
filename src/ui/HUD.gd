@@ -4,6 +4,8 @@ var mode_text: String = "MODE: STEALTH"
 var emission_value: float = 8.0
 var alert_value: float = 0.0
 var status_text: String = "PROBES 3   SPEED 000"
+var objective_text: String = ""
+var interaction_text: String = ""
 var blink: float = 0.0
 
 
@@ -20,7 +22,16 @@ func _process(delta: float) -> void:
 	blink += delta
 	var ship = get_tree().get_first_node_in_group("player_ship")
 	if ship != null:
-		status_text = "PROBES %d   SPEED %03d" % [ship.probe_charges, int(ship.velocity.length())]
+		status_text = "PROBES %d   JAM %d   SPEED %03d" % [ship.probe_charges, ship.jammer_charges, int(ship.velocity.length())]
+	var world := get_tree().current_scene
+	if world != null and world.has_method("get_hud_objective_text"):
+		objective_text = world.get_hud_objective_text()
+	else:
+		objective_text = ""
+	if world != null and world.has_method("get_hud_interaction_text"):
+		interaction_text = world.get_hud_interaction_text()
+	else:
+		interaction_text = ""
 	queue_redraw()
 
 
@@ -42,7 +53,7 @@ func _on_mode_changed(in_combat: bool) -> void:
 func _draw() -> void:
 	var viewport_size := get_viewport_rect().size
 	var panel_width := minf(viewport_size.x - 32.0, 420.0)
-	var panel := Rect2(Vector2(16.0, 16.0), Vector2(panel_width, 78.0))
+	var panel := Rect2(Vector2(16.0, 16.0), Vector2(panel_width, 114.0))
 	var inner := panel.grow(-8.0)
 	var ui_color := ColorSystem.ui_color()
 	draw_rect(panel, Color(0.0, 0.0, 0.0, 0.3), true)
@@ -62,6 +73,10 @@ func _draw() -> void:
 	_draw_bar(Rect2(inner.position + Vector2(8.0, 26.0), Vector2(bar_width, 8.0)), emission_value / 100.0, Color(0.2, 1.0, 0.45, 0.9), true)
 	_draw_bar(Rect2(inner.position + Vector2(8.0, 44.0), Vector2(bar_width, 8.0)), alert_value / 100.0, Color(0.95, 0.35, 0.35, 0.9), false)
 	draw_string(font, inner.position + Vector2(8.0, 66.0), status_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, small_size, ui_color)
+	if objective_text != "":
+		draw_string(font, inner.position + Vector2(8.0, 84.0), objective_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, small_size, Color(0.85, 1.0, 0.9, 0.92))
+	if interaction_text != "":
+		draw_string(font, inner.position + Vector2(8.0, 100.0), interaction_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, tiny_size, Color(ui_color.r, ui_color.g, ui_color.b, 0.8))
 
 
 func _draw_bar(rect: Rect2, ratio: float, tint: Color, segmented: bool) -> void:

@@ -1,17 +1,15 @@
 extends CharacterBody2D
-class_name BaseEnemy
 
 signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
-
-@export var signature_color := Color("00ff88")
-@export var combat_speed: float = 140.0
-@export var suppress_range: float = 34.0
 
 var is_alive: bool = true
 var combat_active: bool = false
 var facing_vector: Vector2 = Vector2.UP
 var ship: Node2D = null
+var _alerting: bool = false
+var _alert_hold: float = 0.0
+var _suspicion: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -30,7 +28,7 @@ func _physics_process(delta: float) -> void:
 		var chase_vector: Vector2 = ship.global_position - global_position
 		if chase_vector != Vector2.ZERO:
 			facing_vector = chase_vector.normalized()
-			velocity = facing_vector * combat_speed
+			velocity = facing_vector * _combat_speed_value()
 		move_and_slide()
 		if global_position.distance_to(ship.global_position) < 18.0:
 			ship.take_hit()
@@ -41,13 +39,13 @@ func activate_for_combat(target_ship: Node2D) -> void:
 	combat_active = true
 
 
-func can_be_suppressed_by(ship_node: Node) -> bool:
+func can_be_suppressed_by(ship_node: Node2D) -> bool:
 	if not is_alive or combat_active:
 		return false
 	if not ship_node.dark_mode:
 		return false
 	var offset: Vector2 = ship_node.global_position - global_position
-	if offset.length() > suppress_range:
+	if offset.length() > _suppress_range_value():
 		return false
 	var approach: Vector2 = offset.normalized()
 	return facing_vector.dot(approach) < -0.35
@@ -67,10 +65,127 @@ func emit_detection() -> void:
 	detected.emit(self)
 
 
+func is_alerting_state() -> bool:
+	return _alerting
+
+
+func tick_alert_state(delta: float, suspicion_decay: float = 0.0) -> void:
+	if _alert_hold > 0.0:
+		_alert_hold -= delta
+		if _alert_hold <= 0.0:
+			_alerting = false
+	if not combat_active and suspicion_decay > 0.0:
+		_suspicion = maxf(0.0, _suspicion - delta * suspicion_decay)
+
+
+func clear_alert_state() -> void:
+	_alerting = false
+	_alert_hold = 0.0
+	_suspicion = 0.0
+
+
+func begin_alert_state(hold_seconds: float) -> void:
+	_suspicion = 1.0
+	if not _alerting:
+		_alerting = true
+		detected.emit(self)
+	_alert_hold = hold_seconds
+
+
+func add_suspicion(amount: float) -> bool:
+	_suspicion = minf(1.0, _suspicion + amount)
+	return _suspicion >= 1.0
+
+
+func _world() -> Node:
+	return GameState.current_world
+
+
+func world_has_method(method_name: String) -> bool:
+	var world := _world()
+	return world != null and is_instance_valid(world) and world.has_method(method_name)
+
+
+func world_call(method_name: String, args: Array = []) -> Variant:
+	var world := _world()
+	if world == null or not is_instance_valid(world) or not world.has_method(method_name):
+		return null
+	return world.callv(method_name, args)
+
+
+func is_world_line_blocked(from_point: Vector2, to_point: Vector2, exclusions := []) -> bool:
+	var result: Variant = world_call("is_line_blocked", [from_point, to_point, exclusions])
+	return bool(result) if result != null else false
+
+
+func world_has_active_probe() -> bool:
+	var result: Variant = world_call("has_active_probe")
+	return bool(result) if result != null else false
+
+
+func world_probe_target() -> Vector2:
+	var result: Variant = world_call("get_probe_target")
+	return result if result is Vector2 else global_position
+
+
+func world_is_search_active() -> bool:
+	var result: Variant = world_call("is_search_active")
+	return bool(result) if result != null else false
+
+
+func world_search_target() -> Vector2:
+	var result: Variant = world_call("get_search_target")
+	return result if result is Vector2 else global_position
+
+
+func world_is_point_jammed(point: Vector2) -> bool:
+	var result: Variant = world_call("is_point_jammed", [point])
+	return bool(result) if result != null else false
+
+
+func add_effect_to_world(node: Node) -> void:
+	var world := _world()
+	if world != null and is_instance_valid(world):
+		world.add_child(node)
+
+
+func draw_alert_marker() -> void:
+	if not _alerting or combat_active:
+		return
+	var t_ms: float = Time.get_ticks_msec() / 1000.0
+	var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
+	var font := ThemeDB.fallback_font
+	draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
+	draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
+	draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.90, 0.0, pulse))
+
+
+func draw_suspicion_arc(radius: float, min_threshold: float = 0.06) -> void:
+	if _alerting or combat_active or _suspicion <= min_threshold:
+		return
+	var warning := Color(1.0, 0.86, 0.18, 0.42 + _suspicion * 0.4)
+	draw_arc(Vector2.ZERO, radius, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.2)
+
+
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
+	body_polygon.color = ColorSystem.enemy_fill(_signature_color_value())
 	outline.default_color = ColorSystem.enemy_outline()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
 	_update_palette()
+
+
+func _combat_speed_value() -> float:
+	var value: Variant = get("combat_speed")
+	return float(value) if value != null else 140.0
+
+
+func _suppress_range_value() -> float:
+	var value: Variant = get("suppress_range")
+	return float(value) if value != null else 34.0
+
+
+func _signature_color_value() -> Color:
+	var value: Variant = get("signature_color")
+	return value if value is Color else Color("00ff88")

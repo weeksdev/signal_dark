@@ -16,6 +16,10 @@ Combat pressure in a denser machine layout:
 
 ![Combat overview](docs/screenshots/combat-overview.png)
 
+Gameplay video, `Easy` arcade mode:
+
+[![Watch the Easy mode arcade run](docs/screenshots/combat-overview.png)](https://www.youtube.com/watch?v=0XNt8hy_gA0)
+
 ## Core Loop
 
 - Move through darkened machine spaces without triggering alerts.

@@ -1,10 +1,7 @@
-extends CharacterBody2D
+extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
 const ALERT_HOLD_SECONDS := 2.4
-
-signal detected(enemy: Node)
-signal killed(enemy: Node, silent: bool)
 
 @export var signature_color := Color("bf5af2")
 @export var patrol_radius: float = 90.0
@@ -12,35 +9,22 @@ signal killed(enemy: Node, silent: bool)
 @export var combat_speed: float = 110.0
 @export var suppress_range: float = 28.0
 @export var alert_radius: float = 36.0
+@export var search_interest_radius: float = 124.0
 
-var is_alive: bool = true
-var combat_active: bool = false
-var facing_vector: Vector2 = Vector2.UP
-var ship: Node2D = null
 var anchor: Vector2 = Vector2.ZERO
 var phase: float = 0.0
-var _alerting: bool = false
-var _alert_hold: float = 0.0
-
-@onready var body_polygon: Polygon2D = $Body
-@onready var outline: Line2D = $Outline
 
 
 func _ready() -> void:
-	add_to_group("zone_enemy")
+	super._ready()
 	anchor = global_position
 	phase = randf() * TAU
-	ColorSystem.mode_changed.connect(_on_mode_changed)
-	_update_palette()
 
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
-	if _alert_hold > 0.0:
-		_alert_hold -= delta
-		if _alert_hold <= 0.0:
-			_alerting = false
+	tick_alert_state(delta)
 	phase += delta
 	if combat_active and ship != null:
 		var to_ship: Vector2 = ship.global_position - global_position
@@ -50,28 +34,35 @@ func _physics_process(delta: float) -> void:
 			facing_vector = desired.normalized()
 			velocity = desired
 			move_and_slide()
+			if get_slide_collision_count() > 0:
+				phase += 0.9
 	else:
 		var roam_target := anchor + Vector2(cos(phase * 0.8), sin(phase * 1.1)) * patrol_radius
+		if world_is_search_active():
+			var search_target: Vector2 = world_search_target()
+			if global_position.distance_to(search_target) <= search_interest_radius:
+				roam_target = search_target
 		var offset: Vector2 = roam_target - global_position
 		if offset.length() > 2.0:
 			facing_vector = offset.normalized()
 			velocity = facing_vector * patrol_speed
 			move_and_slide()
+			if get_slide_collision_count() > 0:
+				phase += 1.25
+				velocity = Vector2.ZERO
 		_check_alert_radius()
 	queue_redraw()
 
 
 func activate_for_combat(target_ship: Node2D) -> void:
-	ship = target_ship
-	combat_active = true
+	super.activate_for_combat(target_ship)
 
 
 func deactivate_to_stealth() -> void:
 	combat_active = false
 	ship = null
 	velocity = Vector2.ZERO
-	_alerting = false
-	_alert_hold = 0.0
+	clear_alert_state()
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -95,6 +86,8 @@ func _check_alert_radius() -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player == null:
 		return
+	if world_is_point_jammed(global_position) or world_is_point_jammed(player.global_position):
+		return
 	if player.in_dark_pocket:
 		return
 	if global_position.distance_to(player.global_position) > alert_radius:
@@ -103,10 +96,7 @@ func _check_alert_radius() -> void:
 
 
 func _begin_alert() -> void:
-	if not _alerting:
-		_alerting = true
-		detected.emit(self)
-	_alert_hold = ALERT_HOLD_SECONDS
+	begin_alert_state(ALERT_HOLD_SECONDS)
 
 
 func _update_palette() -> void:
@@ -145,13 +135,7 @@ func _draw() -> void:
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 17.0, 0.0, TAU, 24, marker, 1.1)
-	if _alerting and not combat_active:
-		var t_ms: float = Time.get_ticks_msec() / 1000.0
-		var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
-		var font := ThemeDB.fallback_font
-		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
-		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
-		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.90, 0.0, pulse))
+	draw_alert_marker()
 
 
 func _spawn_burst(silent: bool) -> void:
@@ -159,4 +143,4 @@ func _spawn_burst(silent: bool) -> void:
 	burst.global_position = global_position
 	burst.combat_mode = AlertSystem.combat_mode and not silent
 	burst.signature_color = signature_color
-	get_tree().current_scene.add_child(burst)
+	add_effect_to_world(burst)

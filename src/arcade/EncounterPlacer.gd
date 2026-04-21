@@ -23,10 +23,12 @@ const COSTS := {
 	"warpmine": 4,
 }
 
-const ENEMY_MARGIN    := 80.0
+const ENEMY_MARGIN    := 110.0
 const POCKET_MARGIN   := 90.0
 const DOORWAY_CLEAR   := 130.0
 const SPREAD_MIN      := 80.0
+const CENTER_BIAS_PULL := 0.42
+const POCKET_ENEMY_CLEAR := 132.0
 
 # Room/corridor dimensions mirrored from ModuleAssembler (kept local to avoid cross-dependency)
 const _ROOM_W   := 480.0
@@ -66,8 +68,8 @@ func place(world: Node2D, graph,
 		var types    := _pick_enemies(budget, node.preferred_threat, pool, rng)
 		types = _tune_corridor_loadout(node, types, pool, rng)
 
-		_place_enemies(world, rect, types, doorways, rng)
-		_place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
+		var pocket_positions := _place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
+		_place_enemies(world, rect, types, doorways, pocket_positions, rng)
 		first_combat_room = false
 
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
@@ -188,10 +190,10 @@ func _apply_theme_bias(lead: String, pool: Array, rng) -> String:
 
 # ── Enemy placement ───────────────────────────────────────────────────────────
 
-func _place_enemies(world: Node2D, rect: Rect2, types: Array, doorways: Array, rng) -> void:
+func _place_enemies(world: Node2D, rect: Rect2, types: Array, doorways: Array, blocked_positions: Array, rng) -> void:
 	var placed: Array = []
 	for t: String in types:
-		var pos := _valid_pos(rect, doorways, placed, rng, ENEMY_MARGIN)
+		var pos := _valid_pos(rect, doorways, placed, blocked_positions, rng, ENEMY_MARGIN)
 		placed.append(pos)
 		match t:
 			"sweeper":  _spawn_sweeper(world, pos, rect)
@@ -222,7 +224,7 @@ func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2) -> void:
 		patrol_range = minf(room_rect.size.y * 0.28, 110.0)
 		patrol_dir   = Vector2.DOWN
 
-	var inner   := room_rect.grow(-60.0)
+	var inner   := room_rect.grow(-96.0)
 	var a_world := (pos + patrol_dir * patrol_range).clamp(inner.position, inner.end)
 	var b_world := (pos - patrol_dir * patrol_range).clamp(inner.position, inner.end)
 
@@ -293,7 +295,7 @@ func _spawn_gatelock(world: Node2D, rect_a: Rect2, rect_b: Rect2,
 # ── Dark pocket placement ─────────────────────────────────────────────────────
 
 func _place_dark_pockets(world: Node2D, rect: Rect2, node,
-		doorways: Array, force_one: bool, floor_index: int, rng) -> void:
+		doorways: Array, force_one: bool, floor_index: int, rng) -> Array:
 	var count := 0
 	if force_one:
 		count = 1
@@ -314,11 +316,12 @@ func _place_dark_pockets(world: Node2D, rect: Rect2, node,
 
 	var placed: Array = []
 	for _i in count:
-		var pos := _valid_pos(rect, doorways, placed, rng, POCKET_MARGIN)
+		var pos := _valid_pos(rect, doorways, placed, [], rng, POCKET_MARGIN)
 		placed.append(pos)
 		var pocket: Node2D = DARK_POCKET_SCENE.instantiate()
 		pocket.position = pos
 		world.add_child(pocket)
+	return placed
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -352,16 +355,18 @@ func _doorway_centers(node_id: int, graph,
 	return centers
 
 
-func _valid_pos(rect: Rect2, doorways: Array, placed: Array, rng, margin: float) -> Vector2:
+func _valid_pos(rect: Rect2, doorways: Array, placed: Array, blocked_positions: Array, rng, margin: float) -> Vector2:
 	var inner := rect.grow(-margin)
 	if inner.size.x <= 4.0 or inner.size.y <= 4.0:
 		return rect.get_center()
+	var center: Vector2 = inner.get_center()
 
 	for _attempt in 14:
 		var pos := Vector2(
 			inner.position.x + rng.randf() * inner.size.x,
 			inner.position.y + rng.randf() * inner.size.y,
 		)
+		pos = pos.lerp(center, CENTER_BIAS_PULL)
 		var ok := true
 		for dp: Vector2 in doorways:
 			if pos.distance_to(dp) < DOORWAY_CLEAR:
@@ -370,6 +375,11 @@ func _valid_pos(rect: Rect2, doorways: Array, placed: Array, rng, margin: float)
 		if ok:
 			for pp: Vector2 in placed:
 				if pos.distance_to(pp) < SPREAD_MIN:
+					ok = false
+					break
+		if ok:
+			for blocked: Vector2 in blocked_positions:
+				if pos.distance_to(blocked) < POCKET_ENEMY_CLEAR:
 					ok = false
 					break
 		if ok:

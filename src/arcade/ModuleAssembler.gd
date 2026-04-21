@@ -47,8 +47,8 @@ func _assign_grid_positions(graph) -> void:
 		var parent = graph.get_node(edge.from_id)
 		if parent == null:
 			continue
-		var col: int = parent.depth
-		_node_cells[edge.to_id] = Vector2i(col, _next_branch_row(col))
+		var parent_cell: Vector2i = _node_cells.get(edge.from_id, Vector2i.ZERO)
+		_node_cells[edge.to_id] = _pick_branch_cell(parent_cell)
 
 
 func _assign_main_path_positions(graph) -> void:
@@ -99,6 +99,38 @@ func _next_branch_row(col: int) -> int:
 	_col_branch_count[col] = idx + 1
 	var half := (idx / 2) + 2
 	return half if idx % 2 == 0 else -half
+
+
+func _pick_branch_cell(parent_cell: Vector2i) -> Vector2i:
+	var occupied: Dictionary = {}
+	for node_id in _node_cells:
+		occupied[_node_cells[node_id]] = true
+
+	var candidates: Array[Vector2i] = [
+		parent_cell + Vector2i(0, -1),
+		parent_cell + Vector2i(0, 1),
+		parent_cell + Vector2i(1, 0),
+		parent_cell + Vector2i(-1, 0),
+	]
+	for candidate in candidates:
+		if not occupied.has(candidate):
+			return candidate
+
+	# Fallback: pick the nearest free cell in a small ring and let the builder continue.
+	# This should be rare, but keeps generation from overlapping nodes if a parent is crowded.
+	for radius in range(2, 5):
+		for offset in [
+			Vector2i(0, -radius),
+			Vector2i(0, radius),
+			Vector2i(radius, 0),
+			Vector2i(-radius, 0),
+			Vector2i(radius - 1, 1),
+			Vector2i(-(radius - 1), -1),
+		]:
+			var candidate: Vector2i = parent_cell + offset
+			if not occupied.has(candidate):
+				return candidate
+	return parent_cell + Vector2i(0, 1)
 
 
 func _compute_room_rects() -> void:

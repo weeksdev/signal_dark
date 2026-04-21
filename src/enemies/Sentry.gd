@@ -1,9 +1,6 @@
-extends CharacterBody2D
+extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
-
-signal detected(enemy: Node)
-signal killed(enemy: Node, silent: bool)
 
 @export var signature_color := Color("32d2ff")
 @export var suppress_range: float = 30.0
@@ -11,45 +8,31 @@ signal killed(enemy: Node, silent: bool)
 @export var fire_interval: float = 1.2
 @export var bolt_scene: PackedScene
 
-var is_alive: bool = true
-var combat_active: bool = false
-var facing_vector: Vector2 = Vector2.UP
-var ship: Node2D = null
 var cooldown: float = 0.8
-var _alerting: bool = false
-var _alert_hold: float = 0.0
-var _suspicion: float = 0.0
-
-@onready var body_polygon: Polygon2D = $Body
-@onready var outline: Line2D = $Outline
 
 
 func _ready() -> void:
-	add_to_group("zone_enemy")
-	ColorSystem.mode_changed.connect(_on_mode_changed)
-	_update_palette()
+	super._ready()
 
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
 	cooldown = maxf(cooldown - delta, 0.0)
-	if _alert_hold > 0.0:
-		_alert_hold -= delta
-		if _alert_hold <= 0.0:
-			_alerting = false
-	if not combat_active:
-		_suspicion = maxf(0.0, _suspicion - delta * 0.7)
+	tick_alert_state(delta, 0.7)
 	var player = ship if ship != null else get_tree().get_first_node_in_group("player_ship")
 	if player != null:
-		var to_player: Vector2 = player.global_position - global_position
+		var aim_target: Vector2 = player.global_position
+		if not combat_active and world_is_search_active():
+			aim_target = world_search_target()
+		var to_player: Vector2 = aim_target - global_position
 		if to_player != Vector2.ZERO:
 			facing_vector = to_player.normalized()
 		if not combat_active:
 			_check_warning(player)
 	if combat_active and player != null and cooldown <= 0.0:
 		var distance: float = global_position.distance_to(player.global_position)
-		var blocked: bool = get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()])
+		var blocked: bool = is_world_line_blocked(global_position, player.global_position, [get_rid()])
 		if distance <= attack_range and not blocked:
 			_fire_at(player.global_position)
 			cooldown = fire_interval
@@ -57,17 +40,14 @@ func _physics_process(delta: float) -> void:
 
 
 func activate_for_combat(target_ship: Node2D) -> void:
-	ship = target_ship
-	combat_active = true
+	super.activate_for_combat(target_ship)
 
 
 func deactivate_to_stealth() -> void:
 	combat_active = false
 	ship = null
 	cooldown = 0.8
-	_alerting = false
-	_alert_hold = 0.0
-	_suspicion = 0.0
+	clear_alert_state()
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -95,36 +75,36 @@ func _fire_at(target: Vector2) -> void:
 	bolt.global_position = global_position + direction * 16.0
 	bolt.direction = direction
 	bolt.tint = Color("b8fff8") if AlertSystem.combat_mode else Color("5ba57d")
-	get_tree().current_scene.add_child(bolt)
+	add_effect_to_world(bolt)
 
 
 func _check_warning(player: Node2D) -> void:
 	if player.in_dark_pocket:
 		_suspicion = 0.0
 		return
+	if world_is_point_jammed(global_position) or world_is_point_jammed(player.global_position):
+		_suspicion = 0.0
+		return
 	var distance: float = global_position.distance_to(player.global_position)
 	if distance > 220.0:
 		return
-	if get_tree().current_scene.is_line_blocked(global_position, player.global_position, [get_rid()]):
+	if is_world_line_blocked(global_position, player.global_position, [get_rid()]):
 		return
 	var speed_ratio: float = clampf(player.velocity.length() / maxf(player.max_speed, 1.0), 0.0, 1.0)
 	var risk: float = player.get_effective_emission() * 2.4 + speed_ratio * 0.9
 	if player.dark_mode:
 		risk *= 0.55
+	if world_is_search_active():
+		risk *= 1.2
 	risk *= 1.0 - (distance / 220.0)
 	if risk <= 0.04:
 		return
-	_suspicion = minf(1.0, _suspicion + risk * 0.05)
-	if _suspicion >= 1.0:
+	if add_suspicion(risk * 0.05):
 		_begin_alert()
 
 
 func _begin_alert() -> void:
-	_suspicion = 1.0
-	if not _alerting:
-		_alerting = true
-		detected.emit(self)
-	_alert_hold = 2.4
+	begin_alert_state(2.4)
 
 
 func _update_palette() -> void:
@@ -144,16 +124,8 @@ func _draw() -> void:
 	draw_arc(Vector2.ZERO, 8.0, 0.0, TAU, 24, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.7), 1.2)
 	draw_line(Vector2(-6.0, 0.0), Vector2(6.0, 0.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 1.0)
 	draw_line(Vector2(0.0, -6.0), Vector2(0.0, 6.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 1.0)
-	if _alerting and not combat_active:
-		var t_ms: float = Time.get_ticks_msec() / 1000.0
-		var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
-		var font := ThemeDB.fallback_font
-		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
-		draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
-		draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.90, 0.0, pulse))
-	elif _suspicion > 0.06 and not combat_active:
-		var warning := Color(1.0, 0.86, 0.18, 0.42 + _suspicion * 0.4)
-		draw_arc(Vector2.ZERO, 24.0, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.2)
+	draw_alert_marker()
+	draw_suspicion_arc(24.0)
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
@@ -168,4 +140,4 @@ func _spawn_burst(silent: bool) -> void:
 	burst.global_position = global_position
 	burst.combat_mode = AlertSystem.combat_mode and not silent
 	burst.signature_color = signature_color
-	get_tree().current_scene.add_child(burst)
+	add_effect_to_world(burst)

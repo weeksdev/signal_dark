@@ -3,6 +3,7 @@ extends Node2D
 const HUNTER_SCENE := preload("res://src/enemies/Hunter.tscn")
 const WISP_SCENE := preload("res://src/enemies/Wisp.tscn")
 const PRISM_SCENE := preload("res://src/enemies/Prism.tscn")
+const ObjectiveNode := preload("res://src/world/ObjectiveNode.gd")
 
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
@@ -27,10 +28,25 @@ var _hack_target: Node2D = null
 var _hack_sequence: Array = []
 var _hack_index: int = 0
 var _hack_wrong_flash: bool = false
+var _search_position: Vector2 = Vector2.ZERO
+var _search_timer: float = 0.0
+var _search_reason: String = ""
+var _last_known_player_position: Vector2 = Vector2.ZERO
+var _jammer_position: Vector2 = Vector2.ZERO
+var _jammer_radius: float = 0.0
+var _jammer_timer: float = 0.0
+var _objective_nodes: Array[ObjectiveNode] = []
+var _objective_required: int = 0
+var _objective_progress: int = 0
+var _objective_type: String = ""
+var _interaction_text: String = ""
+var _alert_count: int = 0
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
 const CAUTION_DURATION := 1.8
+const SEARCH_DURATION := 7.5
+const JAMMER_ALERT_REDUCTION := 0.28
 
 
 func _ready() -> void:
@@ -60,6 +76,9 @@ func _process(delta: float) -> void:
 		_update_combat_cooldown(delta)
 	if _caution_active and not AlertSystem.combat_mode:
 		_update_caution(delta)
+	_update_search(delta)
+	_update_jammer(delta)
+	_update_objectives(delta)
 
 
 func _update_caution(delta: float) -> void:
@@ -70,7 +89,11 @@ func _update_caution(delta: float) -> void:
 	if not is_instance_valid(_caution_enemy) or not _caution_enemy.is_alive:
 		_cancel_caution()
 		return
-	if not _caution_enemy._alerting:
+	if _caution_enemy.has_method("is_alerting_state"):
+		if not _caution_enemy.is_alerting_state():
+			_cancel_caution()
+			return
+	elif not _caution_enemy._alerting:
 		_cancel_caution()
 		return
 	_caution_timer -= delta
@@ -86,6 +109,8 @@ func _cancel_caution() -> void:
 
 
 func _on_enemy_detected(enemy: Node) -> void:
+	_last_known_player_position = ship.global_position
+	start_search(ship.global_position, SEARCH_DURATION * 0.55, "SEARCH: CONTACT")
 	if ship.in_dark_pocket:
 		_cancel_caution()
 		return
@@ -101,6 +126,7 @@ func _on_enemy_detected(enemy: Node) -> void:
 	_caution_active = true
 	_caution_timer = CAUTION_DURATION
 	_caution_enemy = enemy
+	AlertSystem.set_alert_level(maxf(AlertSystem.alert_level, 0.42))
 
 
 func _on_enemy_killed(enemy: Node, silent: bool) -> void:
@@ -119,6 +145,10 @@ func _on_enemy_killed(enemy: Node, silent: bool) -> void:
 func _on_exit_reached() -> void:
 	if completing or restarting:
 		return
+	if _objective_required > 0 and _objective_progress < _objective_required:
+		_interaction_text = "EXIT LOCKED  //  %s" % get_hud_objective_text()
+		start_search(ship.global_position, SEARCH_DURATION * 0.45, "SEARCH: EXIT LOCK")
+		return
 	completing = true
 	zone_complete_overlay.trigger(_kill_count == 0)
 
@@ -131,6 +161,9 @@ func _on_ship_destroyed() -> void:
 
 
 func trigger_alert() -> void:
+	_alert_count += 1
+	_last_known_player_position = ship.global_position
+	start_search(ship.global_position, SEARCH_DURATION * 1.35, "SEARCH: ALERT")
 	if AlertSystem.combat_mode:
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
@@ -156,6 +189,7 @@ func register_spawned_enemy(enemy: Node) -> void:
 func register_probe(position: Vector2, duration: float) -> void:
 	probe_target = position
 	probe_expire_time = _now() + duration
+	start_search(position, duration, "SEARCH: PROBE")
 
 
 func has_active_probe() -> bool:
@@ -187,6 +221,15 @@ func set_player_dark_pocket_state(pocket: Area2D, active: bool) -> void:
 
 
 func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
+	_interaction_text = ""
+	var objective := _nearest_objective(ship_node)
+	if objective != null and objective.can_be_triggered_by(ship_node):
+		_interaction_text = "PRESS HACK  //  %s" % objective.objective_name
+		if InputManager.is_hack_just_pressed():
+			objective.complete()
+			_interaction_text = "%s LINKED" % objective.objective_name
+			start_search(objective.global_position, SEARCH_DURATION * 0.35, "SEARCH: OBJECTIVE")
+
 	var gate := _find_nearest_hack_gate(ship_node)
 	if gate == null:
 		_reset_hack_state()
@@ -210,6 +253,8 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 		else:
 			_hack_index = 0
 			_hack_wrong_flash = true
+			start_search(gate.global_position, SEARCH_DURATION * 0.4, "SEARCH: BAD HACK")
+			AlertSystem.add_alert(0.12)
 
 		if _hack_index >= _hack_sequence.size():
 			gate.set_hacked_open(true)
@@ -247,6 +292,158 @@ func _make_hack_sequence() -> Array:
 	for _i in range(length):
 		sequence.append(buttons[randi() % buttons.size()])
 	return sequence
+
+
+func get_hud_objective_text() -> String:
+	if _objective_required <= 0:
+		if is_search_active():
+			return _search_reason
+		return ""
+	var prefix := "FIND %s NODE" % _objective_type
+	var progress := "%d/%d" % [_objective_progress, _objective_required]
+	if is_search_active():
+		return "%s  %s  //  %s" % [prefix, progress, _search_reason]
+	return "%s  %s" % [prefix, progress]
+
+
+func get_hud_interaction_text() -> String:
+	return _interaction_text
+
+
+func is_search_active() -> bool:
+	return _search_timer > 0.0
+
+
+func get_search_target() -> Vector2:
+	return _search_position
+
+
+func trigger_signal_jammer(position: Vector2, radius: float, duration: float) -> void:
+	_jammer_position = position
+	_jammer_radius = radius
+	_jammer_timer = duration
+	_cancel_caution()
+	AlertSystem.set_alert_level(maxf(0.0, AlertSystem.alert_level - JAMMER_ALERT_REDUCTION))
+	start_search(position, duration * 0.65, "SEARCH: JAMMER")
+
+
+func is_point_jammed(point: Vector2) -> bool:
+	if _jammer_timer <= 0.0:
+		return false
+	return point.distance_to(_jammer_position) <= _jammer_radius
+
+
+func notify_player_noise(position: Vector2, strength: float) -> void:
+	if ship.in_dark_pocket:
+		return
+	_last_known_player_position = position
+	if not AlertSystem.combat_mode:
+		AlertSystem.add_alert(0.04 * strength)
+	start_search(position, SEARCH_DURATION * clampf(0.45 + strength * 0.35, 0.35, 1.2), "SEARCH: NOISE")
+
+
+func start_search(position: Vector2, duration: float, reason: String = "SEARCH") -> void:
+	_search_position = position
+	_search_timer = maxf(_search_timer, duration)
+	_search_reason = reason
+
+
+func setup_arcade_objectives(graph, node_rects: Dictionary) -> void:
+	if not ArcadeState.is_active:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(ArcadeState.get_floor_seed() + 424242)
+	var candidates: Array = []
+	for node in graph.nodes:
+		if node.type == graph.NodeType.START or node.type == graph.NodeType.EXIT:
+			continue
+		if not node_rects.has(node.id):
+			continue
+		if node.type == graph.NodeType.SETPIECE_ROOM or node.depth >= 2:
+			candidates.append({"id": node.id, "rect": node_rects[node.id], "branch": node.type == graph.NodeType.BRANCH_ROOM})
+	if candidates.is_empty():
+		return
+	candidates.sort_custom(func(a, b): return int(a["branch"]) > int(b["branch"]))
+	_objective_nodes.clear()
+	_objective_progress = 0
+	_objective_required = 0
+	var floor_num: int = ArcadeState.floor_index + 1
+	match floor_num % 3:
+		1:
+			_objective_type = "UPLINK"
+			_objective_required = 1 if floor_num == 1 else 2
+		2:
+			_objective_type = "INTEL"
+			_objective_required = 1
+		_:
+			_objective_type = "RELAY"
+			_objective_required = 2
+	var count: int = mini(_objective_required, candidates.size())
+	for i in range(count):
+		var data: Dictionary = candidates[i]
+		var rect: Rect2 = data["rect"]
+		var node := ObjectiveNode.new()
+		node.global_position = rect.get_center() + Vector2(rng.randf_range(-48.0, 48.0), rng.randf_range(-28.0, 28.0))
+		node.objective_name = _objective_type
+		node.accent_color = ColorSystem.ui_color()
+		node.add_to_group("arcade_objective")
+		node.objective_completed.connect(_on_objective_completed)
+		add_child(node)
+		_objective_nodes.append(node)
+	_set_exit_locked(_objective_required > 0)
+
+
+func _on_objective_completed(_node: ObjectiveNode) -> void:
+	_objective_progress += 1
+	AlertSystem.set_alert_level(maxf(0.0, AlertSystem.alert_level - 0.12))
+	if ship != null:
+		ship.probe_charges = mini(ship.probe_charges + 1, 5)
+		ship.jammer_charges = mini(ship.jammer_charges + 1, 3)
+	if _objective_progress >= _objective_required:
+		_set_exit_locked(false)
+		_interaction_text = "EXIT UNLOCKED"
+
+
+func _set_exit_locked(active: bool) -> void:
+	var exit := get_node_or_null("ExitZone")
+	if exit != null and exit.has_method("set_locked"):
+		exit.set_locked(active, "FIND %s" % _objective_type if active else "EXIT")
+
+
+func _nearest_objective(ship_node: Node2D) -> ObjectiveNode:
+	var best: ObjectiveNode = null
+	var best_dist := INF
+	for node in _objective_nodes:
+		if node == null or not is_instance_valid(node) or node.completed:
+			continue
+		var dist: float = node.global_position.distance_to(ship_node.global_position)
+		if dist < best_dist:
+			best = node
+			best_dist = dist
+	return best
+
+
+func _update_search(delta: float) -> void:
+	if _search_timer <= 0.0:
+		return
+	if ship.in_dark_pocket and not AlertSystem.combat_mode:
+		_search_timer = maxf(0.0, _search_timer - delta * 1.8)
+	else:
+		_search_timer = maxf(0.0, _search_timer - delta)
+	if _search_timer <= 0.0:
+		_search_reason = ""
+
+
+func _update_jammer(delta: float) -> void:
+	if _jammer_timer <= 0.0:
+		return
+	_jammer_timer = maxf(0.0, _jammer_timer - delta)
+
+
+func _update_objectives(_delta: float) -> void:
+	if _interaction_text != "" and not InputManager.is_hack_pressed():
+		if not _interaction_text.begins_with("EXIT") and not _interaction_text.ends_with("LINKED"):
+			_interaction_text = ""
 
 
 func _living_enemy_count() -> int:
@@ -305,6 +502,7 @@ func _enemy_still_threatening() -> bool:
 func _exit_combat_to_stealth() -> void:
 	AlertSystem.exit_combat()
 	combat_cooldown_remaining = 0.0
+	start_search(_last_known_player_position if _last_known_player_position != Vector2.ZERO else ship.global_position, SEARCH_DURATION, "SEARCH: SWEEP")
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
 			enemy.deactivate_to_stealth()

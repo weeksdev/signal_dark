@@ -1,30 +1,20 @@
-extends CharacterBody2D
+extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
-signal detected(enemy: Node)
-signal killed(enemy: Node, silent: bool)
 
 @export var signature_color := Color("ff2d55")
 @export var roam_speed: float = 58.0
 @export var combat_speed: float = 180.0
 @export var suppress_range: float = 0.0
 
-var is_alive: bool = true
-var combat_active: bool = false
-var facing_vector: Vector2 = Vector2.UP
-var ship: Node2D = null
 var drift_phase: float = 0.0
 var spawn_point: Vector2 = Vector2.ZERO
-@onready var body_polygon: Polygon2D = $Body
-@onready var outline: Line2D = $Outline
 
 
 func _ready() -> void:
-	add_to_group("zone_enemy")
+	super._ready()
 	spawn_point = global_position
 	drift_phase = randf() * TAU
-	ColorSystem.mode_changed.connect(_on_mode_changed)
-	_update_palette()
 
 
 func _physics_process(delta: float) -> void:
@@ -36,21 +26,28 @@ func _physics_process(delta: float) -> void:
 			facing_vector = to_ship.normalized()
 			velocity = facing_vector * combat_speed
 		move_and_slide()
+		if get_slide_collision_count() > 0:
+			velocity = Vector2.ZERO
+			drift_phase += 0.95
 	else:
 		drift_phase += delta
 		var roam_target := spawn_point + Vector2(cos(drift_phase * 0.9), sin(drift_phase * 1.3)) * 42.0
+		if world_is_search_active():
+			roam_target = world_search_target()
 		var offset: Vector2 = roam_target - global_position
 		if offset.length() > 3.0:
 			facing_vector = offset.normalized()
 			velocity = facing_vector * roam_speed
 			move_and_slide()
+			if get_slide_collision_count() > 0:
+				velocity = Vector2.ZERO
+				drift_phase += 1.4
 	_emit_contact_hit()
 	queue_redraw()
 
 
 func activate_for_combat(target_ship: Node2D) -> void:
-	ship = target_ship
-	combat_active = true
+	super.activate_for_combat(target_ship)
 
 
 func deactivate_to_stealth() -> void:
@@ -107,4 +104,4 @@ func _spawn_burst(silent: bool) -> void:
 	burst.global_position = global_position
 	burst.combat_mode = AlertSystem.combat_mode and not silent
 	burst.signature_color = signature_color
-	get_tree().current_scene.add_child(burst)
+	add_effect_to_world(burst)

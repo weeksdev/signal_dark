@@ -41,3 +41,4 @@ func _ready() -> void:
 		result["node_cells"],
 		ArcadeState.floor_index,
 	)
+	setup_arcade_objectives(graph, result["node_rects"])

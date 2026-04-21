@@ -130,6 +130,8 @@ static func _add_branches(graph, rng, count: int, floor_index: int) -> void:
 		return
 
 	for _i in count:
+		if eligible.is_empty():
+			break
 		var parent_id: int = eligible[rng.randi() % eligible.size()]
 		var parent = graph.get_node(parent_id)
 		var branch_id: int = graph.add_node(ZoneGraph.NodeType.BRANCH_ROOM, parent.depth, true)
@@ -139,3 +141,4 @@ static func _add_branches(graph, rng, count: int, floor_index: int) -> void:
 		graph.add_edge(parent_id, branch_id, branch_width, true)
 		graph.get_node(branch_id).preferred_threat = \
 			_pick_threat(rng, parent.depth, parent.depth + 1, floor_index)
+		eligible.erase(parent_id)
