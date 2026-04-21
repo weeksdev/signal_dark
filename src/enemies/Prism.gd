@@ -21,6 +21,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+	if tick_emp_disabled(delta):
+		queue_redraw()
+		return
 
 	var spin_speed := combat_rotate_speed if combat_active else rotate_speed
 	facing_angle = wrapf(facing_angle + delta * spin_speed, 0.0, TAU)
@@ -162,6 +165,7 @@ func _draw() -> void:
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 21.0, 0.0, TAU, 24, marker, 1.2)
+	draw_emp_disabled_effect(32.0)
 
 
 func _spawn_burst(silent: bool) -> void:

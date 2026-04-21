@@ -18,6 +18,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+	if tick_emp_disabled(delta):
+		queue_redraw()
+		return
 	cooldown = maxf(cooldown - delta, 0.0)
 	tick_alert_state(delta, 0.7)
 	var player = ship if ship != null else get_tree().get_first_node_in_group("player_ship")
@@ -130,6 +133,7 @@ func _draw() -> void:
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 19.0, 0.0, TAU, 24, marker, 1.1)
+	draw_emp_disabled_effect(28.0)
 	if not combat_active:
 		return
 	draw_arc(Vector2.ZERO, attack_range, facing_vector.angle() - 0.28, facing_vector.angle() + 0.28, 18, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.08), 1.0)

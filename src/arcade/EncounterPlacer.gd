@@ -29,6 +29,8 @@ const DOORWAY_CLEAR   := 130.0
 const SPREAD_MIN      := 80.0
 const CENTER_BIAS_PULL := 0.42
 const POCKET_ENEMY_CLEAR := 132.0
+const WISP_PAIR_MARGIN := 46.0
+const WISP_ROUTE_CLEAR := 56.0
 
 # Room/corridor dimensions mirrored from ModuleAssembler (kept local to avoid cross-dependency)
 const _ROOM_W   := 480.0
@@ -69,7 +71,7 @@ func place(world: Node2D, graph,
 		types = _tune_corridor_loadout(node, types, pool, rng)
 
 		var pocket_positions := _place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
-		_place_enemies(world, rect, types, doorways, pocket_positions, rng)
+		_place_enemies(world, rect, node, types, doorways, pocket_positions, rng)
 		first_combat_room = false
 
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
@@ -190,19 +192,30 @@ func _apply_theme_bias(lead: String, pool: Array, rng) -> String:
 
 # ── Enemy placement ───────────────────────────────────────────────────────────
 
-func _place_enemies(world: Node2D, rect: Rect2, types: Array, doorways: Array, blocked_positions: Array, rng) -> void:
+func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, doorways: Array, blocked_positions: Array, rng) -> void:
 	var placed: Array = []
 	for t: String in types:
 		var pos := _valid_pos(rect, doorways, placed, blocked_positions, rng, ENEMY_MARGIN)
-		placed.append(pos)
 		match t:
-			"sweeper":  _spawn_sweeper(world, pos, rect)
-			"pulsar":   _spawn_basic(world, PULSAR_SCENE, pos)
-			"sentry":   _spawn_basic(world, SENTRY_SCENE, pos)
-			"hunter":   _spawn_basic(world, HUNTER_SCENE, pos)
-			"wisp":     _spawn_basic(world, WISP_SCENE, pos)
-			"prism":    _spawn_basic(world, PRISM_SCENE, pos)
-			"warpmine": _spawn_basic(world, WARPMINE_SCENE, pos)
+			"sweeper":
+				placed.append(pos)
+				_spawn_sweeper(world, pos, rect, node, doorways)
+			"pulsar":
+				placed.append(pos)
+				_spawn_basic(world, PULSAR_SCENE, pos)
+			"sentry":
+				placed.append(pos)
+				_spawn_basic(world, SENTRY_SCENE, pos)
+			"hunter":
+				placed.append(pos)
+				_spawn_basic(world, HUNTER_SCENE, pos)
+			"wisp":     _spawn_wisp_pair(world, pos, rect, node, doorways, placed)
+			"prism":
+				placed.append(pos)
+				_spawn_basic(world, PRISM_SCENE, pos)
+			"warpmine":
+				placed.append(pos)
+				_spawn_basic(world, WARPMINE_SCENE, pos)
 
 
 func _spawn_basic(world: Node2D, scene: PackedScene, pos: Vector2) -> void:
@@ -211,27 +224,303 @@ func _spawn_basic(world: Node2D, scene: PackedScene, pos: Vector2) -> void:
 	world.register_spawned_enemy(enemy)
 
 
-func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2) -> void:
+func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2, node, doorways: Array) -> void:
 	var sweeper: Node2D = SWEEPER_SCENE.instantiate()
-	sweeper.position = pos
-
-	var patrol_range: float
-	var patrol_dir: Vector2
-	if room_rect.size.x >= room_rect.size.y:
-		patrol_range = minf(room_rect.size.x * 0.28, 130.0)
-		patrol_dir   = Vector2.RIGHT
-	else:
-		patrol_range = minf(room_rect.size.y * 0.28, 110.0)
-		patrol_dir   = Vector2.DOWN
-
-	var inner   := room_rect.grow(-96.0)
-	var a_world := (pos + patrol_dir * patrol_range).clamp(inner.position, inner.end)
-	var b_world := (pos - patrol_dir * patrol_range).clamp(inner.position, inner.end)
-
-	sweeper.get_node("PatrolA").position = a_world - pos
-	sweeper.get_node("PatrolB").position = b_world - pos
+	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-58.0), pos, doorways, node.type)
+	var patrol_points: Array = patrol_layout["points"]
+	var choke_indices: Array = patrol_layout["choke_indices"]
+	if patrol_points.is_empty():
+		patrol_points = [pos]
+	sweeper.position = patrol_points[0]
+	sweeper.set("patrol_points", patrol_points)
+	sweeper.set("choke_indices", choke_indices)
+	sweeper.set("patrol_step", 1)
 
 	world.register_spawned_enemy(sweeper)
+
+
+func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, doorways: Array, placed: Array) -> void:
+	var inner := room_rect.grow(-WISP_PAIR_MARGIN)
+	if inner.size.x <= 24.0 or inner.size.y <= 24.0:
+		inner = room_rect.grow(-ENEMY_MARGIN)
+	if inner.size.x <= 24.0 or inner.size.y <= 24.0:
+		inner = room_rect
+	var patrol_layout := _build_wisp_patrol_layout(inner, center, doorways, node.type)
+	var patrol_points: Array = patrol_layout["points"]
+	var choke_indices: Array = patrol_layout["choke_indices"]
+	var first_choke_index: int = int(patrol_layout["primary_choke"])
+	var opposite_index := int(patrol_layout["opposite_start"])
+	var first_pos: Vector2 = patrol_points[first_choke_index]
+	var second_pos: Vector2 = patrol_points[opposite_index]
+
+	_spawn_routed_wisp(world, first_pos, patrol_points, choke_indices, first_choke_index, 1)
+	_spawn_routed_wisp(world, second_pos, patrol_points, choke_indices, opposite_index, -1)
+	placed.append(first_pos)
+	placed.append(second_pos)
+
+
+func _spawn_routed_wisp(world: Node2D, pos: Vector2, patrol_points: Array, choke_indices: Array, start_index: int, step: int) -> void:
+	var wisp = WISP_SCENE.instantiate()
+	wisp.position = pos
+	wisp.set("use_route_patrol", true)
+	wisp.set("patrol_points", patrol_points)
+	wisp.set("choke_indices", choke_indices)
+	wisp.set("_patrol_index", start_index)
+	wisp.set("patrol_step", step)
+	if patrol_points.size() >= 2:
+		var longest_leg := 0.0
+		for i in range(patrol_points.size() - 1):
+			longest_leg = maxf(longest_leg, patrol_points[i].distance_to(patrol_points[i + 1]))
+		wisp.set("patrol_radius", maxf(longest_leg * 0.4, WISP_ROUTE_CLEAR))
+	world.register_spawned_enemy(wisp)
+
+func _build_sweeper_patrol_layout(inner: Rect2, center: Vector2, doorways: Array, node_type: int) -> Dictionary:
+	if inner.size.x <= 24.0 or inner.size.y <= 24.0:
+		inner = Rect2(center - Vector2(80.0, 60.0), Vector2(160.0, 120.0))
+	match node_type:
+		ZoneGraph.NodeType.CORRIDOR:
+			return _build_sweeper_corridor_layout(inner, center, doorways)
+		_:
+			return _build_sweeper_room_layout(inner, center, doorways)
+
+
+func _build_sweeper_corridor_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:
+	var horizontal: bool = _corridor_is_horizontal(doorways, inner)
+	var points: Array = []
+	var choke_indices: Array = []
+	if horizontal:
+		var left_entry := _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 28.0, center.y))
+		var right_entry := _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 28.0, center.y))
+		var patrol_y := clampf(center.y, inner.position.y + 24.0, inner.end.y - 24.0)
+		points = [
+			Vector2(left_entry.x, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.35, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.65, patrol_y),
+			Vector2(right_entry.x, patrol_y),
+		]
+		choke_indices = [0, 3]
+	else:
+		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 28.0))
+		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 28.0))
+		var patrol_x := clampf(center.x, inner.position.x + 24.0, inner.end.x - 24.0)
+		points = [
+			Vector2(patrol_x, top_entry.y),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.35),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.65),
+			Vector2(patrol_x, bottom_entry.y),
+		]
+		choke_indices = [0, 3]
+	return _finalize_wisp_layout(points, choke_indices, 0, 2)
+
+
+func _build_sweeper_room_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:
+	var points: Array = [
+		_best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 28.0, center.y)),
+		Vector2(inner.position.x + 28.0, inner.position.y + 28.0),
+		_best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 28.0)),
+		Vector2(inner.end.x - 28.0, inner.position.y + 28.0),
+		_best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 28.0, center.y)),
+		Vector2(inner.end.x - 28.0, inner.end.y - 28.0),
+		_best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 28.0)),
+		Vector2(inner.position.x + 28.0, inner.end.y - 28.0),
+	]
+	var choke_indices: Array = []
+	for i in [0, 2, 4, 6]:
+		var side: String = ["left", "top", "right", "bottom"][i / 2]
+		if _side_has_doorway(doorways, inner, side):
+			choke_indices.append(i)
+	if choke_indices.is_empty():
+		choke_indices = [0, 4]
+	return _finalize_wisp_layout(points, choke_indices, int(choke_indices[0]), posmod(int(choke_indices[0]) + 4, points.size()))
+
+func _build_wisp_patrol_layout(inner: Rect2, center: Vector2, doorways: Array, node_type: int) -> Dictionary:
+	match node_type:
+		ZoneGraph.NodeType.CORRIDOR:
+			return _build_wisp_corridor_layout(inner, center, doorways)
+		ZoneGraph.NodeType.BRANCH_ROOM:
+			return _build_wisp_branch_layout(inner, center, doorways)
+		ZoneGraph.NodeType.SETPIECE_ROOM:
+			return _build_wisp_room_layout(inner, center, doorways, 20.0)
+		_:
+			return _build_wisp_room_layout(inner, center, doorways, 18.0)
+
+
+func _build_wisp_corridor_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:
+	var horizontal: bool = _corridor_is_horizontal(doorways, inner)
+	var points: Array = []
+	var choke_indices: Array = []
+	if horizontal:
+		var left_entry := _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 24.0, center.y))
+		var right_entry := _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 24.0, center.y))
+		var top_lane := inner.position.y + 18.0
+		var bottom_lane := inner.end.y - 18.0
+		points = [
+			Vector2(left_entry.x, top_lane),
+			Vector2(inner.position.x + inner.size.x * 0.34, top_lane),
+			Vector2(right_entry.x, top_lane),
+			right_entry,
+			Vector2(right_entry.x, bottom_lane),
+			Vector2(inner.position.x + inner.size.x * 0.66, bottom_lane),
+			Vector2(left_entry.x, bottom_lane),
+			left_entry,
+		]
+		choke_indices = [3, 7]
+	else:
+		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 24.0))
+		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 24.0))
+		var left_lane := inner.position.x + 18.0
+		var right_lane := inner.end.x - 18.0
+		points = [
+			Vector2(left_lane, top_entry.y),
+			Vector2(left_lane, inner.position.y + inner.size.y * 0.34),
+			Vector2(left_lane, bottom_entry.y),
+			bottom_entry,
+			Vector2(right_lane, bottom_entry.y),
+			Vector2(right_lane, inner.position.y + inner.size.y * 0.66),
+			Vector2(right_lane, top_entry.y),
+			top_entry,
+		]
+		choke_indices = [3, 7]
+	return _finalize_wisp_layout(points, choke_indices, 7, 3)
+
+
+func _build_wisp_branch_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:
+	var layout := _build_wisp_room_layout(inner, center, doorways, 18.0)
+	var choke_indices: Array = layout["choke_indices"]
+	if not choke_indices.is_empty():
+		layout["primary_choke"] = int(choke_indices[0])
+		layout["opposite_start"] = posmod(int(choke_indices[0]) + int(layout["points"].size() / 2), layout["points"].size())
+	return layout
+
+
+func _build_wisp_room_layout(inner: Rect2, center: Vector2, doorways: Array, corner_inset: float) -> Dictionary:
+	var edge_points := {
+		"left": _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 28.0, center.y)),
+		"top": _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 28.0)),
+		"right": _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 28.0, center.y)),
+		"bottom": _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 28.0)),
+	}
+	var points: Array = [
+		edge_points["left"],
+		Vector2(inner.position.x + corner_inset, inner.position.y + corner_inset),
+		edge_points["top"],
+		Vector2(inner.end.x - corner_inset, inner.position.y + corner_inset),
+		edge_points["right"],
+		Vector2(inner.end.x - corner_inset, inner.end.y - corner_inset),
+		edge_points["bottom"],
+		Vector2(inner.position.x + corner_inset, inner.end.y - corner_inset),
+	]
+	var choke_indices: Array = []
+	for i in [0, 2, 4, 6]:
+		var side: String = ["left", "top", "right", "bottom"][i / 2]
+		if _side_has_doorway(doorways, inner, side):
+			choke_indices.append(i)
+	if choke_indices.is_empty():
+		choke_indices = [0, 4]
+	return _finalize_wisp_layout(points, choke_indices, int(choke_indices[0]), posmod(int(choke_indices[0]) + 4, points.size()))
+
+
+func _finalize_wisp_layout(points: Array, choke_indices: Array, primary_choke: int, opposite_start: int) -> Dictionary:
+	for i in range(points.size()):
+		points[i] = points[i]
+	return {
+		"points": points,
+		"choke_indices": choke_indices,
+		"primary_choke": primary_choke,
+		"opposite_start": opposite_start,
+	}
+
+
+func _corridor_is_horizontal(doorways: Array, inner: Rect2) -> bool:
+	var left_or_right := 0
+	var top_or_bottom := 0
+	for doorway in doorways:
+		var point: Vector2 = doorway
+		if absf(point.x - inner.position.x) <= 6.0 or absf(point.x - inner.end.x) <= 6.0:
+			left_or_right += 1
+		elif absf(point.y - inner.position.y) <= 6.0 or absf(point.y - inner.end.y) <= 6.0:
+			top_or_bottom += 1
+	if left_or_right == top_or_bottom:
+		return inner.size.x >= inner.size.y
+	return left_or_right > top_or_bottom
+
+
+func _doorway_patrol_point(doorway: Vector2, inner: Rect2) -> Vector2:
+	var inset := 26.0
+	var point := doorway
+	match _nearest_rect_side(doorway, inner):
+		"left":
+			point.x = inner.position.x + inset
+		"right":
+			point.x = inner.end.x - inset
+		"top":
+			point.y = inner.position.y + inset
+		"bottom":
+			point.y = inner.end.y - inset
+	return point.clamp(inner.position, inner.end)
+
+
+func _avg_points(points: Array) -> Vector2:
+	var total := Vector2.ZERO
+	for point in points:
+		total += point
+	return total / float(points.size())
+
+
+func _best_side_doorway_point(doorways: Array, inner: Rect2, side: String, fallback: Vector2) -> Vector2:
+	var matches: Array = []
+	for doorway in doorways:
+		var point: Vector2 = doorway
+		match side:
+			"left":
+				if _nearest_rect_side(point, inner) == "left":
+					matches.append(_doorway_patrol_point(point, inner))
+			"right":
+				if _nearest_rect_side(point, inner) == "right":
+					matches.append(_doorway_patrol_point(point, inner))
+			"top":
+				if _nearest_rect_side(point, inner) == "top":
+					matches.append(_doorway_patrol_point(point, inner))
+			"bottom":
+				if _nearest_rect_side(point, inner) == "bottom":
+					matches.append(_doorway_patrol_point(point, inner))
+	if matches.is_empty():
+		return fallback
+	return _avg_points(matches)
+
+
+func _side_has_doorway(doorways: Array, inner: Rect2, side: String) -> bool:
+	for doorway in doorways:
+		var point: Vector2 = doorway
+		match side:
+			"left":
+				if _nearest_rect_side(point, inner) == "left":
+					return true
+			"right":
+				if _nearest_rect_side(point, inner) == "right":
+					return true
+			"top":
+				if _nearest_rect_side(point, inner) == "top":
+					return true
+			"bottom":
+				if _nearest_rect_side(point, inner) == "bottom":
+					return true
+	return false
+
+
+func _nearest_rect_side(point: Vector2, rect: Rect2) -> String:
+	var left := absf(point.x - rect.position.x)
+	var right := absf(point.x - rect.end.x)
+	var top := absf(point.y - rect.position.y)
+	var bottom := absf(point.y - rect.end.y)
+	var best := minf(minf(left, right), minf(top, bottom))
+	if best == left:
+		return "left"
+	if best == right:
+		return "right"
+	if best == top:
+		return "top"
+	return "bottom"
 
 
 # ── Gate lock placement ───────────────────────────────────────────────────────
@@ -360,32 +649,49 @@ func _valid_pos(rect: Rect2, doorways: Array, placed: Array, blocked_positions: 
 	if inner.size.x <= 4.0 or inner.size.y <= 4.0:
 		return rect.get_center()
 	var center: Vector2 = inner.get_center()
+	var best_pos := center
+	var best_score := -INF
 
-	for _attempt in 14:
+	for _attempt in 30:
 		var pos := Vector2(
 			inner.position.x + rng.randf() * inner.size.x,
 			inner.position.y + rng.randf() * inner.size.y,
 		)
 		pos = pos.lerp(center, CENTER_BIAS_PULL)
-		var ok := true
-		for dp: Vector2 in doorways:
-			if pos.distance_to(dp) < DOORWAY_CLEAR:
-				ok = false
-				break
-		if ok:
-			for pp: Vector2 in placed:
-				if pos.distance_to(pp) < SPREAD_MIN:
-					ok = false
-					break
-		if ok:
-			for blocked: Vector2 in blocked_positions:
-				if pos.distance_to(blocked) < POCKET_ENEMY_CLEAR:
-					ok = false
-					break
-		if ok:
+		var score := _placement_clearance_score(pos, doorways, placed, blocked_positions)
+		if score > best_score:
+			best_score = score
+			best_pos = pos
+		if _is_valid_placement(pos, doorways, placed, blocked_positions):
 			return pos
 
-	return inner.get_center() + Vector2(
-		rng.randf_range(-30.0, 30.0),
-		rng.randf_range(-30.0, 30.0)
-	)
+	if _is_valid_placement(best_pos, doorways, placed, blocked_positions):
+		return best_pos
+
+	# If a cramped room cannot satisfy every spacing rule, still choose the safest
+	# sampled point rather than hiding something directly on a stealth pocket.
+	return best_pos
+
+
+func _is_valid_placement(pos: Vector2, doorways: Array, placed: Array, blocked_positions: Array) -> bool:
+	for dp: Vector2 in doorways:
+		if pos.distance_to(dp) < DOORWAY_CLEAR:
+			return false
+	for pp: Vector2 in placed:
+		if pos.distance_to(pp) < SPREAD_MIN:
+			return false
+	for blocked: Vector2 in blocked_positions:
+		if pos.distance_to(blocked) < POCKET_ENEMY_CLEAR:
+			return false
+	return true
+
+
+func _placement_clearance_score(pos: Vector2, doorways: Array, placed: Array, blocked_positions: Array) -> float:
+	var score := 0.0
+	for blocked: Vector2 in blocked_positions:
+		score += minf(pos.distance_to(blocked), POCKET_ENEMY_CLEAR * 2.0) * 3.0
+	for dp: Vector2 in doorways:
+		score += minf(pos.distance_to(dp), DOORWAY_CLEAR * 1.5)
+	for pp: Vector2 in placed:
+		score += minf(pos.distance_to(pp), SPREAD_MIN * 1.5)
+	return score

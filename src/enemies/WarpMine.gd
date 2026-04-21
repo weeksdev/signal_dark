@@ -21,6 +21,7 @@ var ship: Node2D = null
 var _arming: bool = false
 var _armed_time: float = 0.0
 var _alerting: bool = false
+var _emp_disabled_timer: float = 0.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -34,6 +35,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
+		return
+	if _tick_emp_disabled(delta):
+		queue_redraw()
 		return
 
 	if _arming:
@@ -91,6 +95,8 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 
 
 func _start_arming() -> void:
+	if _emp_disabled_timer > 0.0:
+		return
 	if _arming:
 		return
 	_arming = true
@@ -98,6 +104,26 @@ func _start_arming() -> void:
 	if not _alerting:
 		_alerting = true
 		detected.emit(self)
+
+
+func apply_emp_disable(duration: float) -> void:
+	_emp_disabled_timer = maxf(_emp_disabled_timer, duration)
+	_arming = false
+	_armed_time = 0.0
+	_alerting = false
+	velocity = Vector2.ZERO
+	queue_redraw()
+
+
+func is_emp_disabled() -> bool:
+	return _emp_disabled_timer > 0.0
+
+
+func _tick_emp_disabled(delta: float) -> bool:
+	if _emp_disabled_timer <= 0.0:
+		return false
+	_emp_disabled_timer = maxf(0.0, _emp_disabled_timer - delta)
+	return _emp_disabled_timer > 0.0
 
 
 func _deploy_payload() -> void:
@@ -173,6 +199,11 @@ func _draw() -> void:
 		var flash := 0.35 + 0.65 * absf(sin(Time.get_ticks_msec() / 70.0))
 		draw_arc(Vector2.ZERO, 18.0 + progress * 20.0, 0.0, TAU, 28, Color(1.0, 0.45, 0.2, flash), 2.2)
 		draw_circle(Vector2.ZERO, 8.0, Color(1.0, 0.6, 0.3, 0.65))
+	if _emp_disabled_timer > 0.0:
+		var pulse := 0.55 + 0.45 * sin(Time.get_ticks_msec() / 58.0)
+		var emp := Color(0.55, 0.95, 1.0, 0.5 + pulse * 0.25)
+		draw_arc(Vector2.ZERO, 28.0, 0.15, TAU * 0.62, 22, emp, 2.0)
+		draw_line(Vector2(-12.0, -7.0), Vector2(12.0, 8.0), emp, 1.4)
 
 	draw_polyline(PackedVector2Array([
 		Vector2(0.0, -11.0),

@@ -20,12 +20,16 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+	if tick_emp_disabled(delta):
+		queue_redraw()
+		return
 	if combat_active and is_instance_valid(ship):
 		var to_ship: Vector2 = ship.global_position - global_position
 		if to_ship != Vector2.ZERO:
 			facing_vector = to_ship.normalized()
 			velocity = facing_vector * combat_speed
 		move_and_slide()
+		_push_out_of_dark_pockets()
 		if get_slide_collision_count() > 0:
 			velocity = Vector2.ZERO
 			drift_phase += 0.95
@@ -39,6 +43,7 @@ func _physics_process(delta: float) -> void:
 			facing_vector = offset.normalized()
 			velocity = facing_vector * roam_speed
 			move_and_slide()
+			_push_out_of_dark_pockets()
 			if get_slide_collision_count() > 0:
 				velocity = Vector2.ZERO
 				drift_phase += 1.4
@@ -97,6 +102,7 @@ func _draw() -> void:
 		Vector2(-5.0, 0.0),
 		Vector2(0.0, -9.0)
 	]), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.7), 1.2)
+	draw_emp_disabled_effect(26.0)
 
 
 func _spawn_burst(silent: bool) -> void:

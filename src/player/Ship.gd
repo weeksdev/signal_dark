@@ -11,18 +11,25 @@ signal destroyed
 @export var signal_probe_scene: PackedScene
 @export var jammer_radius: float = 148.0
 @export var jammer_duration: float = 2.4
+@export var emp_radius: float = 285.0
+@export var emp_disable_duration: float = 5.0
+@export var emp_slow_duration: float = 3.0
+@export var emp_speed_scale: float = 0.6
 
 var aim_direction: Vector2 = Vector2.UP
 var dark_mode: bool = false
 var in_dark_pocket: bool = false
 var probe_charges: int = 3
 var jammer_charges: int = 2
+var emp_charges: int = 0
 var boost_cooldown_remaining: float = 0.0
 var dead: bool = false
 var _previous_suppress_pressed: bool = false
 var _previous_probe_pressed: bool = false
 var _thruster_t: float = 0.0
 var _boost_flash: float = 0.0
+var _emp_slow_timer: float = 0.0
+var _emp_flash: float = 0.0
 var _hack_prompt_active: bool = false
 
 @onready var weapon_system = $WeaponSystem
@@ -34,6 +41,7 @@ var _hack_prompt_active: bool = false
 
 func _ready() -> void:
 	add_to_group("player_ship")
+	emp_charges = 1 if ArcadeState.is_active else 0
 	ColorSystem.mode_changed.connect(_on_mode_changed)
 	_update_palette()
 
@@ -43,15 +51,18 @@ func _physics_process(delta: float) -> void:
 		return
 
 	boost_cooldown_remaining = maxf(0.0, boost_cooldown_remaining - delta)
+	_emp_slow_timer = maxf(0.0, _emp_slow_timer - delta)
 	dark_mode = InputManager.is_dark_mode()
 	var move_input := InputManager.get_move_vector()
 	var speed_scale := dark_mode_speed_scale if dark_mode else 1.0
+	if _emp_slow_timer > 0.0:
+		speed_scale *= emp_speed_scale
 	var target_velocity := move_input * max_speed * speed_scale
 	velocity = velocity.move_toward(target_velocity, acceleration * delta)
 	velocity = velocity.move_toward(Vector2.ZERO, drag * delta)
 
 	var did_boost := false
-	if InputManager.is_boost_pressed() and not dark_mode and move_input != Vector2.ZERO and boost_cooldown_remaining <= 0.0:
+	if InputManager.is_boost_pressed() and _emp_slow_timer <= 0.0 and not dark_mode and move_input != Vector2.ZERO and boost_cooldown_remaining <= 0.0:
 		velocity += move_input.normalized() * boost_impulse
 		did_boost = true
 		boost_cooldown_remaining = boost_cooldown
@@ -59,6 +70,7 @@ func _physics_process(delta: float) -> void:
 
 	_thruster_t += delta
 	_boost_flash = maxf(0.0, _boost_flash - delta * 4.0)
+	_emp_flash = maxf(0.0, _emp_flash - delta * 1.8)
 
 	move_and_slide()
 	_update_aim_direction(move_input)
@@ -68,6 +80,8 @@ func _physics_process(delta: float) -> void:
 
 	var suppress_pressed := InputManager.is_suppress_pressed()
 	var probe_pressed := InputManager.is_probe_pressed()
+	if InputManager.is_emp_just_pressed() and not _hack_prompt_active:
+		_try_emp_blast()
 	if InputManager.is_fire_pressed():
 		weapon_system.try_fire(aim_direction)
 	if probe_pressed and not _previous_probe_pressed:
@@ -150,6 +164,19 @@ func _try_signal_jammer() -> void:
 		return
 	jammer_charges -= 1
 	world.trigger_signal_jammer(global_position, jammer_radius, jammer_duration)
+
+
+func _try_emp_blast() -> void:
+	if emp_charges <= 0:
+		return
+	var world := get_tree().current_scene
+	if world == null or not world.has_method("trigger_emp_blast"):
+		return
+	emp_charges -= 1
+	_emp_slow_timer = emp_slow_duration
+	_emp_flash = 1.0
+	boost_cooldown_remaining = maxf(boost_cooldown_remaining, emp_slow_duration)
+	world.trigger_emp_blast(global_position, emp_radius, emp_disable_duration)
 
 
 func _update_suppress_prompt() -> void:
@@ -249,3 +276,11 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, 6.0, Color(0.33, 0.56, 0.39, 0.18))
 	else:
 		draw_circle(Vector2.ZERO, emission_radius + 16.0, Color(0.3, 0.8, 1.0, 0.12))
+	if _emp_slow_timer > 0.0:
+		var emp := Color(0.55, 0.95, 1.0, 0.18 + 0.16 * sin(Time.get_ticks_msec() / 48.0))
+		draw_arc(Vector2.ZERO, 28.0, 0.0, TAU * 0.78, 36, emp, 2.0)
+		draw_line(Vector2(-14.0, -4.0), Vector2(12.0, 8.0), emp, 1.3)
+	if _emp_flash > 0.0:
+		var flash := Color(0.55, 0.95, 1.0, 0.24 * _emp_flash)
+		draw_circle(Vector2.ZERO, emp_radius * (1.0 - _emp_flash * 0.18), flash)
+		draw_arc(Vector2.ZERO, emp_radius * (1.0 - _emp_flash * 0.18), 0.0, TAU, 80, Color(flash.r, flash.g, flash.b, 0.55 * _emp_flash), 3.0)

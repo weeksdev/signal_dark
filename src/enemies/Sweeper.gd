@@ -23,6 +23,9 @@ const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]
 var _waypoints: Array[Vector2] = []
 var _wp_index: int = 0
 var _dwell: float = 0.0
+var patrol_points: Array = []
+var patrol_step: int = 1
+var choke_indices: Array = []
 
 var _pulses: Array[float] = []
 var _pulse_timer: float = 0.3
@@ -34,12 +37,20 @@ var _pulse_idx: int = 0
 
 func _ready() -> void:
 	super._ready()
-	_waypoints = [patrol_a.global_position, patrol_b.global_position]
+	if patrol_points.size() >= 2:
+		_waypoints.clear()
+		for point in patrol_points:
+			_waypoints.append(point)
+	else:
+		_waypoints = [patrol_a.global_position, patrol_b.global_position]
 	_wp_index = 0
 
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
+		return
+	if tick_emp_disabled(delta):
+		queue_redraw()
 		return
 
 	tick_alert_state(delta, SUSPICION_DECAY)
@@ -129,14 +140,21 @@ func _run_patrol(delta: float) -> void:
 		facing_vector = offset.normalized()
 		velocity = facing_vector * patrol_speed
 		move_and_slide()
+		_push_out_of_dark_pockets()
 		if get_slide_collision_count() > 0:
 			velocity = Vector2.ZERO
-			_wp_index = 1 - _wp_index
-			_dwell = DWELL_TIME
+			_advance_patrol()
 	else:
 		velocity = Vector2.ZERO
+		_advance_patrol()
+
+
+func _advance_patrol() -> void:
+	if _waypoints.size() <= 2:
 		_wp_index = 1 - _wp_index
-		_dwell = DWELL_TIME
+	else:
+		_wp_index = posmod(_wp_index + patrol_step, _waypoints.size())
+	_dwell = DWELL_TIME * (1.35 if _wp_index in choke_indices else 1.0)
 
 
 func _check_detection() -> void:
@@ -256,6 +274,7 @@ func _draw() -> void:
 		draw_line(Vector2(14.0, 14.0), Vector2(6.0, 14.0), marker, 1.8)
 		draw_line(Vector2(14.0, 14.0), Vector2(14.0, 6.0), marker, 1.8)
 	draw_suspicion_arc(28.0)
+	draw_emp_disabled_effect(30.0)
 
 
 func _spawn_burst(silent: bool) -> void:

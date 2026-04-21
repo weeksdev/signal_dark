@@ -20,6 +20,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
+	if tick_emp_disabled(delta):
+		queue_redraw()
+		return
 
 	_range_t += delta
 
@@ -138,6 +141,7 @@ func _draw() -> void:
 	# MGS "!" alert marker
 	draw_alert_marker()
 	draw_suspicion_arc(26.0)
+	draw_emp_disabled_effect(32.0)
 
 	var halo_color := ColorSystem.glow_color()
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.035 if not AlertSystem.combat_mode else 0.04))
@@ -171,6 +175,7 @@ func _draw() -> void:
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, marker, 1.2)
+	draw_emp_disabled_effect(32.0)
 
 
 func _spawn_burst(silent: bool) -> void:

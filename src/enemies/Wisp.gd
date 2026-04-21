@@ -13,16 +13,29 @@ const ALERT_HOLD_SECONDS := 2.4
 
 var anchor: Vector2 = Vector2.ZERO
 var phase: float = 0.0
+var use_route_patrol: bool = false
+var route_a: Vector2 = Vector2.ZERO
+var route_b: Vector2 = Vector2.ZERO
+var patrol_points: Array = []
+var patrol_step: int = 1
+var choke_indices: Array = []
+var _route_pause: float = 0.0
+var _patrol_index: int = 0
 
 
 func _ready() -> void:
 	super._ready()
 	anchor = global_position
 	phase = randf() * TAU
+	if use_route_patrol and patrol_points.is_empty() and route_a != route_b:
+		patrol_points = [route_a, route_b]
 
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
+		return
+	if tick_emp_disabled(delta):
+		queue_redraw()
 		return
 	tick_alert_state(delta)
 	phase += delta
@@ -37,19 +50,23 @@ func _physics_process(delta: float) -> void:
 			if get_slide_collision_count() > 0:
 				phase += 0.9
 	else:
-		var roam_target := anchor + Vector2(cos(phase * 0.8), sin(phase * 1.1)) * patrol_radius
-		if world_is_search_active():
-			var search_target: Vector2 = world_search_target()
-			if global_position.distance_to(search_target) <= search_interest_radius:
-				roam_target = search_target
+		var roam_target := _stealth_target()
 		var offset: Vector2 = roam_target - global_position
-		if offset.length() > 2.0:
+		if use_route_patrol and _route_pause > 0.0:
+			_route_pause = maxf(_route_pause - delta, 0.0)
+			velocity = Vector2.ZERO
+		elif offset.length() > 2.0:
 			facing_vector = offset.normalized()
 			velocity = facing_vector * patrol_speed
 			move_and_slide()
+			_push_out_of_dark_pockets()
 			if get_slide_collision_count() > 0:
+				if use_route_patrol:
+					_advance_route()
 				phase += 1.25
 				velocity = Vector2.ZERO
+		elif use_route_patrol:
+			_advance_route()
 		_check_alert_radius()
 	queue_redraw()
 
@@ -99,6 +116,28 @@ func _begin_alert() -> void:
 	begin_alert_state(ALERT_HOLD_SECONDS)
 
 
+func _stealth_target() -> Vector2:
+	var roam_target := anchor + Vector2(cos(phase * 0.8), sin(phase * 1.1)) * patrol_radius
+	if use_route_patrol:
+		if patrol_points.size() >= 2:
+			roam_target = patrol_points[_patrol_index]
+		else:
+			roam_target = route_b if patrol_step >= 0 else route_a
+	if world_is_search_active():
+		var search_target: Vector2 = world_search_target()
+		if global_position.distance_to(search_target) <= search_interest_radius:
+			return safe_enemy_target(search_target)
+	return roam_target
+
+
+func _advance_route() -> void:
+	if patrol_points.size() >= 2:
+		_patrol_index = posmod(_patrol_index + patrol_step, patrol_points.size())
+	else:
+		patrol_step *= -1
+	_route_pause = 0.3 if _patrol_index in choke_indices else 0.16
+
+
 func _update_palette() -> void:
 	body_polygon.color = ColorSystem.enemy_fill(signature_color)
 	body_polygon.color.a = 0.05 if not AlertSystem.combat_mode else 0.12
@@ -136,6 +175,7 @@ func _draw() -> void:
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 17.0, 0.0, TAU, 24, marker, 1.1)
 	draw_alert_marker()
+	draw_emp_disabled_effect(34.0)
 
 
 func _spawn_burst(silent: bool) -> void:

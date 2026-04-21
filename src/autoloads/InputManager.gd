@@ -38,6 +38,10 @@ func is_hack_just_pressed() -> bool:
 	return Input.is_action_just_pressed("hack") or _joy_button_just_pressed(JOY_BUTTON_Y)
 
 
+func is_emp_just_pressed() -> bool:
+	return Input.is_action_just_pressed("emp")
+
+
 func get_hack_button_just_pressed() -> String:
 	if Input.is_action_just_pressed("hack_a"):
 		return "A"

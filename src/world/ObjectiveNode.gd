@@ -69,4 +69,4 @@ func _draw() -> void:
 	draw_line(Vector2(0.0, -14.0), Vector2(0.0, 14.0), Color(c.r, c.g, c.b, 0.55), 1.8)
 	var font := ThemeDB.fallback_font
 	draw_string(font, Vector2(-26.0, -(radius + 18.0)), objective_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(c.r, c.g, c.b, 0.88))
-	draw_string(font, Vector2(-22.0, radius + 16.0), "HACK", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(c.r, c.g, c.b, 0.72))
+	draw_string(font, Vector2(-30.0, radius + 16.0), "COLLECT", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(c.r, c.g, c.b, 0.72))

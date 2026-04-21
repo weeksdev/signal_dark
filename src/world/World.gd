@@ -224,11 +224,9 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 	_interaction_text = ""
 	var objective := _nearest_objective(ship_node)
 	if objective != null and objective.can_be_triggered_by(ship_node):
-		_interaction_text = "PRESS HACK  //  %s" % objective.objective_name
-		if InputManager.is_hack_just_pressed():
-			objective.complete()
-			_interaction_text = "%s LINKED" % objective.objective_name
-			start_search(objective.global_position, SEARCH_DURATION * 0.35, "SEARCH: OBJECTIVE")
+		objective.complete()
+		_interaction_text = "%s LINKED" % objective.objective_name
+		start_search(objective.global_position, SEARCH_DURATION * 0.35, "SEARCH: OBJECTIVE")
 
 	var gate := _find_nearest_hack_gate(ship_node)
 	if gate == null:
@@ -327,6 +325,20 @@ func trigger_signal_jammer(position: Vector2, radius: float, duration: float) ->
 	start_search(position, duration * 0.65, "SEARCH: JAMMER")
 
 
+func trigger_emp_blast(position: Vector2, radius: float, duration: float) -> void:
+	_cancel_caution()
+	AlertSystem.set_alert_level(maxf(0.0, AlertSystem.alert_level - 0.18))
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		if not enemy.has_method("apply_emp_disable"):
+			continue
+		if enemy.global_position.distance_to(position) > radius:
+			continue
+		enemy.apply_emp_disable(duration)
+	start_search(position, duration * 0.35, "SEARCH: EMP")
+
+
 func is_point_jammed(point: Vector2) -> bool:
 	if _jammer_timer <= 0.0:
 		return false
@@ -383,7 +395,7 @@ func setup_arcade_objectives(graph, node_rects: Dictionary) -> void:
 		var data: Dictionary = candidates[i]
 		var rect: Rect2 = data["rect"]
 		var node := ObjectiveNode.new()
-		node.global_position = rect.get_center() + Vector2(rng.randf_range(-48.0, 48.0), rng.randf_range(-28.0, 28.0))
+		node.global_position = _pick_objective_position(rect, rng)
 		node.objective_name = _objective_type
 		node.accent_color = ColorSystem.ui_color()
 		node.add_to_group("arcade_objective")
@@ -391,6 +403,46 @@ func setup_arcade_objectives(graph, node_rects: Dictionary) -> void:
 		add_child(node)
 		_objective_nodes.append(node)
 	_set_exit_locked(_objective_required > 0)
+
+
+func _pick_objective_position(rect: Rect2, rng: RandomNumberGenerator) -> Vector2:
+	var inner := rect.grow(-92.0)
+	if inner.size.x <= 4.0 or inner.size.y <= 4.0:
+		inner = rect.grow(-42.0)
+	var center := inner.get_center()
+	var best_pos := center
+	var best_score := _objective_clearance_score(center)
+	for _attempt in range(18):
+		var pos := center + Vector2(rng.randf_range(-84.0, 84.0), rng.randf_range(-56.0, 56.0))
+		pos = pos.clamp(inner.position, inner.end)
+		var score := _objective_clearance_score(pos)
+		if score > best_score:
+			best_score = score
+			best_pos = pos
+		if _is_objective_position_clear(pos):
+			return pos
+	return best_pos
+
+
+func _is_objective_position_clear(pos: Vector2) -> bool:
+	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+		if pocket is Node2D and pos.distance_to(pocket.global_position) < 118.0:
+			return false
+	for enemy in enemies:
+		if is_instance_valid(enemy) and enemy is Node2D and pos.distance_to(enemy.global_position) < 118.0:
+			return false
+	return true
+
+
+func _objective_clearance_score(pos: Vector2) -> float:
+	var score := 0.0
+	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+		if pocket is Node2D:
+			score += minf(pos.distance_to(pocket.global_position), 240.0) * 3.0
+	for enemy in enemies:
+		if is_instance_valid(enemy) and enemy is Node2D:
+			score += minf(pos.distance_to(enemy.global_position), 220.0)
+	return score
 
 
 func _on_objective_completed(_node: ObjectiveNode) -> void:

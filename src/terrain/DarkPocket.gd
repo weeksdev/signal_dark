@@ -6,6 +6,7 @@ extends Area2D
 
 
 func _ready() -> void:
+	add_to_group("dark_pocket")
 	ColorSystem.mode_changed.connect(_on_mode_changed)
 	_update_palette()
 

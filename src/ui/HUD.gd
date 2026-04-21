@@ -22,7 +22,7 @@ func _process(delta: float) -> void:
 	blink += delta
 	var ship = get_tree().get_first_node_in_group("player_ship")
 	if ship != null:
-		status_text = "PROBES %d   JAM %d   SPEED %03d" % [ship.probe_charges, ship.jammer_charges, int(ship.velocity.length())]
+		status_text = "PROBES %d   JAM %d   EMP %d   SPEED %03d" % [ship.probe_charges, ship.jammer_charges, ship.emp_charges, int(ship.velocity.length())]
 	var world := get_tree().current_scene
 	if world != null and world.has_method("get_hud_objective_text"):
 		objective_text = world.get_hud_objective_text()
