@@ -1,6 +1,7 @@
 extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
+const SEARCH_INTEREST_RADIUS := 255.0
 
 @export var signature_color := Color("32d2ff")
 @export var suppress_range: float = 30.0
@@ -26,8 +27,10 @@ func _physics_process(delta: float) -> void:
 	var player = ship if ship != null else get_tree().get_first_node_in_group("player_ship")
 	if player != null:
 		var aim_target: Vector2 = player.global_position
-		if not combat_active and world_is_search_active():
-			aim_target = world_search_target()
+		if not combat_active:
+			var search_target: Variant = world_search_target_if_relevant(SEARCH_INTEREST_RADIUS)
+			if search_target is Vector2:
+				aim_target = search_target
 		var to_player: Vector2 = aim_target - global_position
 		if to_player != Vector2.ZERO:
 			facing_vector = to_player.normalized()
@@ -111,9 +114,8 @@ func _begin_alert() -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.06 if not AlertSystem.combat_mode else 0.12
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
+	outline.default_color = enemy_state_outline()
 	outline.width = 2.2
 
 

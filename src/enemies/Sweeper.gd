@@ -10,7 +10,9 @@ const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
 @export var suppress_range: float = 34.0
 
 const ARRIVE_DIST      := 14.0
+const ROUTE_ARRIVE_DIST := 20.0
 const DWELL_TIME       := 0.55
+const STEER_ACCEL      := 320.0
 const PULSE_SPEED      := 115.0
 const PULSE_TOLERANCE  := 13.0
 const ALERT_HOLD_SECONDS := 3.0
@@ -19,13 +21,17 @@ const WARN_RANGE       := 200.0
 
 # Rhythm: single pulse, then two quick, then long gap — repeating
 const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]
+const SEARCH_INTEREST_RADIUS := 225.0
 
 var _waypoints: Array[Vector2] = []
 var _wp_index: int = 0
 var _dwell: float = 0.0
 var patrol_points: Array = []
+var patrol_start_index: int = 0
 var patrol_step: int = 1
 var choke_indices: Array = []
+var _stuck_timer: float = 0.0
+var _last_position: Vector2 = Vector2.ZERO
 
 var _pulses: Array[float] = []
 var _pulse_timer: float = 0.3
@@ -37,13 +43,14 @@ var _pulse_idx: int = 0
 
 func _ready() -> void:
 	super._ready()
+	_last_position = global_position
 	if patrol_points.size() >= 2:
 		_waypoints.clear()
 		for point in patrol_points:
 			_waypoints.append(point)
 	else:
 		_waypoints = [patrol_a.global_position, patrol_b.global_position]
-	_wp_index = 0
+	_wp_index = clampi(patrol_start_index, 0, max(_waypoints.size() - 1, 0))
 
 
 func _physics_process(delta: float) -> void:
@@ -126,24 +133,30 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 func _run_patrol(delta: float) -> void:
 	if _dwell > 0.0:
 		_dwell -= delta
-		velocity = Vector2.ZERO
+		velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
+		move_and_slide()
 		return
 
 	var target: Vector2 = _waypoints[_wp_index]
 	if world_has_active_probe():
 		target = world_probe_target()
-	elif world_is_search_active():
-		target = world_search_target()
+	else:
+		var search_target: Variant = world_search_target_if_relevant(SEARCH_INTEREST_RADIUS)
+		if search_target is Vector2:
+			target = search_target
 
 	var offset: Vector2 = target - global_position
-	if offset.length() > ARRIVE_DIST:
-		facing_vector = offset.normalized()
-		velocity = facing_vector * patrol_speed
+	var arrive_dist := ROUTE_ARRIVE_DIST if _waypoints.size() > 2 else ARRIVE_DIST
+	if offset.length() > arrive_dist:
+		var desired_dir := offset.normalized()
+		facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 7.0, 0.0, 1.0)).normalized()
+		velocity = velocity.move_toward(desired_dir * patrol_speed, STEER_ACCEL * delta)
 		move_and_slide()
-		_push_out_of_dark_pockets()
+		_push_out_of_dark_pockets(delta)
+		_update_stuck_recovery(delta, offset)
 		if get_slide_collision_count() > 0:
 			velocity = Vector2.ZERO
-			_advance_patrol()
+			_recover_from_block()
 	else:
 		velocity = Vector2.ZERO
 		_advance_patrol()
@@ -154,7 +167,27 @@ func _advance_patrol() -> void:
 		_wp_index = 1 - _wp_index
 	else:
 		_wp_index = posmod(_wp_index + patrol_step, _waypoints.size())
+	_stuck_timer = 0.0
+	_last_position = global_position
 	_dwell = DWELL_TIME * (1.35 if _wp_index in choke_indices else 1.0)
+
+
+func _update_stuck_recovery(delta: float, offset: Vector2) -> void:
+	if _waypoints.size() <= 2:
+		return
+	var moved := global_position.distance_to(_last_position)
+	if offset.length() > ARRIVE_DIST * 1.5 and moved < 1.0:
+		_stuck_timer += delta
+	else:
+		_stuck_timer = 0.0
+	_last_position = global_position
+	if _stuck_timer > 0.35:
+		_recover_from_block()
+
+
+func _recover_from_block() -> void:
+	_advance_patrol()
+	velocity = Vector2.ZERO
 
 
 func _check_detection() -> void:
@@ -222,9 +255,8 @@ func _proximity_risk(distance: float, emission: float, speed_ratio: float, dark_
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.08 if not AlertSystem.combat_mode else 0.14
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(signature_color, 0.08 if not AlertSystem.combat_mode else 0.14)
+	outline.default_color = enemy_state_outline()
 	outline.width = 2.4
 
 
@@ -233,10 +265,10 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
-	var halo_color := ColorSystem.glow_color()
+	var halo_color := outline.default_color
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.05))
 
-	var cone_color := ColorSystem.enemy_outline()
+	var cone_color := outline.default_color
 	var half_rad := deg_to_rad(cone_angle_degrees * 0.5)
 	var start_angle := facing_vector.angle() - half_rad
 	var end_angle   := facing_vector.angle() + half_rad

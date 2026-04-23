@@ -2,6 +2,8 @@ extends CharacterBody2D
 
 signal destroyed
 
+const EMP_SHOCKWAVE_SCENE := preload("res://src/fx/EmpShockwave.tscn")
+
 @export var acceleration: float = 2400.0
 @export var drag: float = 1650.0
 @export var max_speed: float = 460.0
@@ -110,11 +112,6 @@ func _update_aim_direction(move_input: Vector2) -> void:
 	if move_input.length() > 0.1:
 		aim_direction = move_input.normalized()
 		return
-	# Mouse fallback for desktop
-	var mouse_world := get_global_mouse_position()
-	var mouse_vector := mouse_world - global_position
-	if mouse_vector.length() > 8.0:
-		aim_direction = mouse_vector.normalized()
 
 
 func _update_emission(did_boost: bool) -> void:
@@ -176,7 +173,17 @@ func _try_emp_blast() -> void:
 	_emp_slow_timer = emp_slow_duration
 	_emp_flash = 1.0
 	boost_cooldown_remaining = maxf(boost_cooldown_remaining, emp_slow_duration)
+	_spawn_emp_shockwave()
 	world.trigger_emp_blast(global_position, emp_radius, emp_disable_duration)
+
+
+func _spawn_emp_shockwave() -> void:
+	var shockwave = EMP_SHOCKWAVE_SCENE.instantiate()
+	shockwave.global_position = global_position
+	shockwave.radius = emp_radius
+	var world := get_tree().current_scene
+	if world != null:
+		world.add_child(shockwave)
 
 
 func _update_suppress_prompt() -> void:

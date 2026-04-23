@@ -2,6 +2,8 @@ extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
 const ALERT_HOLD_SECONDS := 2.4
+const ROUTE_ARRIVE_DIST := 16.0
+const STEER_ACCEL := 360.0
 
 @export var signature_color := Color("bf5af2")
 @export var patrol_radius: float = 90.0
@@ -21,11 +23,14 @@ var patrol_step: int = 1
 var choke_indices: Array = []
 var _route_pause: float = 0.0
 var _patrol_index: int = 0
+var _stuck_timer: float = 0.0
+var _last_position: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
 	super._ready()
 	anchor = global_position
+	_last_position = global_position
 	phase = randf() * TAU
 	if use_route_patrol and patrol_points.is_empty() and route_a != route_b:
 		patrol_points = [route_a, route_b]
@@ -54,18 +59,22 @@ func _physics_process(delta: float) -> void:
 		var offset: Vector2 = roam_target - global_position
 		if use_route_patrol and _route_pause > 0.0:
 			_route_pause = maxf(_route_pause - delta, 0.0)
-			velocity = Vector2.ZERO
-		elif offset.length() > 2.0:
-			facing_vector = offset.normalized()
-			velocity = facing_vector * patrol_speed
+			velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
 			move_and_slide()
-			_push_out_of_dark_pockets()
+		elif offset.length() > ROUTE_ARRIVE_DIST:
+			var desired_dir := offset.normalized()
+			facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 8.0, 0.0, 1.0)).normalized()
+			velocity = velocity.move_toward(desired_dir * patrol_speed, STEER_ACCEL * delta)
+			move_and_slide()
+			_push_out_of_dark_pockets(delta)
+			_update_stuck_recovery(delta, offset)
 			if get_slide_collision_count() > 0:
 				if use_route_patrol:
-					_advance_route()
+					_recover_from_block()
 				phase += 1.25
 				velocity = Vector2.ZERO
 		elif use_route_patrol:
+			velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
 			_advance_route()
 		_check_alert_radius()
 	queue_redraw()
@@ -124,7 +133,7 @@ func _stealth_target() -> Vector2:
 		else:
 			roam_target = route_b if patrol_step >= 0 else route_a
 	if world_is_search_active():
-		var search_target: Vector2 = world_search_target()
+		var search_target: Vector2 = world_search_target_for_self()
 		if global_position.distance_to(search_target) <= search_interest_radius:
 			return safe_enemy_target(search_target)
 	return roam_target
@@ -135,13 +144,32 @@ func _advance_route() -> void:
 		_patrol_index = posmod(_patrol_index + patrol_step, patrol_points.size())
 	else:
 		patrol_step *= -1
+	_stuck_timer = 0.0
+	_last_position = global_position
 	_route_pause = 0.3 if _patrol_index in choke_indices else 0.16
 
 
+func _update_stuck_recovery(delta: float, offset: Vector2) -> void:
+	if not use_route_patrol:
+		return
+	var moved := global_position.distance_to(_last_position)
+	if offset.length() > 18.0 and moved < 1.0:
+		_stuck_timer += delta
+	else:
+		_stuck_timer = 0.0
+	_last_position = global_position
+	if _stuck_timer > 0.35:
+		_recover_from_block()
+
+
+func _recover_from_block() -> void:
+	_advance_route()
+	velocity = Vector2.ZERO
+
+
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.05 if not AlertSystem.combat_mode else 0.12
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(signature_color, 0.05 if not AlertSystem.combat_mode else 0.12)
+	outline.default_color = enemy_state_outline()
 	outline.width = 2.1
 
 
@@ -150,7 +178,7 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
-	var tint := signature_color if AlertSystem.combat_mode else ColorSystem.enemy_outline()
+	var tint := outline.default_color
 	draw_circle(Vector2.ZERO, 58.0, Color(tint.r, tint.g, tint.b, 0.045))
 	draw_circle(Vector2.ZERO, 42.0, Color(tint.r, tint.g, tint.b, 0.075))
 	draw_circle(Vector2.ZERO, 29.0, Color(tint.r, tint.g, tint.b, 0.11))

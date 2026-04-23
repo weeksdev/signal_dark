@@ -1,6 +1,7 @@
 extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
+const SEARCH_INTEREST_RADIUS := 248.0
 
 @export var signature_color := Color("ffb300")
 @export var pulse_range: float = 170.0
@@ -32,10 +33,12 @@ func _physics_process(delta: float) -> void:
 		var to_ship: Vector2 = ship.global_position - global_position
 		if to_ship != Vector2.ZERO:
 			facing_vector = to_ship.normalized()
-	elif world_is_search_active():
-		var to_search: Vector2 = world_search_target() - global_position
-		if to_search != Vector2.ZERO:
-			facing_vector = to_search.normalized()
+	else:
+		var search_target: Variant = world_search_target_if_relevant(SEARCH_INTEREST_RADIUS)
+		if search_target is Vector2:
+			var to_search: Vector2 = search_target - global_position
+			if to_search != Vector2.ZERO:
+				facing_vector = to_search.normalized()
 
 	pulse_cooldown -= delta
 	if pulse_cooldown <= 0.0:
@@ -127,9 +130,8 @@ func _start_pulse() -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.08 if not AlertSystem.combat_mode else 0.14
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(signature_color, 0.08 if not AlertSystem.combat_mode else 0.14)
+	outline.default_color = enemy_state_outline()
 	outline.width = 2.2
 
 
@@ -143,19 +145,19 @@ func _draw() -> void:
 	draw_suspicion_arc(26.0)
 	draw_emp_disabled_effect(32.0)
 
-	var halo_color := ColorSystem.glow_color()
+	var halo_color := outline.default_color
 	draw_circle(Vector2.ZERO, 20.0, Color(halo_color.r, halo_color.g, halo_color.b, 0.035 if not AlertSystem.combat_mode else 0.04))
 
 	# Breathing danger ring — shows current effective detection radius
 	var cur_range: float = _current_range()
 	var range_frac: float = cur_range / pulse_range
-	var indicator_color := ColorSystem.enemy_outline()
+	var indicator_color := outline.default_color
 	draw_arc(Vector2.ZERO, cur_range, 0.0, TAU, 48,
 			Color(indicator_color.r, indicator_color.g, indicator_color.b, 0.10 + 0.12 * range_frac), 1.2)
 
 	if not ring_visible:
 		return
-	var ring_color := signature_color if AlertSystem.combat_mode else ColorSystem.enemy_outline()
+	var ring_color := outline.default_color
 	ring_color.a = 0.42 if not AlertSystem.combat_mode else 0.7
 	draw_arc(Vector2.ZERO, cur_range * pulse_progress, 0.0, TAU, 64, ring_color, 3.0)
 	draw_arc(Vector2.ZERO, cur_range * pulse_progress * 0.82, 0.0, TAU, 64, Color(ring_color.r, ring_color.g, ring_color.b, 0.1), 1.0)

@@ -2,6 +2,7 @@ extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
 const ALERT_HOLD_SECONDS := 2.8
+const SEARCH_INTEREST_RADIUS := 255.0
 
 @export var signature_color := Color("7df9ff")
 @export var beam_range: float = 230.0
@@ -27,10 +28,12 @@ func _physics_process(delta: float) -> void:
 
 	var spin_speed := combat_rotate_speed if combat_active else rotate_speed
 	facing_angle = wrapf(facing_angle + delta * spin_speed, 0.0, TAU)
-	if not combat_active and world_is_search_active():
-		var to_search: Vector2 = world_search_target() - global_position
-		if to_search != Vector2.ZERO:
-			facing_angle = lerp_angle(facing_angle, to_search.angle(), delta * 1.3)
+	if not combat_active:
+		var search_target: Variant = world_search_target_if_relevant(SEARCH_INTEREST_RADIUS)
+		if search_target is Vector2:
+			var to_search: Vector2 = search_target - global_position
+			if to_search != Vector2.ZERO:
+				facing_angle = lerp_angle(facing_angle, to_search.angle(), delta * 1.3)
 
 	tick_alert_state(delta, 0.7)
 
@@ -129,9 +132,8 @@ func _begin_alert() -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.07 if not AlertSystem.combat_mode else 0.13
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(signature_color, 0.07 if not AlertSystem.combat_mode else 0.13)
+	outline.default_color = enemy_state_outline()
 	outline.width = 2.2
 
 
@@ -140,7 +142,7 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
-	var beam_color := signature_color if AlertSystem.combat_mode else ColorSystem.enemy_outline()
+	var beam_color := outline.default_color
 	var halo_alpha := 0.06 if not AlertSystem.combat_mode else 0.1
 	draw_circle(Vector2.ZERO, 18.0, Color(beam_color.r, beam_color.g, beam_color.b, halo_alpha))
 

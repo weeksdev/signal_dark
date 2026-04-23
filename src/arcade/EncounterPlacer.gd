@@ -31,6 +31,12 @@ const CENTER_BIAS_PULL := 0.42
 const POCKET_ENEMY_CLEAR := 132.0
 const WISP_PAIR_MARGIN := 46.0
 const WISP_ROUTE_CLEAR := 56.0
+const TEMPLATE_DEFAULT := "default"
+const TEMPLATE_MOVING_GAP_CORRIDOR := "moving_gap_corridor"
+const TEMPLATE_CROSSING_SCANNERS := "crossing_scanners"
+const TEMPLATE_GUARD_SCANNER_OVERLAP := "guard_scanner_overlap"
+const TEMPLATE_BRANCH_BAIT := "branch_bait"
+const TEMPLATE_SETPIECE_CROSSFIRE := "setpiece_crossfire"
 
 # Room/corridor dimensions mirrored from ModuleAssembler (kept local to avoid cross-dependency)
 const _ROOM_W   := 480.0
@@ -67,11 +73,12 @@ func place(world: Node2D, graph,
 		var rect: Rect2 = node_rects[node.id]
 		var doorways := _doorway_centers(node.id, graph, node_cells, node_rects)
 		var budget   := _room_budget(node, floor_index, max_depth)
-		var types    := _pick_enemies(budget, node.preferred_threat, pool, rng)
-		types = _tune_corridor_loadout(node, types, pool, rng)
+		var plan: Dictionary = _build_encounter_plan(node, budget, pool, rng)
+		var types: Array = plan.get("types", [])
+		var template: String = str(plan.get("template", TEMPLATE_DEFAULT))
 
 		var pocket_positions := _place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
-		_place_enemies(world, rect, node, types, doorways, pocket_positions, rng)
+		_place_enemies(world, rect, node, types, template, doorways, pocket_positions, rng)
 		first_combat_room = false
 
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
@@ -128,6 +135,61 @@ func _pick_enemies(budget: int, preferred_threat: int, pool: Array, rng) -> Arra
 		remaining -= COSTS[pick]
 
 	return result
+
+
+func _build_encounter_plan(node, budget: int, pool: Array, rng) -> Dictionary:
+	var template: String = TEMPLATE_DEFAULT
+	var reserved: Array = []
+	var remaining_budget: int = budget
+
+	match node.type:
+		ZoneGraph.NodeType.CORRIDOR:
+			if node.depth > 1 and "sweeper" in pool and remaining_budget >= COSTS["sweeper"] * 2:
+				template = TEMPLATE_MOVING_GAP_CORRIDOR
+				reserved = ["sweeper", "sweeper"]
+			elif "wisp" in pool and remaining_budget >= COSTS["wisp"]:
+				template = TEMPLATE_CROSSING_SCANNERS
+				reserved = ["wisp"]
+		ZoneGraph.NodeType.BRANCH_ROOM:
+			if remaining_budget >= 5 and (("sentry" in pool) or ("pulsar" in pool)) and "wisp" in pool:
+				template = TEMPLATE_BRANCH_BAIT
+				reserved = ["wisp", _first_available(["sentry", "pulsar"], pool)]
+		ZoneGraph.NodeType.SETPIECE_ROOM:
+			if remaining_budget >= 5 and "wisp" in pool:
+				template = TEMPLATE_SETPIECE_CROSSFIRE
+				reserved = ["wisp"]
+				var denial_pick: String = _first_available(["prism", "sentry", "pulsar", "hunter"], pool)
+				if denial_pick != "":
+					reserved.append(denial_pick)
+		_:
+			if remaining_budget >= 5 and "wisp" in pool and (("sentry" in pool) or ("prism" in pool) or ("pulsar" in pool)):
+				template = TEMPLATE_GUARD_SCANNER_OVERLAP
+				reserved = ["wisp", _first_available(["sentry", "prism", "pulsar"], pool)]
+			elif remaining_budget >= COSTS["wisp"] and "wisp" in pool and rng.randi() % 100 < 55:
+				template = TEMPLATE_CROSSING_SCANNERS
+				reserved = ["wisp"]
+
+	for t in reserved:
+		remaining_budget -= int(COSTS.get(t, 0))
+	remaining_budget = maxi(remaining_budget, 0)
+
+	var filler: Array = _pick_enemies(remaining_budget, node.preferred_threat, pool, rng)
+	var types: Array = reserved.duplicate()
+	for t in filler:
+		types.append(t)
+	types = _tune_corridor_loadout(node, types, pool, rng)
+
+	return {
+		"template": template,
+		"types": types,
+	}
+
+
+func _first_available(candidates: Array, pool: Array) -> String:
+	for candidate in candidates:
+		if pool.has(candidate):
+			return str(candidate)
+	return ""
 
 
 func _tune_corridor_loadout(node, types: Array, pool: Array, rng) -> Array:
@@ -192,9 +254,11 @@ func _apply_theme_bias(lead: String, pool: Array, rng) -> String:
 
 # ── Enemy placement ───────────────────────────────────────────────────────────
 
-func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, doorways: Array, blocked_positions: Array, rng) -> void:
+func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, template: String, doorways: Array, blocked_positions: Array, rng) -> void:
 	var placed: Array = []
-	for t: String in types:
+	var remaining_types: Array = types.duplicate()
+	_apply_encounter_template(world, rect, node, template, remaining_types, doorways, blocked_positions, placed, rng)
+	for t: String in remaining_types:
 		var pos := _valid_pos(rect, doorways, placed, blocked_positions, rng, ENEMY_MARGIN)
 		match t:
 			"sweeper":
@@ -218,6 +282,86 @@ func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, doorways: Ar
 				_spawn_basic(world, WARPMINE_SCENE, pos)
 
 
+func _apply_encounter_template(world: Node2D, rect: Rect2, node, template: String, remaining_types: Array, doorways: Array, blocked_positions: Array, placed: Array, rng) -> void:
+	match template:
+		TEMPLATE_MOVING_GAP_CORRIDOR:
+			if _consume_type(remaining_types, "sweeper", 2):
+				_spawn_corridor_sweeper_pair(world, rect, node, doorways, placed)
+		TEMPLATE_CROSSING_SCANNERS:
+			if _consume_type(remaining_types, "wisp", 1):
+				var center := _template_anchor(rect, doorways, "center")
+				_spawn_wisp_pair(world, center, rect, node, doorways, placed)
+		TEMPLATE_GUARD_SCANNER_OVERLAP:
+			if _consume_type(remaining_types, "wisp", 1):
+				var center := _template_anchor(rect, doorways, "center")
+				_spawn_wisp_pair(world, center, rect, node, doorways, placed)
+			_spawn_template_denial(world, rect, remaining_types, doorways, blocked_positions, placed, rng, true)
+		TEMPLATE_BRANCH_BAIT:
+			if _consume_type(remaining_types, "wisp", 1):
+				var side_center := _template_anchor(rect, doorways, "doorway_bias")
+				_spawn_wisp_pair(world, side_center, rect, node, doorways, placed)
+			_spawn_template_denial(world, rect, remaining_types, doorways, blocked_positions, placed, rng, false)
+		TEMPLATE_SETPIECE_CROSSFIRE:
+			if _consume_type(remaining_types, "wisp", 1):
+				_spawn_wisp_pair(world, rect.get_center(), rect, node, doorways, placed)
+			_spawn_template_denial(world, rect, remaining_types, doorways, blocked_positions, placed, rng, true)
+
+
+func _consume_type(types: Array, type_name: String, count: int) -> bool:
+	var found_indices: Array = []
+	for i in range(types.size()):
+		if str(types[i]) == type_name:
+			found_indices.append(i)
+			if found_indices.size() >= count:
+				break
+	if found_indices.size() < count:
+		return false
+	for i in range(found_indices.size() - 1, -1, -1):
+		types.remove_at(int(found_indices[i]))
+	return true
+
+
+func _template_anchor(rect: Rect2, doorways: Array, mode: String) -> Vector2:
+	if mode == "doorway_bias" and not doorways.is_empty():
+		return _avg_points(doorways).lerp(rect.get_center(), 0.35)
+	return rect.get_center()
+
+
+func _spawn_template_denial(world: Node2D, rect: Rect2, remaining_types: Array, doorways: Array, blocked_positions: Array, placed: Array, rng, use_choke_point: bool) -> void:
+	var denial_order: Array = ["prism", "sentry", "pulsar", "hunter"]
+	for type_name in denial_order:
+		if _consume_type(remaining_types, type_name, 1):
+			var pos := _valid_pos(rect, doorways, placed, blocked_positions, rng, ENEMY_MARGIN)
+			if use_choke_point:
+				pos = _best_overlap_position(rect, doorways, placed, blocked_positions)
+			placed.append(pos)
+			match type_name:
+				"prism":
+					_spawn_basic(world, PRISM_SCENE, pos)
+				"sentry":
+					_spawn_basic(world, SENTRY_SCENE, pos)
+				"pulsar":
+					_spawn_basic(world, PULSAR_SCENE, pos)
+				"hunter":
+					_spawn_basic(world, HUNTER_SCENE, pos)
+			return
+
+
+func _best_overlap_position(rect: Rect2, doorways: Array, placed: Array, blocked_positions: Array) -> Vector2:
+	if doorways.is_empty():
+		return rect.get_center()
+	var doorway_center := _avg_points(doorways)
+	var center := rect.get_center()
+	var candidate := doorway_center.lerp(center, 0.38)
+	for blocked: Vector2 in blocked_positions:
+		if candidate.distance_to(blocked) < POCKET_ENEMY_CLEAR:
+			candidate = center.lerp(candidate, 0.55)
+	for other: Vector2 in placed:
+		if candidate.distance_to(other) < SPREAD_MIN:
+			candidate = candidate.move_toward(center, SPREAD_MIN * 0.45)
+	return candidate.clamp(rect.position + Vector2(ENEMY_MARGIN, ENEMY_MARGIN), rect.end - Vector2(ENEMY_MARGIN, ENEMY_MARGIN))
+
+
 func _spawn_basic(world: Node2D, scene: PackedScene, pos: Vector2) -> void:
 	var enemy: Node2D = scene.instantiate()
 	enemy.position = pos
@@ -225,18 +369,48 @@ func _spawn_basic(world: Node2D, scene: PackedScene, pos: Vector2) -> void:
 
 
 func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2, node, doorways: Array) -> void:
-	var sweeper: Node2D = SWEEPER_SCENE.instantiate()
 	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-58.0), pos, doorways, node.type)
-	var patrol_points: Array = patrol_layout["points"]
-	var choke_indices: Array = patrol_layout["choke_indices"]
+	var patrol_points: Array = patrol_layout.get("points", [])
+	var start_index := 0
+	if node.type == ZoneGraph.NodeType.CORRIDOR and patrol_points.size() >= 4:
+		start_index = 1
+	_spawn_pattern_sweeper(world, patrol_layout, start_index, 1, pos)
+
+
+func _spawn_pattern_sweeper(world: Node2D, patrol_layout: Dictionary, start_index: int, step: int, fallback_pos: Vector2) -> void:
+	var sweeper: Node2D = SWEEPER_SCENE.instantiate()
+	var patrol_points: Array = patrol_layout.get("points", [])
+	var choke_indices: Array = patrol_layout.get("choke_indices", [])
 	if patrol_points.is_empty():
-		patrol_points = [pos]
-	sweeper.position = patrol_points[0]
+		patrol_points = [fallback_pos]
+	choke_indices = _clamp_patrol_indices(choke_indices, patrol_points.size())
+	var safe_start_index: int = clampi(start_index, 0, patrol_points.size() - 1)
+	sweeper.position = patrol_points[safe_start_index]
 	sweeper.set("patrol_points", patrol_points)
 	sweeper.set("choke_indices", choke_indices)
-	sweeper.set("patrol_step", 1)
+	sweeper.set("patrol_start_index", safe_start_index)
+	sweeper.set("patrol_step", step)
 
 	world.register_spawned_enemy(sweeper)
+
+
+func _spawn_corridor_sweeper_pair(world: Node2D, room_rect: Rect2, node, doorways: Array, placed: Array) -> void:
+	var center := room_rect.get_center()
+	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-58.0), center, doorways, node.type)
+	var patrol_points: Array = patrol_layout.get("points", [])
+	if patrol_points.is_empty():
+		patrol_points = [center]
+	var first_index := 0
+	var second_index := 0
+	if patrol_points.size() >= 4:
+		first_index = 1
+		second_index = clampi(int(patrol_points.size() / 2) + 1, 0, patrol_points.size() - 1)
+	elif patrol_points.size() >= 2:
+		second_index = patrol_points.size() - 1
+	_spawn_pattern_sweeper(world, patrol_layout, first_index, 1, center)
+	_spawn_pattern_sweeper(world, patrol_layout, second_index, -1, center)
+	placed.append(patrol_points[clampi(first_index, 0, patrol_points.size() - 1)])
+	placed.append(patrol_points[clampi(second_index, 0, patrol_points.size() - 1)])
 
 
 func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, doorways: Array, placed: Array) -> void:
@@ -247,9 +421,12 @@ func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, do
 		inner = room_rect
 	var patrol_layout := _build_wisp_patrol_layout(inner, center, doorways, node.type)
 	var patrol_points: Array = patrol_layout["points"]
+	if patrol_points.is_empty():
+		patrol_points = [center]
 	var choke_indices: Array = patrol_layout["choke_indices"]
-	var first_choke_index: int = int(patrol_layout["primary_choke"])
-	var opposite_index := int(patrol_layout["opposite_start"])
+	choke_indices = _clamp_patrol_indices(choke_indices, patrol_points.size())
+	var first_choke_index: int = clampi(int(patrol_layout["primary_choke"]), 0, patrol_points.size() - 1)
+	var opposite_index := clampi(int(patrol_layout["opposite_start"]), 0, patrol_points.size() - 1)
 	var first_pos: Vector2 = patrol_points[first_choke_index]
 	var second_pos: Vector2 = patrol_points[opposite_index]
 
@@ -273,6 +450,18 @@ func _spawn_routed_wisp(world: Node2D, pos: Vector2, patrol_points: Array, choke
 			longest_leg = maxf(longest_leg, patrol_points[i].distance_to(patrol_points[i + 1]))
 		wisp.set("patrol_radius", maxf(longest_leg * 0.4, WISP_ROUTE_CLEAR))
 	world.register_spawned_enemy(wisp)
+
+
+func _clamp_patrol_indices(indices: Array, point_count: int) -> Array:
+	if point_count <= 0:
+		return []
+	var clamped: Array = []
+	for index in indices:
+		var safe_index := clampi(int(index), 0, point_count - 1)
+		if not clamped.has(safe_index):
+			clamped.append(safe_index)
+	return clamped if not clamped.is_empty() else [0]
+
 
 func _build_sweeper_patrol_layout(inner: Rect2, center: Vector2, doorways: Array, node_type: int) -> Dictionary:
 	if inner.size.x <= 24.0 or inner.size.y <= 24.0:
@@ -421,14 +610,36 @@ func _build_wisp_room_layout(inner: Rect2, center: Vector2, doorways: Array, cor
 
 
 func _finalize_wisp_layout(points: Array, choke_indices: Array, primary_choke: int, opposite_start: int) -> Dictionary:
-	for i in range(points.size()):
-		points[i] = points[i]
+	points = _clean_patrol_points(points)
+	if points.is_empty():
+		points.append(Vector2.ZERO)
+	if points.size() < 2:
+		points.append(points[0] + Vector2(72.0, 0.0))
+	var cleaned_chokes: Array = []
+	for index in choke_indices:
+		var safe_index := clampi(int(index), 0, points.size() - 1)
+		if not cleaned_chokes.has(safe_index):
+			cleaned_chokes.append(safe_index)
+	choke_indices = cleaned_chokes if not cleaned_chokes.is_empty() else [0]
+	primary_choke = clampi(primary_choke, 0, points.size() - 1)
+	opposite_start = clampi(opposite_start, 0, points.size() - 1)
 	return {
 		"points": points,
 		"choke_indices": choke_indices,
 		"primary_choke": primary_choke,
 		"opposite_start": opposite_start,
 	}
+
+
+func _clean_patrol_points(points: Array) -> Array:
+	var cleaned: Array = []
+	for point in points:
+		var p: Vector2 = point
+		if cleaned.is_empty() or p.distance_to(cleaned[cleaned.size() - 1]) >= 28.0:
+			cleaned.append(p)
+	if cleaned.size() > 2 and cleaned[0].distance_to(cleaned[cleaned.size() - 1]) < 28.0:
+		cleaned.remove_at(cleaned.size() - 1)
+	return cleaned
 
 
 func _corridor_is_horizontal(doorways: Array, inner: Rect2) -> bool:

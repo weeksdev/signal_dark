@@ -12,6 +12,13 @@ var _particles: Array = []
 # [offset_x, offset_y, spawn_t, hue_offset]
 var _clusters: Array = []
 var _duration: float = COMBAT_DURATION
+const FIRE_PALETTE: Array[Color] = [
+	Color(1.0, 0.08, 0.02, 1.0),
+	Color(1.0, 0.25, 0.02, 1.0),
+	Color(1.0, 0.48, 0.04, 1.0),
+	Color(1.0, 0.72, 0.08, 1.0),
+	Color(0.72, 0.04, 0.01, 1.0),
+]
 
 
 func _ready() -> void:
@@ -33,10 +40,10 @@ func _bake_particles() -> void:
 			else:
 				speed = 420.0 + maxf(0.0, sin(fi * 2.1)) * 340.0
 			var seg: float = 6.0 + maxf(0.0, sin(fi * 3.7)) * 18.0
-			var hue: float = fmod(fi / 240.0 * 3.0 + sin(fi * 0.41) * 0.25, 1.0)
+			var color_index: float = float(i % FIRE_PALETTE.size())
 			var spin: float = sin(fi * 2.9) * 7.0 + cos(fi * 1.3) * 3.0
 			var delay: float = fmod(fi * 0.0018, 0.12)
-			_particles.append([angle, speed, seg, hue, spin, delay])
+			_particles.append([angle, speed, seg, color_index, spin, delay])
 
 		for j in 5:
 			var fj: float = float(j)
@@ -45,7 +52,7 @@ func _bake_particles() -> void:
 			var cx: float = cos(ca) * cd
 			var cy: float = sin(ca) * cd
 			var st: float = 0.08 + fj * 0.06
-			var ho: float = fmod(fj * 0.2 + 0.1, 1.0)
+			var ho: float = float(j % FIRE_PALETTE.size())
 			_clusters.append([cx, cy, st, ho])
 	else:
 		for i in 64:
@@ -93,14 +100,13 @@ func _draw_combat(t: float) -> void:
 		draw_arc(Vector2.ZERO, sw1_r, 0.0, TAU, 72,
 				Color(1.0, 1.0, 1.0, sw1_a), 3.0)
 
-	# Shockwave 2 — rainbow, to 460px
-	var sw2_t: float = minf(t * 1.1, 1.0)
-	var sw2_r: float = lerpf(12.0, 460.0, pow(sw2_t, 0.44))
-	var sw2_hue: float = fmod(t * 0.7 + 0.5, 1.0)
-	var sw2_a: float = maxf(0.0, 1.0 - sw2_t * 1.8) * 0.65
-	if sw2_a > 0.004:
-		draw_arc(Vector2.ZERO, sw2_r, 0.0, TAU, 56,
-				Color.from_hsv(sw2_hue, 0.7, 1.0, sw2_a), 2.2)
+		# Shockwave 2 — orange heat, to 460px
+		var sw2_t: float = minf(t * 1.1, 1.0)
+		var sw2_r: float = lerpf(12.0, 460.0, pow(sw2_t, 0.44))
+		var sw2_a: float = maxf(0.0, 1.0 - sw2_t * 1.8) * 0.65
+		if sw2_a > 0.004:
+			draw_arc(Vector2.ZERO, sw2_r, 0.0, TAU, 56,
+					_fire_color(2, sw2_a), 2.2)
 
 	# Shockwave 3 — gold, fat, to 280px
 	var sw3_t: float = minf(t * 0.85, 1.0)
@@ -115,7 +121,7 @@ func _draw_combat(t: float) -> void:
 		var travel_angle: float = p[0]
 		var speed: float        = p[1]
 		var seg_len: float      = p[2]
-		var hue: float          = p[3]
+		var color_index: int    = int(p[3])
 		var spin: float         = p[4]
 		var delay: float        = p[5]
 		var pt: float = clampf(t - delay, 0.0, 1.0)
@@ -127,7 +133,7 @@ func _draw_combat(t: float) -> void:
 		var half: float = seg_len * 0.5
 		var sd: Vector2 = Vector2(cos(seg_angle), sin(seg_angle)) * half
 		var alpha: float = (1.0 - pt) * 0.95
-		draw_line(pos - sd, pos + sd, Color.from_hsv(hue, 0.82, 1.0, alpha), 2.2)
+		draw_line(pos - sd, pos + sd, _fire_color(color_index, alpha), 2.2)
 
 	# Secondary cluster bursts
 	for cl in _clusters:
@@ -148,7 +154,7 @@ func _draw_combat(t: float) -> void:
 		var ca2: float = maxf(0.0, 1.0 - ct * 2.5) * 0.6
 		if ca2 > 0.004:
 			draw_arc(offset, cr, 0.0, TAU, 24,
-					Color.from_hsv(fmod(hue_off + ct * 0.3, 1.0), 0.8, 1.0, ca2), 2.0)
+					_fire_color(int(hue_off) + 1, ca2), 2.0)
 		for j in 24:
 			var fj: float = float(j)
 			var a: float = TAU * fj / 24.0 + hue_off * TAU
@@ -158,20 +164,26 @@ func _draw_combat(t: float) -> void:
 			var sa: float = a + sin(fj * 2.1) * 4.0 * ct
 			var sv_len: float = 5.0 + maxf(0.0, sin(fj * 3.1)) * 9.0
 			var sv: Vector2 = Vector2(cos(sa), sin(sa)) * sv_len * 0.5
-			var col: Color = Color.from_hsv(fmod(hue_off + fj / 24.0, 1.0), 0.8, 1.0, cfade * 0.8)
+			var col: Color = _fire_color(int(hue_off) + j, cfade * 0.8)
 			draw_line(cpos - sv, cpos + sv, col, 1.6)
 
-	# Rolling color bloom
-	draw_circle(Vector2.ZERO, lerpf(60.0, 340.0, pow(t, 0.45)),
-			Color.from_hsv(fmod(t * 0.5, 1.0), 0.6, 0.9, 0.055 * fade))
-	draw_circle(Vector2.ZERO, lerpf(30.0, 160.0, pow(t, 0.5)),
-			Color.from_hsv(fmod(t * 0.5 + 0.5, 1.0), 0.7, 1.0, 0.04 * fade))
+		# Rolling heat bloom
+		draw_circle(Vector2.ZERO, lerpf(60.0, 340.0, pow(t, 0.45)),
+				_fire_color(1, 0.055 * fade))
+		draw_circle(Vector2.ZERO, lerpf(30.0, 160.0, pow(t, 0.5)),
+				_fire_color(3, 0.04 * fade))
 
 	# Bright core lingers
 	if t < 0.4:
 		var core_f: float = 1.0 - t / 0.4
 		draw_circle(Vector2.ZERO, lerpf(28.0, 5.0, t / 0.4),
 				Color(1.0, 0.88, 0.6, 0.35 * core_f))
+
+
+func _fire_color(index: int, alpha: float) -> Color:
+	var c: Color = FIRE_PALETTE[posmod(index, FIRE_PALETTE.size())]
+	c.a = alpha
+	return c
 
 
 func _draw_stealth(t: float) -> void:

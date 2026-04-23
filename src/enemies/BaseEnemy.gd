@@ -11,9 +11,12 @@ var _alerting: bool = false
 var _alert_hold: float = 0.0
 var _suspicion: float = 0.0
 var _emp_disabled_timer: float = 0.0
+var _visual_state_key: String = ""
 
 const DARK_POCKET_AVOID_RADIUS := 82.0
 const DARK_POCKET_TARGET_RADIUS := 112.0
+const SEARCH_VISUAL_RADIUS := 150.0
+const DEFAULT_SEARCH_INTEREST_RADIUS := 210.0
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -22,7 +25,11 @@ const DARK_POCKET_TARGET_RADIUS := 112.0
 func _ready() -> void:
 	add_to_group("zone_enemy")
 	ColorSystem.mode_changed.connect(_on_mode_changed)
-	_update_palette()
+	_refresh_visual_state(true)
+
+
+func _process(_delta: float) -> void:
+	_refresh_visual_state()
 
 
 func _physics_process(delta: float) -> void:
@@ -32,12 +39,13 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	if combat_active and is_instance_valid(ship):
+		_update_palette()
 		var chase_vector: Vector2 = ship.global_position - global_position
 		if chase_vector != Vector2.ZERO:
 			facing_vector = chase_vector.normalized()
 			velocity = facing_vector * _combat_speed_value()
 		move_and_slide()
-		_push_out_of_dark_pockets()
+		_push_out_of_dark_pockets(delta)
 		if global_position.distance_to(ship.global_position) < 18.0:
 			ship.take_hit()
 
@@ -45,6 +53,7 @@ func _physics_process(delta: float) -> void:
 func activate_for_combat(target_ship: Node2D) -> void:
 	ship = target_ship
 	combat_active = true
+	_update_palette()
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -77,19 +86,32 @@ func is_alerting_state() -> bool:
 	return _alerting
 
 
+func stealth_reveal_level() -> float:
+	if combat_active or is_emp_disabled():
+		return 0.0
+	if _alerting:
+		return 1.0
+	return clampf(_suspicion, 0.0, 1.0)
+
+
 func tick_alert_state(delta: float, suspicion_decay: float = 0.0) -> void:
+	var old_suspicion := _suspicion
+	var old_alerting := _alerting
 	if _alert_hold > 0.0:
 		_alert_hold -= delta
 		if _alert_hold <= 0.0:
 			_alerting = false
 	if not combat_active and suspicion_decay > 0.0:
 		_suspicion = maxf(0.0, _suspicion - delta * suspicion_decay)
+	if absf(old_suspicion - _suspicion) > 0.02 or old_alerting != _alerting:
+		_update_palette()
 
 
 func clear_alert_state() -> void:
 	_alerting = false
 	_alert_hold = 0.0
 	_suspicion = 0.0
+	_refresh_visual_state(true)
 
 
 func begin_alert_state(hold_seconds: float) -> void:
@@ -98,12 +120,14 @@ func begin_alert_state(hold_seconds: float) -> void:
 		_alerting = true
 		detected.emit(self)
 	_alert_hold = hold_seconds
+	_refresh_visual_state(true)
 
 
 func add_suspicion(amount: float) -> bool:
 	if is_emp_disabled():
 		return false
 	_suspicion = minf(1.0, _suspicion + amount)
+	_refresh_visual_state(true)
 	return _suspicion >= 1.0
 
 
@@ -113,7 +137,7 @@ func apply_emp_disable(duration: float) -> void:
 	_alert_hold = 0.0
 	_suspicion = 0.0
 	velocity = Vector2.ZERO
-	queue_redraw()
+	_refresh_visual_state(true)
 
 
 func is_emp_disabled() -> bool:
@@ -169,6 +193,20 @@ func world_search_target() -> Vector2:
 	return safe_enemy_target(result) if result is Vector2 else global_position
 
 
+func world_search_target_for_self() -> Vector2:
+	var result: Variant = world_call("get_search_target_for", [self])
+	return safe_enemy_target(result) if result is Vector2 else world_search_target()
+
+
+func world_search_target_if_relevant(max_distance: float = DEFAULT_SEARCH_INTEREST_RADIUS) -> Variant:
+	if not world_is_search_active():
+		return null
+	var target := world_search_target_for_self()
+	if global_position.distance_to(target) > max_distance:
+		return null
+	return target
+
+
 func world_is_point_jammed(point: Vector2) -> bool:
 	var result: Variant = world_call("is_point_jammed", [point])
 	return bool(result) if result != null else false
@@ -190,7 +228,7 @@ func safe_enemy_target(target: Vector2) -> Vector2:
 	return target
 
 
-func _push_out_of_dark_pockets() -> void:
+func _push_out_of_dark_pockets(delta: float = 0.016) -> void:
 	if combat_active:
 		return
 	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
@@ -204,8 +242,10 @@ func _push_out_of_dark_pockets() -> void:
 		var direction := offset.normalized() if distance > 0.01 else facing_vector
 		if direction == Vector2.ZERO:
 			direction = Vector2.RIGHT
-		global_position = pocket_pos + direction * DARK_POCKET_AVOID_RADIUS
-		velocity = Vector2.ZERO
+		var penetration := DARK_POCKET_AVOID_RADIUS - distance
+		var push_speed := 120.0 + penetration * 3.2
+		global_position += direction * minf(penetration, push_speed * delta)
+		velocity = velocity.slide(-direction) * 0.65
 
 
 func add_effect_to_world(node: Node) -> void:
@@ -221,8 +261,8 @@ func draw_alert_marker() -> void:
 	var pulse: float = 0.75 + 0.25 * sin(t_ms * 14.0)
 	var font := ThemeDB.fallback_font
 	draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(0.0, 0.0, 0.0, 0.75), true)
-	draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.85, 0.0, pulse * 0.9), false, 1.5)
-	draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.90, 0.0, pulse))
+	draw_rect(Rect2(-9.0, -56.0, 18.0, 24.0), Color(1.0, 0.12, 0.08, pulse * 0.95), false, 1.5)
+	draw_string(font, Vector2(-5.0, -36.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1.0, 0.18, 0.12, pulse))
 
 
 func draw_suspicion_arc(radius: float, min_threshold: float = 0.06) -> void:
@@ -230,6 +270,8 @@ func draw_suspicion_arc(radius: float, min_threshold: float = 0.06) -> void:
 		return
 	var warning := Color(1.0, 0.86, 0.18, 0.42 + _suspicion * 0.4)
 	draw_arc(Vector2.ZERO, radius, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.2)
+	if _suspicion > 0.28:
+		draw_arc(Vector2.ZERO, radius + 5.0, 0.0, TAU, 32, Color(1.0, 0.52, 0.08, 0.2 + _suspicion * 0.18), 1.2)
 
 
 func draw_emp_disabled_effect(radius: float = 30.0) -> void:
@@ -245,12 +287,12 @@ func draw_emp_disabled_effect(radius: float = 30.0) -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(_signature_color_value())
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(_signature_color_value(), 0.08 if not AlertSystem.combat_mode else 0.14)
+	outline.default_color = enemy_state_outline()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
-	_update_palette()
+	_refresh_visual_state(true)
 
 
 func _combat_speed_value() -> float:
@@ -266,3 +308,65 @@ func _suppress_range_value() -> float:
 func _signature_color_value() -> Color:
 	var value: Variant = get("signature_color")
 	return value if value is Color else Color("00ff88")
+
+
+func enemy_state_outline() -> Color:
+	if is_emp_disabled():
+		return Color(0.55, 0.95, 1.0, 0.95)
+	if combat_active:
+		var pulse_color := _combat_pulse_color()
+		return Color(pulse_color.r, pulse_color.g, pulse_color.b, 0.98)
+	if _alerting and not combat_active:
+		return Color(1.0, 0.12, 0.08, 0.95)
+	if _suspicion > 0.06 and not combat_active:
+		var t := clampf(_suspicion, 0.0, 1.0)
+		return Color(1.0, lerpf(0.82, 0.22, t), 0.08, 0.88)
+	var search_t := _search_visual_strength()
+	if search_t > 0.0 and not combat_active:
+		return Color(1.0, lerpf(0.62, 0.78, search_t), 0.14, lerpf(0.7, 0.84, search_t))
+	return ColorSystem.enemy_outline()
+
+
+func enemy_state_fill(base_color: Color, alpha: float) -> Color:
+	var fill := ColorSystem.enemy_fill(base_color)
+	fill.a = alpha
+	if is_emp_disabled():
+		return Color(0.18, 0.55, 0.72, maxf(alpha, 0.12))
+	if combat_active:
+		var pulse_color := _combat_pulse_color()
+		return Color(pulse_color.r * 0.55, pulse_color.g * 0.34, pulse_color.b * 0.08, maxf(alpha, 0.2))
+	if _alerting and not combat_active:
+		return Color(0.72, 0.04, 0.02, maxf(alpha, 0.18))
+	if _suspicion > 0.06 and not combat_active:
+		var t := clampf(_suspicion, 0.0, 1.0)
+		return Color(0.7 + t * 0.18, 0.32 + (1.0 - t) * 0.22, 0.02, maxf(alpha, 0.12 + t * 0.08))
+	var search_t := _search_visual_strength()
+	if search_t > 0.0 and not combat_active:
+		return Color(0.36 + search_t * 0.16, 0.18 + search_t * 0.08, 0.03, maxf(alpha, 0.08 + search_t * 0.04))
+	return fill
+
+
+func _combat_pulse_color() -> Color:
+	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 8.0)
+	return Color(1.0, lerpf(0.12, 0.86, pulse), 0.03, 1.0)
+
+
+func _refresh_visual_state(force: bool = false) -> void:
+	var suspicion_bucket := int(floor(clampf(_suspicion, 0.0, 1.0) * 5.0))
+	var search_bucket := int(floor(_search_visual_strength() * 4.0))
+	var next_key := "%s|%s|%s|%s|%s" % [combat_active, is_emp_disabled(), _alerting, suspicion_bucket, search_bucket]
+	if not force and next_key == _visual_state_key:
+		return
+	_visual_state_key = next_key
+	_update_palette()
+	queue_redraw()
+
+
+func _search_visual_strength() -> float:
+	if combat_active or _alerting or _suspicion > 0.06 or not world_is_search_active():
+		return 0.0
+	var target := world_search_target_for_self()
+	var distance := global_position.distance_to(target)
+	if distance >= SEARCH_VISUAL_RADIUS:
+		return 0.0
+	return 1.0 - (distance / SEARCH_VISUAL_RADIUS)

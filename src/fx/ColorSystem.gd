@@ -9,7 +9,7 @@ const PHOSPHOR_SHADOW := Color("10351b")
 const PHOSPHOR_DEEP := Color("08180d")
 const PHOSPHOR_GHOST := Color("78b98a")
 const BG_STEALTH := Color("000a02")
-const BG_COMBAT := Color("050518")
+const BG_COMBAT := Color("01030a")
 const PLAYER_COMBAT := Color("00bfff")
 const PLAYER_DARK := Color("1a1022")
 const DARK_OUTLINE := Color("7a5cff")
@@ -38,19 +38,19 @@ func background_color() -> Color:
 
 
 func grid_color() -> Color:
-	return Color("1f2c6d") if in_combat else Color("15311d")
+	return Color("0b1324") if in_combat else Color("15311d")
 
 
 func haze_color() -> Color:
-	return Color("0d2112") if not in_combat else Color("141945")
+	return Color("0d2112") if not in_combat else Color("030b16")
 
 
 func shadow_color() -> Color:
-	return Color("000603") if not in_combat else Color("02030f")
+	return Color("000603") if not in_combat else Color("000208")
 
 
 func glow_color() -> Color:
-	return Color("2d7d42") if not in_combat else Color("8ae7ff")
+	return Color("2d7d42") if not in_combat else Color("ff3b1f")
 
 
 func player_fill(dark_mode: bool) -> Color:
@@ -66,20 +66,20 @@ func player_outline(dark_mode: bool) -> Color:
 
 
 func enemy_fill(signature_color: Color) -> Color:
-	return signature_color if in_combat else PHOSPHOR_DARK
+	return Color("7a1008") if in_combat else PHOSPHOR_DARK
 
 
 func enemy_outline() -> Color:
-	return UI_COMBAT if in_combat else PHOSPHOR_MID
+	return Color("ff3b1f") if in_combat else PHOSPHOR_MID
 
 
 func terrain_fill() -> Color:
-	return Color("22324d") if in_combat else PHOSPHOR_DEEP
+	return Color("050910") if in_combat else PHOSPHOR_DEEP
 
 
 func terrain_outline() -> Color:
-	return Color("8ea6ff") if in_combat else Color("3a8d4f")
+	return Color("1f4058") if in_combat else Color("3a8d4f")
 
 
 func ui_color() -> Color:
-	return UI_COMBAT if in_combat else PHOSPHOR_BRIGHT
+	return Color("9ee8f3") if in_combat else PHOSPHOR_BRIGHT

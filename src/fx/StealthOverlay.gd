@@ -12,9 +12,10 @@ uniform float outer_radius_px = 285.0;
 uniform float max_darkness = 0.84;
 uniform float ambient_floor = 0.19;
 uniform float stealth_mix = 1.0;
+uniform float combat_mix = 0.0;
 uniform int reveal_count = 0;
-uniform vec2 reveal_centers[8];
-uniform float reveal_radii[8];
+	uniform vec2 reveal_centers[16];
+	uniform float reveal_radii[16];
 uniform float reveal_strength = 0.22;
 
 vec4 blur5(vec2 uv, float blur_px) {
@@ -43,7 +44,7 @@ void fragment() {
 	float visibility = max(ambient_floor, 1.0 - darkness);
 	float reveal_visibility = 0.0;
 	float reveal_clarity = 0.0;
-	for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 16; i++) {
 		if (i >= reveal_count) {
 			break;
 		}
@@ -57,7 +58,22 @@ void fragment() {
 	mixed_col.rgb *= 1.0 + reveal_visibility * reveal_strength;
 	mixed_col = mix(mixed_col, base, reveal_clarity);
 
-	COLOR = mix(base, vec4(mixed_col.rgb, 1.0), stealth_mix);
+	vec4 stealth_col = vec4(mixed_col.rgb, 1.0);
+	vec4 out_col = mix(base, stealth_col, stealth_mix);
+
+	vec2 centered = SCREEN_UV * 2.0 - vec2(1.0);
+	float edge = smoothstep(0.28, 1.12, length(centered));
+	float scan = sin(screen_pos.y * 1.7 + TIME * 18.0) * 0.5 + 0.5;
+	float breach = sin(TIME * 5.4) * 0.5 + 0.5;
+		vec3 combat_tint = vec3(0.01, 0.025, 0.06) * edge * 0.22;
+		vec3 red_edge = vec3(0.28, 0.015, 0.005) * edge * breach * 0.15;
+		vec3 red_lift = vec3(0.08, 0.012, 0.004) * (1.0 - edge) * breach * 0.04;
+		vec3 combat_rgb = base.rgb * 0.68 + combat_tint + red_edge + red_lift;
+		combat_rgb *= 1.0 - edge * 0.46;
+		combat_rgb += scan * vec3(0.018, 0.004, 0.001) * combat_mix;
+	out_col.rgb = mix(out_col.rgb, combat_rgb, combat_mix);
+
+	COLOR = out_col;
 }
 """
 
@@ -103,8 +119,16 @@ func _screen_from_world(world_pos: Vector2, rect: Rect2) -> Vector2:
 	return rect.size * 0.5 + Vector2(relative.x / camera.zoom.x, relative.y / camera.zoom.y)
 
 
-func _wisp_reveal_data(rect: Rect2) -> Dictionary:
+func _stealth_reveal_data(rect: Rect2) -> Dictionary:
 	var centers: Array = [
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
+		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0),
@@ -114,25 +138,33 @@ func _wisp_reveal_data(rect: Rect2) -> Dictionary:
 		Vector2(-10000.0, -10000.0),
 		Vector2(-10000.0, -10000.0)
 	]
-	var radii: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var radii: Array = [
+		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+	]
 	var count: int = 0
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy == null:
 			continue
-		if not enemy.scene_file_path.ends_with("Wisp.tscn"):
-			continue
-		if count >= 8:
+		if count >= 16:
 			break
 		var center: Vector2 = _screen_from_world(enemy.global_position, rect)
 		if not Rect2(Vector2.ZERO, rect.size).grow(96.0).has_point(center):
 			continue
+		var reveal_level := 0.0
+		if enemy.has_method("stealth_reveal_level"):
+			reveal_level = float(enemy.stealth_reveal_level())
+		if enemy.scene_file_path.ends_with("Wisp.tscn"):
+			reveal_level = maxf(reveal_level, 0.34)
+		if reveal_level <= 0.05:
+			continue
 		centers[count] = center
-		radii[count] = 110.0
+		radii[count] = lerpf(52.0, 118.0, clampf(reveal_level, 0.0, 1.0))
 		count += 1
 	for node in get_tree().get_nodes_in_group("arcade_objective"):
 		if node == null:
 			continue
-		if count >= 8:
+		if count >= 16:
 			break
 		if node.completed:
 			continue
@@ -153,10 +185,11 @@ func _update_shader_params() -> void:
 	if _shader_material == null:
 		return
 	var rect := get_viewport_rect()
-	var reveal_data: Dictionary = _wisp_reveal_data(rect)
+	var reveal_data: Dictionary = _stealth_reveal_data(rect)
 	_shader_material.set_shader_parameter("light_center", _signal_center(rect))
 	_shader_material.set_shader_parameter("viewport_size", rect.size)
 	_shader_material.set_shader_parameter("stealth_mix", 1.0 if not ColorSystem.in_combat else 0.0)
+	_shader_material.set_shader_parameter("combat_mix", 0.0 if not ColorSystem.in_combat else 1.0)
 	_shader_material.set_shader_parameter("inner_radius_px", 88.0)
 	_shader_material.set_shader_parameter("blur_start_px", 102.0)
 	_shader_material.set_shader_parameter("outer_radius_px", 255.0)

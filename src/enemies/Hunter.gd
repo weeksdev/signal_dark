@@ -1,20 +1,26 @@
 extends "res://src/enemies/BaseEnemy.gd"
 
 const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
+const STEER_ACCEL := 420.0
+const PATROL_ARRIVE_DIST := 12.0
+const PATROL_DWELL := 0.32
+const SEARCH_INTEREST_RADIUS := 248.0
 
 @export var signature_color := Color("ff2d55")
 @export var roam_speed: float = 58.0
 @export var combat_speed: float = 180.0
 @export var suppress_range: float = 0.0
 
-var drift_phase: float = 0.0
 var spawn_point: Vector2 = Vector2.ZERO
+var patrol_points: Array[Vector2] = []
+var patrol_index: int = 0
+var patrol_pause: float = 0.0
 
 
 func _ready() -> void:
 	super._ready()
 	spawn_point = global_position
-	drift_phase = randf() * TAU
+	_build_patrol_loop()
 
 
 func _physics_process(delta: float) -> void:
@@ -26,29 +32,57 @@ func _physics_process(delta: float) -> void:
 	if combat_active and is_instance_valid(ship):
 		var to_ship: Vector2 = ship.global_position - global_position
 		if to_ship != Vector2.ZERO:
-			facing_vector = to_ship.normalized()
-			velocity = facing_vector * combat_speed
+			var desired_dir := to_ship.normalized()
+			facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 9.0, 0.0, 1.0)).normalized()
+			velocity = velocity.move_toward(desired_dir * combat_speed, STEER_ACCEL * delta)
 		move_and_slide()
-		_push_out_of_dark_pockets()
+		_push_out_of_dark_pockets(delta)
 		if get_slide_collision_count() > 0:
 			velocity = Vector2.ZERO
-			drift_phase += 0.95
+			_advance_patrol()
 	else:
-		drift_phase += delta
-		var roam_target := spawn_point + Vector2(cos(drift_phase * 0.9), sin(drift_phase * 1.3)) * 42.0
-		if world_is_search_active():
-			roam_target = world_search_target()
-		var offset: Vector2 = roam_target - global_position
-		if offset.length() > 3.0:
-			facing_vector = offset.normalized()
-			velocity = facing_vector * roam_speed
-			move_and_slide()
-			_push_out_of_dark_pockets()
-			if get_slide_collision_count() > 0:
-				velocity = Vector2.ZERO
-				drift_phase += 1.4
+		var search_target: Variant = world_search_target_if_relevant(SEARCH_INTEREST_RADIUS)
+		if search_target is Vector2:
+			_run_search(delta, search_target)
+		else:
+			_run_patrol(delta)
 	_emit_contact_hit()
 	queue_redraw()
+
+
+func _run_patrol(delta: float) -> void:
+	if patrol_pause > 0.0:
+		patrol_pause = maxf(0.0, patrol_pause - delta)
+		velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
+		return
+	var roam_target := patrol_points[patrol_index] if not patrol_points.is_empty() else spawn_point
+	var offset: Vector2 = roam_target - global_position
+	if offset.length() > PATROL_ARRIVE_DIST:
+		var desired_dir := offset.normalized()
+		facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 7.0, 0.0, 1.0)).normalized()
+		velocity = velocity.move_toward(desired_dir * roam_speed, STEER_ACCEL * delta)
+		move_and_slide()
+		_push_out_of_dark_pockets(delta)
+		if get_slide_collision_count() > 0:
+			velocity = velocity.slide(get_slide_collision(0).get_normal()) * 0.22
+			_advance_patrol()
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
+		_advance_patrol()
+
+
+func _run_search(delta: float, roam_target: Vector2) -> void:
+	var offset: Vector2 = roam_target - global_position
+	if offset.length() > PATROL_ARRIVE_DIST:
+			var desired_dir := offset.normalized()
+			facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 7.0, 0.0, 1.0)).normalized()
+			velocity = velocity.move_toward(desired_dir * roam_speed, STEER_ACCEL * delta)
+			move_and_slide()
+			_push_out_of_dark_pockets(delta)
+			if get_slide_collision_count() > 0:
+				velocity = velocity.bounce(get_slide_collision(0).get_normal()) * 0.25
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
 
 
 func activate_for_combat(target_ship: Node2D) -> void:
@@ -59,6 +93,8 @@ func deactivate_to_stealth() -> void:
 	combat_active = false
 	ship = null
 	velocity = Vector2.ZERO
+	patrol_pause = 0.0
+	clear_alert_state()
 
 
 func can_be_suppressed_by(_ship_node: Node2D) -> bool:
@@ -81,9 +117,8 @@ func _emit_contact_hit() -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.06 if not AlertSystem.combat_mode else 0.12
-	outline.default_color = ColorSystem.enemy_outline()
+	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
+	outline.default_color = enemy_state_outline()
 	outline.width = 2.4
 
 
@@ -92,7 +127,7 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
-	var halo := signature_color if AlertSystem.combat_mode else ColorSystem.glow_color()
+	var halo := outline.default_color
 	draw_circle(Vector2.ZERO, 16.0, Color(halo.r, halo.g, halo.b, 0.08))
 	draw_line(Vector2.ZERO, facing_vector * 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 2.0)
 	draw_polyline(PackedVector2Array([
@@ -111,3 +146,22 @@ func _spawn_burst(silent: bool) -> void:
 	burst.combat_mode = AlertSystem.combat_mode and not silent
 	burst.signature_color = signature_color
 	add_effect_to_world(burst)
+
+
+func _build_patrol_loop() -> void:
+	var radius_x := 42.0
+	var radius_y := 34.0
+	patrol_points = [
+		spawn_point + Vector2(0.0, -radius_y),
+		spawn_point + Vector2(radius_x, 0.0),
+		spawn_point + Vector2(0.0, radius_y),
+		spawn_point + Vector2(-radius_x, 0.0),
+	]
+	patrol_index = randi() % patrol_points.size()
+
+
+func _advance_patrol() -> void:
+	if patrol_points.is_empty():
+		return
+	patrol_index = posmod(patrol_index + 1, patrol_points.size())
+	patrol_pause = PATROL_DWELL

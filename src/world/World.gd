@@ -31,6 +31,9 @@ var _hack_wrong_flash: bool = false
 var _search_position: Vector2 = Vector2.ZERO
 var _search_timer: float = 0.0
 var _search_reason: String = ""
+var _search_points: Array[Vector2] = []
+var _search_phase: int = 0
+var _search_phase_timer: float = 0.0
 var _last_known_player_position: Vector2 = Vector2.ZERO
 var _jammer_position: Vector2 = Vector2.ZERO
 var _jammer_radius: float = 0.0
@@ -46,6 +49,7 @@ const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
 const CAUTION_DURATION := 1.8
 const SEARCH_DURATION := 7.5
+const SEARCH_PHASE_DURATION := 1.05
 const JAMMER_ALERT_REDUCTION := 0.28
 
 
@@ -53,7 +57,7 @@ func _ready() -> void:
 	GameState.register_world(self)
 	AlertSystem.reset()
 	ColorSystem.reset()
-	_apply_desktop_window_size()
+	GameState.enforce_desktop_window_size()
 	restarting = false
 	completing = false
 	ship.destroyed.connect(_on_ship_destroyed)
@@ -211,9 +215,7 @@ func is_line_blocked(from_point: Vector2, to_point: Vector2, exclusions := []) -
 func set_player_dark_pocket_state(pocket: Area2D, active: bool) -> void:
 	if active:
 		_active_dark_pockets[pocket.get_instance_id()] = pocket
-		_cancel_caution()
-		if AlertSystem.combat_mode:
-			_exit_combat_to_stealth()
+		_relax_enemies_for_hiding()
 	else:
 		_active_dark_pockets.erase(pocket.get_instance_id())
 	ship.in_dark_pocket = not _active_dark_pockets.is_empty()
@@ -308,12 +310,38 @@ func get_hud_interaction_text() -> String:
 	return _interaction_text
 
 
+func get_hud_combat_state_text() -> String:
+	if ship != null and ship.in_dark_pocket:
+		if AlertSystem.combat_mode:
+			return "HIDDEN  //  CLEARING"
+		if _caution_active:
+			return "HIDDEN  //  SAFE"
+	if _caution_active:
+		return "CAUTION  %.1fs" % maxf(_caution_timer, 0.0)
+	if not AlertSystem.combat_mode:
+		return ""
+	if _enemy_still_threatening():
+		return "TRACKED  //  BREAK LINE OF SIGHT"
+	return "EVADE  %.1fs" % maxf(combat_cooldown_remaining, 0.0)
+
+
 func is_search_active() -> bool:
 	return _search_timer > 0.0
 
 
 func get_search_target() -> Vector2:
 	return _search_position
+
+
+func get_search_target_for(enemy: Node2D) -> Vector2:
+	if _search_timer <= 0.0 or _search_points.is_empty():
+		return _search_position
+	if _search_phase <= 0:
+		return _search_points[0]
+	var sweep_count := maxi(_search_points.size() - 1, 1)
+	var slot: int = abs(enemy.get_instance_id()) % sweep_count
+	var sweep_index: int = ((_search_phase - 1) + slot) % sweep_count
+	return _search_points[sweep_index + 1]
 
 
 func trigger_signal_jammer(position: Vector2, radius: float, duration: float) -> void:
@@ -358,6 +386,9 @@ func start_search(position: Vector2, duration: float, reason: String = "SEARCH")
 	_search_position = position
 	_search_timer = maxf(_search_timer, duration)
 	_search_reason = reason
+	_search_points = _build_search_points(position)
+	_search_phase = 0
+	_search_phase_timer = SEARCH_PHASE_DURATION
 
 
 func setup_arcade_objectives(graph, node_rects: Dictionary) -> void:
@@ -482,8 +513,15 @@ func _update_search(delta: float) -> void:
 		_search_timer = maxf(0.0, _search_timer - delta * 1.8)
 	else:
 		_search_timer = maxf(0.0, _search_timer - delta)
+	_search_phase_timer = maxf(0.0, _search_phase_timer - delta)
+	if _search_timer > 0.0 and _search_phase_timer <= 0.0 and not _search_points.is_empty():
+		_search_phase = mini(_search_phase + 1, maxi(_search_points.size() - 1, 0))
+		_search_phase_timer = SEARCH_PHASE_DURATION
 	if _search_timer <= 0.0:
 		_search_reason = ""
+		_search_points.clear()
+		_search_phase = 0
+		_search_phase_timer = 0.0
 
 
 func _update_jammer(delta: float) -> void:
@@ -510,12 +548,6 @@ func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
 
-func _apply_desktop_window_size() -> void:
-	if OS.has_feature("web") or OS.has_feature("mobile"):
-		return
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
-
-
 func _configure_camera() -> void:
 	var camera: Camera2D = ship.get_node("Camera2D")
 	var rect: Rect2 = grid.get("world_rect")
@@ -524,7 +556,7 @@ func _configure_camera() -> void:
 	camera.limit_right = int(rect.end.x)
 	camera.limit_bottom = int(rect.end.y)
 	if not OS.has_feature("web") and not OS.has_feature("mobile"):
-		camera.zoom = Vector2(0.96, 0.96)
+		camera.zoom = Vector2.ONE
 		camera.position_smoothing_speed = 9.0
 
 
@@ -552,12 +584,70 @@ func _enemy_still_threatening() -> bool:
 
 
 func _exit_combat_to_stealth() -> void:
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("deactivate_to_stealth"):
+			enemy.deactivate_to_stealth()
+		if enemy.has_method("clear_alert_state"):
+			enemy.clear_alert_state()
 	AlertSystem.exit_combat()
 	combat_cooldown_remaining = 0.0
 	start_search(_last_known_player_position if _last_known_player_position != Vector2.ZERO else ship.global_position, SEARCH_DURATION, "SEARCH: SWEEP")
 	for enemy in enemies:
-		if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
+		if not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("_update_palette"):
+			enemy.call("_update_palette")
+		if enemy.has_method("queue_redraw"):
+			enemy.queue_redraw()
+
+
+func _relax_enemies_for_hiding() -> void:
+	_cancel_caution()
+	_search_timer = 0.0
+	_search_reason = ""
+	_search_position = Vector2.ZERO
+	_last_known_player_position = Vector2.ZERO
+	combat_cooldown_remaining = 0.0
+	if AlertSystem.combat_mode:
+		for enemy in enemies:
+			if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
+				enemy.deactivate_to_stealth()
+		AlertSystem.exit_combat()
+	else:
+		AlertSystem.set_alert_level(0.0)
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("clear_alert_state"):
+			enemy.clear_alert_state()
+		elif enemy.has_method("deactivate_to_stealth"):
 			enemy.deactivate_to_stealth()
+		if enemy.has_method("_update_palette"):
+			enemy.call("_update_palette")
+		if enemy.has_method("queue_redraw"):
+			enemy.queue_redraw()
+
+
+func _build_search_points(position: Vector2) -> Array[Vector2]:
+	var rect: Rect2 = grid.get("world_rect")
+	var radius_x := 118.0
+	var radius_y := 92.0
+	var points: Array[Vector2] = [
+		position,
+		position + Vector2(-radius_x, 0.0),
+		position + Vector2(radius_x, 0.0),
+		position + Vector2(0.0, -radius_y),
+		position + Vector2(0.0, radius_y),
+		position + Vector2(-radius_x * 0.72, -radius_y * 0.72),
+		position + Vector2(radius_x * 0.72, -radius_y * 0.72),
+		position + Vector2(-radius_x * 0.72, radius_y * 0.72),
+		position + Vector2(radius_x * 0.72, radius_y * 0.72),
+	]
+	for i in range(points.size()):
+		points[i] = points[i].clamp(rect.position + Vector2(36.0, 36.0), rect.end - Vector2(36.0, 36.0))
+	return points
 
 
 func _refresh_dark_pocket_gates() -> void:

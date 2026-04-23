@@ -75,6 +75,14 @@ func deactivate_to_stealth() -> void:
 	_arming = false
 	_armed_time = 0.0
 	_alerting = false
+	_update_palette()
+	queue_redraw()
+
+
+func stealth_reveal_level() -> float:
+	if combat_active or _emp_disabled_timer > 0.0:
+		return 0.0
+	return 1.0 if _alerting else 0.0
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -179,9 +187,20 @@ func _register_spawned_enemy(enemy: Node) -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.enemy_fill(signature_color)
-	body_polygon.color.a = 0.07 if not AlertSystem.combat_mode else 0.13
-	outline.default_color = ColorSystem.enemy_outline()
+	if _emp_disabled_timer > 0.0:
+		body_polygon.color = Color(0.18, 0.55, 0.72, 0.12)
+		outline.default_color = Color(0.55, 0.95, 1.0, 0.95)
+	elif _alerting and not combat_active:
+		body_polygon.color = Color(0.72, 0.04, 0.02, 0.18)
+		outline.default_color = Color(1.0, 0.12, 0.08, 0.95)
+	else:
+		body_polygon.color = ColorSystem.enemy_fill(signature_color)
+		body_polygon.color.a = 0.07 if not AlertSystem.combat_mode else 0.13
+		outline.default_color = ColorSystem.enemy_outline()
+		if combat_active:
+			var pulse_color := _combat_pulse_color()
+			body_polygon.color = Color(pulse_color.r * 0.55, pulse_color.g * 0.34, pulse_color.b * 0.08, 0.2)
+			outline.default_color = Color(pulse_color.r, pulse_color.g, pulse_color.b, 0.98)
 	outline.width = 2.1
 
 
@@ -190,7 +209,7 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
-	var c := signature_color if AlertSystem.combat_mode else ColorSystem.enemy_outline()
+	var c := outline.default_color
 	draw_circle(Vector2.ZERO, 16.0, Color(c.r, c.g, c.b, 0.06))
 	draw_arc(Vector2.ZERO, trigger_radius, 0.0, TAU, 42, Color(c.r, c.g, c.b, 0.08), 1.0)
 
@@ -217,6 +236,11 @@ func _draw() -> void:
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
 		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, marker, 1.1)
+
+
+func _combat_pulse_color() -> Color:
+	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 8.0)
+	return Color(1.0, lerpf(0.12, 0.86, pulse), 0.03, 1.0)
 
 
 func _spawn_burst(silent: bool) -> void:

@@ -24,6 +24,7 @@ var _arcade_difficulty: int = ArcadeState.Difficulty.MEDIUM
 
 
 func _ready() -> void:
+	GameState.enforce_desktop_window_size()
 	AlertSystem.reset()
 	ColorSystem.reset()
 	ArcadeState.reset()

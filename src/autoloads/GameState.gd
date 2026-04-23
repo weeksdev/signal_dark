@@ -81,3 +81,17 @@ func advance_zone() -> void:
 func _change_scene(path: String) -> void:
 	current_world = null
 	get_tree().change_scene_to_file(path)
+	_enforce_desktop_window_size.call_deferred()
+
+
+func enforce_desktop_window_size() -> void:
+	_enforce_desktop_window_size.call_deferred()
+
+
+func _enforce_desktop_window_size() -> void:
+	if OS.has_feature("web") or OS.has_feature("mobile") or DisplayServer.get_name() == "headless":
+		return
+	DisplayServer.window_set_min_size(Vector2i(1280, 720))
+	await get_tree().process_frame
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_MAXIMIZED:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)

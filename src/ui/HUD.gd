@@ -6,6 +6,7 @@ var alert_value: float = 0.0
 var status_text: String = "PROBES 3   SPEED 000"
 var objective_text: String = ""
 var interaction_text: String = ""
+var combat_state_text: String = ""
 var blink: float = 0.0
 
 
@@ -32,6 +33,10 @@ func _process(delta: float) -> void:
 		interaction_text = world.get_hud_interaction_text()
 	else:
 		interaction_text = ""
+	if world != null and world.has_method("get_hud_combat_state_text"):
+		combat_state_text = world.get_hud_combat_state_text()
+	else:
+		combat_state_text = ""
 	queue_redraw()
 
 
@@ -53,7 +58,8 @@ func _on_mode_changed(in_combat: bool) -> void:
 func _draw() -> void:
 	var viewport_size := get_viewport_rect().size
 	var panel_width := minf(viewport_size.x - 32.0, 420.0)
-	var panel := Rect2(Vector2(16.0, 16.0), Vector2(panel_width, 114.0))
+	var panel_height := 132.0 if combat_state_text != "" else 114.0
+	var panel := Rect2(Vector2(16.0, 16.0), Vector2(panel_width, panel_height))
 	var inner := panel.grow(-8.0)
 	var ui_color := ColorSystem.ui_color()
 	draw_rect(panel, Color(0.0, 0.0, 0.0, 0.3), true)
@@ -73,10 +79,18 @@ func _draw() -> void:
 	_draw_bar(Rect2(inner.position + Vector2(8.0, 26.0), Vector2(bar_width, 8.0)), emission_value / 100.0, Color(0.2, 1.0, 0.45, 0.9), true)
 	_draw_bar(Rect2(inner.position + Vector2(8.0, 44.0), Vector2(bar_width, 8.0)), alert_value / 100.0, Color(0.95, 0.35, 0.35, 0.9), false)
 	draw_string(font, inner.position + Vector2(8.0, 66.0), status_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, small_size, ui_color)
+	if combat_state_text != "":
+		var danger := Color(1.0, 0.22, 0.14, 0.96)
+		var evade := Color(0.85, 1.0, 0.9, 0.96)
+		var state_color := danger if combat_state_text.begins_with("TRACKED") or combat_state_text.begins_with("CAUTION") else evade
+		draw_rect(Rect2(inner.position + Vector2(4.0, 74.0), Vector2(inner.size.x - 8.0, 15.0)), Color(0.0, 0.0, 0.0, 0.35), true)
+		draw_string(font, inner.position + Vector2(8.0, 86.0), combat_state_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, small_size, state_color)
 	if objective_text != "":
-		draw_string(font, inner.position + Vector2(8.0, 84.0), objective_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, small_size, Color(0.85, 1.0, 0.9, 0.92))
+		var objective_y := 102.0 if combat_state_text != "" else 84.0
+		draw_string(font, inner.position + Vector2(8.0, objective_y), objective_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, small_size, Color(0.85, 1.0, 0.9, 0.92))
 	if interaction_text != "":
-		draw_string(font, inner.position + Vector2(8.0, 100.0), interaction_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, tiny_size, Color(ui_color.r, ui_color.g, ui_color.b, 0.8))
+		var interaction_y := 116.0 if combat_state_text != "" else 100.0
+		draw_string(font, inner.position + Vector2(8.0, interaction_y), interaction_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, tiny_size, Color(ui_color.r, ui_color.g, ui_color.b, 0.8))
 
 
 func _draw_bar(rect: Rect2, ratio: float, tint: Color, segmented: bool) -> void:
