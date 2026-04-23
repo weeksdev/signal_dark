@@ -4,6 +4,8 @@ const HUNTER_SCENE := preload("res://src/enemies/Hunter.tscn")
 const WISP_SCENE := preload("res://src/enemies/Wisp.tscn")
 const PRISM_SCENE := preload("res://src/enemies/Prism.tscn")
 const ObjectiveNode := preload("res://src/world/ObjectiveNode.gd")
+const SearchRelayBurst := preload("res://src/fx/SearchRelayBurst.gd")
+const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
 
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
@@ -51,9 +53,14 @@ const CAUTION_DURATION := 1.8
 const SEARCH_DURATION := 7.5
 const SEARCH_PHASE_DURATION := 1.05
 const JAMMER_ALERT_REDUCTION := 0.28
+const SEARCH_SUPPORT_RADIUS := 460.0
+const SEARCH_SUPPORT_RECEIVE_TIME := 0.9
+const SEARCH_SUPPORT_DELAY := 0.55
+const SEARCH_SUPPORT_DURATION := 3.0
 
 
 func _ready() -> void:
+	RuntimeDebugLog.init_session()
 	GameState.register_world(self)
 	AlertSystem.reset()
 	ColorSystem.reset()
@@ -65,6 +72,8 @@ func _ready() -> void:
 	enemies = get_tree().get_nodes_in_group("zone_enemy")
 	for enemy in enemies:
 		enemy.detected.connect(_on_enemy_detected)
+		if enemy.has_signal("suspicious"):
+			enemy.suspicious.connect(_on_enemy_suspicious)
 		enemy.killed.connect(_on_enemy_killed)
 	var exit := get_node_or_null("ExitZone")
 	if exit:
@@ -113,8 +122,10 @@ func _cancel_caution() -> void:
 
 
 func _on_enemy_detected(enemy: Node) -> void:
+	RuntimeDebugLog.log("detect", "%s detected player at ship=(%.1f, %.1f)" % [enemy.name, ship.global_position.x, ship.global_position.y])
 	_last_known_player_position = ship.global_position
 	start_search(ship.global_position, SEARCH_DURATION * 0.55, "SEARCH: CONTACT")
+	_log_system_state("enemy_detected:%s" % enemy.name)
 	if ship.in_dark_pocket:
 		_cancel_caution()
 		return
@@ -131,6 +142,21 @@ func _on_enemy_detected(enemy: Node) -> void:
 	_caution_timer = CAUTION_DURATION
 	_caution_enemy = enemy
 	AlertSystem.set_alert_level(maxf(AlertSystem.alert_level, 0.42))
+	_maybe_request_search_support(enemy, ship.global_position)
+
+
+func _on_enemy_suspicious(enemy: Node) -> void:
+	if ship == null or ship.in_dark_pocket:
+		RuntimeDebugLog.log("suspicion", "%s suspicious ignored; ship hidden or missing" % enemy.name)
+		return
+	RuntimeDebugLog.log("suspicion", "%s triggered suspicion support flow at ship=(%.1f, %.1f)" % [enemy.name, ship.global_position.x, ship.global_position.y])
+	_last_known_player_position = ship.global_position
+	start_search(ship.global_position, SEARCH_DURATION * 0.4, "SEARCH: SUSPICION")
+	AlertSystem.set_alert_level(maxf(AlertSystem.alert_level, 0.18))
+	_log_system_state("enemy_suspicious:%s" % enemy.name)
+	if not _maybe_request_search_support(enemy, ship.global_position):
+		RuntimeDebugLog.log("support", "%s had no helper; spawning local burst only" % enemy.name)
+		_spawn_search_relay_fx(enemy.global_position, enemy.global_position)
 
 
 func _on_enemy_killed(enemy: Node, silent: bool) -> void:
@@ -168,6 +194,7 @@ func trigger_alert() -> void:
 	_alert_count += 1
 	_last_known_player_position = ship.global_position
 	start_search(ship.global_position, SEARCH_DURATION * 1.35, "SEARCH: ALERT")
+	_log_system_state("trigger_alert:start")
 	if AlertSystem.combat_mode:
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
@@ -177,6 +204,7 @@ func trigger_alert() -> void:
 	for enemy in enemies:
 		if is_instance_valid(enemy) and enemy.is_alive:
 			enemy.activate_for_combat(ship)
+	_log_system_state("trigger_alert:combat_entered")
 
 
 func register_spawned_enemy(enemy: Node) -> void:
@@ -184,10 +212,49 @@ func register_spawned_enemy(enemy: Node) -> void:
 	enemies.append(enemy)
 	if enemy.has_signal("detected"):
 		enemy.detected.connect(_on_enemy_detected)
+	if enemy.has_signal("suspicious"):
+		enemy.suspicious.connect(_on_enemy_suspicious)
 	if enemy.has_signal("killed"):
 		enemy.killed.connect(_on_enemy_killed)
 	if AlertSystem.combat_mode and enemy.has_method("activate_for_combat"):
 		enemy.activate_for_combat(ship)
+
+
+func _maybe_request_search_support(source_enemy: Node, target_position: Vector2) -> bool:
+	if source_enemy == null or not is_instance_valid(source_enemy):
+		RuntimeDebugLog.log("support", "source enemy invalid for support request")
+		return false
+	if AlertSystem.combat_mode or ship.in_dark_pocket:
+		RuntimeDebugLog.log("support", "%s support request suppressed by combat/hidden state" % source_enemy.name)
+		return false
+	var candidates: Array[Node] = []
+	for enemy in enemies:
+		if enemy == source_enemy or not is_instance_valid(enemy):
+			continue
+		if not enemy.is_alive:
+			continue
+		if enemy.global_position.distance_to(source_enemy.global_position) > SEARCH_SUPPORT_RADIUS:
+			continue
+		if enemy.has_method("can_receive_search_support") and not enemy.can_receive_search_support():
+			continue
+		candidates.append(enemy)
+	if candidates.is_empty():
+		RuntimeDebugLog.log("support", "%s found zero helpers within %.1f" % [source_enemy.name, SEARCH_SUPPORT_RADIUS])
+		return false
+	var helper: Node = candidates[randi() % candidates.size()]
+	RuntimeDebugLog.log("support", "%s selected helper %s from %d candidates" % [source_enemy.name, helper.name, candidates.size()])
+	if helper.has_method("receive_search_support") and helper.receive_search_support(target_position, SEARCH_SUPPORT_RECEIVE_TIME, SEARCH_SUPPORT_DELAY, SEARCH_SUPPORT_DURATION):
+		_spawn_search_relay_fx(source_enemy.global_position, helper.global_position)
+		return true
+	RuntimeDebugLog.log("support", "%s helper %s failed receive_search_support" % [source_enemy.name, helper.name])
+	return false
+
+func _spawn_search_relay_fx(from_point: Vector2, to_point: Vector2) -> void:
+	var burst: Node2D = SearchRelayBurst.new()
+	burst.from_point = from_point
+	burst.to_point = to_point
+	RuntimeDebugLog.log("fx", "spawn relay burst from=(%.1f, %.1f) to=(%.1f, %.1f)" % [from_point.x, from_point.y, to_point.x, to_point.y])
+	add_child(burst)
 
 
 func register_probe(position: Vector2, duration: float) -> void:
@@ -389,6 +456,7 @@ func start_search(position: Vector2, duration: float, reason: String = "SEARCH")
 	_search_points = _build_search_points(position)
 	_search_phase = 0
 	_search_phase_timer = SEARCH_PHASE_DURATION
+	RuntimeDebugLog.log("search", "start_search reason=%s pos=(%.1f, %.1f) duration=%.2f" % [reason, position.x, position.y, duration])
 
 
 func setup_arcade_objectives(graph, node_rects: Dictionary) -> void:
@@ -594,6 +662,7 @@ func _exit_combat_to_stealth() -> void:
 	AlertSystem.exit_combat()
 	combat_cooldown_remaining = 0.0
 	start_search(_last_known_player_position if _last_known_player_position != Vector2.ZERO else ship.global_position, SEARCH_DURATION, "SEARCH: SWEEP")
+	_log_system_state("combat_exit_to_stealth")
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
 			continue
@@ -628,6 +697,36 @@ func _relax_enemies_for_hiding() -> void:
 			enemy.call("_update_palette")
 		if enemy.has_method("queue_redraw"):
 			enemy.queue_redraw()
+	_log_system_state("relax_enemies_for_hiding")
+
+
+func _log_system_state(reason: String) -> void:
+	if ship == null:
+		return
+	var alive_count := 0
+	for enemy in enemies:
+		if is_instance_valid(enemy) and enemy.is_alive:
+			alive_count += 1
+	RuntimeDebugLog.log(
+		"state",
+		"%s | player=(%.1f, %.1f) vel=%.1f dark=%s hidden=%s alert=%.2f combat=%s caution=%s search=%s reason=%s search_timer=%.2f phase=%d cooldown=%.2f alive=%d" % [
+			reason,
+			ship.global_position.x,
+			ship.global_position.y,
+			ship.velocity.length(),
+			ship.dark_mode,
+			ship.in_dark_pocket,
+			AlertSystem.alert_level,
+			AlertSystem.combat_mode,
+			_caution_active,
+			is_search_active(),
+			_search_reason,
+			_search_timer,
+			_search_phase,
+			combat_cooldown_remaining,
+			alive_count,
+		]
+	)
 
 
 func _build_search_points(position: Vector2) -> Array[Vector2]:

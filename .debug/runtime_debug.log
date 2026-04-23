@@ -1,0 +1,1263 @@
+=== Signal Dark Debug Session: 2026-04-23T18:51:36 ===
+Path: /Users/andrewweeks/repos/signal_dark/.debug/runtime_debug.log
+Renderer: mobile
+[18:51:38] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:51:38] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:51:38] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:51:38] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:51:38] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:38] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:51:40] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:51:40] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:51:40] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(638.8, 258.2) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(645.0, 261.9) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(651.2, 265.5) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(657.4, 269.2) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(663.6, 272.9) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(669.9, 276.5) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(676.1, 280.0) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(682.5, 283.4) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(688.9, 286.7) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(695.3, 289.9) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(701.8, 293.2) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(708.3, 296.3) duration=3.85
+[18:51:42] [search] start_search reason=SEARCH: NOISE pos=(714.9, 299.1) duration=3.85
+[18:51:43] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.043 new=0.070
+[18:51:43] [suspicion] Sentry triggered suspicion support flow at ship=(771.2, 302.9)
+[18:51:43] [search] start_search reason=SEARCH: SUSPICION pos=(771.2, 302.9) duration=3.00
+[18:51:43] [state] enemy_suspicious:Sentry | player=(771.2, 302.9) vel=224.8 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.31 phase=0 cooldown=0.00 alive=14
+[18:51:43] [support] Sentry selected helper @CharacterBody2D@61 from 2 candidates
+[18:51:43] [support] @CharacterBody2D@61 received support target=(771.2, 302.9) receive=0.90 delay=0.55 duration=3.00
+[18:51:43] [fx] spawn relay burst from=(912.3, 218.2) to=(877.5, 68.2)
+[18:51:43] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.058 new=0.086
+[18:51:43] [suspicion] Sentry triggered suspicion support flow at ship=(774.4, 301.1)
+[18:51:43] [search] start_search reason=SEARCH: SUSPICION pos=(774.4, 301.1) duration=3.00
+[18:51:43] [state] enemy_suspicious:Sentry | player=(774.4, 301.1) vel=219.8 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.29 phase=0 cooldown=0.00 alive=14
+[18:51:43] [support] Sentry selected helper @CharacterBody2D@61 from 2 candidates
+[18:51:43] [support] @CharacterBody2D@61 received support target=(774.4, 301.1) receive=0.90 delay=0.55 duration=3.00
+[18:51:43] [fx] spawn relay burst from=(912.3, 218.2) to=(877.5, 68.2)
+[18:51:43] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.058 new=0.062
+[18:51:43] [suspicion] Sentry triggered suspicion support flow at ship=(791.7, 282.8)
+[18:51:43] [search] start_search reason=SEARCH: SUSPICION pos=(791.7, 282.8) duration=3.00
+[18:51:43] [state] enemy_suspicious:Sentry | player=(791.7, 282.8) vel=0.0 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=14
+[18:51:43] [support] Sentry selected helper @CharacterBody2D@61 from 2 candidates
+[18:51:43] [support] @CharacterBody2D@61 received support target=(791.7, 282.8) receive=0.90 delay=0.55 duration=3.00
+[18:51:43] [fx] spawn relay burst from=(912.3, 218.2) to=(877.5, 68.2)
+[18:51:44] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.041 new=0.065
+[18:51:44] [suspicion] Sentry triggered suspicion support flow at ship=(787.8, 278.5)
+[18:51:44] [search] start_search reason=SEARCH: SUSPICION pos=(787.8, 278.5) duration=3.00
+[18:51:44] [state] enemy_suspicious:Sentry | player=(787.8, 278.5) vel=87.4 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=14
+[18:51:44] [support] Sentry selected helper Wisp from 2 candidates
+[18:51:44] [support] Wisp received support target=(787.8, 278.5) receive=0.90 delay=0.55 duration=3.00
+[18:51:44] [fx] spawn relay burst from=(912.3, 218.2) to=(879.8, 64.5)
+[18:51:44] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.053 new=0.077
+[18:51:44] [suspicion] Sentry triggered suspicion support flow at ship=(786.7, 277.2)
+[18:51:44] [search] start_search reason=SEARCH: SUSPICION pos=(786.7, 277.2) duration=3.00
+[18:51:44] [state] enemy_suspicious:Sentry | player=(786.7, 277.2) vel=99.7 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=14
+[18:51:44] [support] Sentry selected helper @CharacterBody2D@61 from 2 candidates
+[18:51:44] [support] @CharacterBody2D@61 received support target=(786.7, 277.2) receive=0.90 delay=0.55 duration=3.00
+[18:51:44] [fx] spawn relay burst from=(912.3, 218.2) to=(877.5, 68.2)
+[18:51:44] [state] relax_enemies_for_hiding | player=(768.2, 208.4) vel=307.9 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=14
+[18:51:45] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:51:45] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:51:45] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:51:45] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:51:45] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:45] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:51:47] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.028 new=0.066
+[18:51:47] [suspicion] Sentry triggered suspicion support flow at ship=(853.6, 93.0)
+[18:51:47] [search] start_search reason=SEARCH: SUSPICION pos=(853.6, 93.0) duration=3.00
+[18:51:47] [state] enemy_suspicious:Sentry | player=(853.6, 93.0) vel=291.9 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=14
+[18:51:47] [support] Sentry selected helper @CharacterBody2D@61 from 2 candidates
+[18:51:47] [support] @CharacterBody2D@61 received support target=(865.7, 68.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:47] [fx] spawn relay burst from=(912.3, 218.2) to=(748.6, 64.3)
+[18:51:47] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.055 new=0.100
+[18:51:47] [suspicion] Sentry triggered suspicion support flow at ship=(855.1, 88.2)
+[18:51:47] [search] start_search reason=SEARCH: SUSPICION pos=(855.1, 88.2) duration=3.00
+[18:51:47] [state] enemy_suspicious:Sentry | player=(855.1, 88.2) vel=302.8 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=14
+[18:51:47] [support] Sentry selected helper Wisp from 2 candidates
+[18:51:47] [support] Wisp received support target=(864.8, 67.6) receive=0.90 delay=0.55 duration=3.00
+[18:51:47] [fx] spawn relay burst from=(912.3, 218.2) to=(1000.0, 65.0)
+[18:51:47] [search] start_search reason=SEARCH: NOISE pos=(848.6, -9.0) duration=3.85
+[18:51:47] [search] start_search reason=SEARCH: NOISE pos=(846.1, -15.8) duration=3.85
+[18:51:47] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:51:47] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:51:47] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:51:48] [suspicion] @CharacterBody2D@64 became suspicious at (874.8, -288.0) old=0.031 new=0.061
+[18:51:48] [suspicion] @CharacterBody2D@64 triggered suspicion support flow at ship=(852.9, -116.0)
+[18:51:48] [search] start_search reason=SEARCH: SUSPICION pos=(852.9, -116.0) duration=3.00
+[18:51:48] [state] enemy_suspicious:@CharacterBody2D@64 | player=(852.9, -116.0) vel=336.4 dark=false hidden=false alert=0.19 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.11 phase=0 cooldown=0.00 alive=14
+[18:51:48] [support] @CharacterBody2D@64 selected helper @CharacterBody2D@72 from 6 candidates
+[18:51:48] [support] @CharacterBody2D@72 received support target=(852.9, -116.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:48] [fx] spawn relay burst from=(874.8, -288.0) to=(871.9, -670.3)
+[18:51:48] [suspicion] @CharacterBody2D@64 became suspicious at (874.8, -288.0) old=0.049 new=0.083
+[18:51:48] [suspicion] @CharacterBody2D@64 triggered suspicion support flow at ship=(853.4, -121.8)
+[18:51:48] [search] start_search reason=SEARCH: SUSPICION pos=(853.4, -121.8) duration=3.00
+[18:51:48] [state] enemy_suspicious:@CharacterBody2D@64 | player=(853.4, -121.8) vel=348.9 dark=false hidden=false alert=0.19 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.10 phase=0 cooldown=0.00 alive=14
+[18:51:48] [support] @CharacterBody2D@64 selected helper @CharacterBody2D@72 from 6 candidates
+[18:51:48] [support] @CharacterBody2D@72 received support target=(853.4, -121.8) receive=0.90 delay=0.55 duration=3.00
+[18:51:48] [fx] spawn relay burst from=(874.8, -288.0) to=(871.9, -670.3)
+[18:51:48] [search] start_search reason=SEARCH: NOISE pos=(838.4, -204.6) duration=3.85
+[18:51:48] [detect] @CharacterBody2D@64 detected player at ship=(830.9, -218.0)
+[18:51:48] [search] start_search reason=SEARCH: CONTACT pos=(830.9, -218.0) duration=4.12
+[18:51:48] [state] enemy_detected:@CharacterBody2D@64 | player=(830.9, -218.0) vel=239.0 dark=false hidden=false alert=0.20 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=14
+[18:51:48] [support] @CharacterBody2D@64 selected helper Wisp from 6 candidates
+[18:51:48] [support] Wisp received support target=(830.9, -218.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:48] [fx] spawn relay burst from=(874.8, -288.0) to=(1000.0, 65.0)
+[18:51:49] [search] start_search reason=SEARCH: NOISE pos=(859.8, -91.4) duration=3.85
+[18:51:49] [search] start_search reason=SEARCH: NOISE pos=(862.8, -84.9) duration=3.85
+[18:51:49] [search] start_search reason=SEARCH: ALERT pos=(854.5, -53.3) duration=10.12
+[18:51:49] [state] trigger_alert:start | player=(854.5, -53.3) vel=173.8 dark=false hidden=false alert=0.67 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=13
+[18:51:49] [state] trigger_alert:combat_entered | player=(854.5, -53.3) vel=173.8 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=13
+[18:51:50] [state] relax_enemies_for_hiding | player=(812.7, 106.1) vel=362.8 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=13
+[18:51:50] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.028 new=0.064
+[18:51:50] [suspicion] Sentry triggered suspicion support flow at ship=(752.9, 232.5)
+[18:51:50] [search] start_search reason=SEARCH: SUSPICION pos=(752.9, 232.5) duration=3.00
+[18:51:50] [state] enemy_suspicious:Sentry | player=(752.9, 232.5) vel=403.2 dark=false hidden=false alert=0.36 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=13
+[18:51:50] [support] Sentry selected helper Wisp from 5 candidates
+[18:51:50] [support] Wisp received support target=(737.5, 247.8) receive=0.90 delay=0.55 duration=3.00
+[18:51:50] [fx] spawn relay burst from=(912.3, 218.2) to=(977.0, 71.7)
+[18:51:50] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.052 new=0.092
+[18:51:50] [suspicion] Sentry triggered suspicion support flow at ship=(746.2, 234.3)
+[18:51:50] [search] start_search reason=SEARCH: SUSPICION pos=(746.2, 234.3) duration=3.00
+[18:51:50] [state] enemy_suspicious:Sentry | player=(746.2, 234.3) vel=414.8 dark=false hidden=false alert=0.36 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=13
+[18:51:50] [support] Sentry selected helper @CharacterBody2D@69 from 5 candidates
+[18:51:50] [support] @CharacterBody2D@69 received support target=(734.7, 245.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:50] [fx] spawn relay burst from=(912.3, 218.2) to=(1306.9, 46.1)
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(739.3, 236.1) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(732.4, 237.9) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(697.9, 239.0) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(690.7, 238.4) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(683.5, 238.1) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(676.3, 238.1) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(669.1, 238.0) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(661.9, 238.4) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(654.7, 238.8) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(647.5, 239.1) duration=3.85
+[18:51:50] [search] start_search reason=SEARCH: NOISE pos=(640.3, 239.5) duration=3.85
+[18:51:51] [search] start_search reason=SEARCH: ALERT pos=(596.9, 219.1) duration=10.12
+[18:51:51] [state] trigger_alert:start | player=(596.9, 219.1) vel=237.0 dark=false hidden=false alert=0.68 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=12
+[18:51:51] [state] trigger_alert:combat_entered | player=(596.9, 219.1) vel=237.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=12
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(672.6, 125.3) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(679.7, 126.5) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(686.8, 127.7) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(693.9, 129.0) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(701.0, 130.3) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(708.1, 131.6) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(715.1, 132.9) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(722.2, 134.2) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(729.3, 135.5) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(736.4, 136.8) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(743.5, 138.0) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(750.6, 139.3) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(757.7, 140.6) duration=3.85
+[18:51:52] [search] start_search reason=SEARCH: NOISE pos=(764.8, 141.9) duration=3.85
+[18:51:52] [state] relax_enemies_for_hiding | player=(764.8, 141.9) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=12
+[18:51:53] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:51:53] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:51:53] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:51:53] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:51:53] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:53] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:51:54] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:51:54] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:51:54] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:51:55] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.045 new=0.064
+[18:51:55] [suspicion] Sentry triggered suspicion support flow at ship=(832.8, 81.2)
+[18:51:55] [search] start_search reason=SEARCH: SUSPICION pos=(832.8, 81.2) duration=3.00
+[18:51:55] [state] enemy_suspicious:Sentry | player=(832.8, 81.2) vel=150.0 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:55] [support] Sentry selected helper Wisp from 5 candidates
+[18:51:55] [support] Wisp received support target=(836.9, 58.6) receive=0.90 delay=0.55 duration=3.00
+[18:51:55] [fx] spawn relay burst from=(912.3, 218.2) to=(996.4, 162.8)
+[18:51:55] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.052 new=0.075
+[18:51:55] [suspicion] Sentry triggered suspicion support flow at ship=(832.6, 78.5)
+[18:51:55] [search] start_search reason=SEARCH: SUSPICION pos=(832.6, 78.5) duration=3.00
+[18:51:55] [state] enemy_suspicious:Sentry | player=(832.6, 78.5) vel=162.5 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:55] [support] Sentry selected helper @CharacterBody2D@62 from 5 candidates
+[18:51:55] [support] @CharacterBody2D@62 received support target=(836.1, 58.4) receive=0.90 delay=0.55 duration=3.00
+[18:51:55] [fx] spawn relay burst from=(912.3, 218.2) to=(814.7, -181.4)
+[18:51:55] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.059 new=0.061
+[18:51:55] [suspicion] Sentry triggered suspicion support flow at ship=(832.0, 64.0)
+[18:51:55] [search] start_search reason=SEARCH: SUSPICION pos=(832.0, 64.0) duration=3.00
+[18:51:55] [state] enemy_suspicious:Sentry | player=(832.0, 64.0) vel=0.0 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:55] [support] Sentry selected helper @CharacterBody2D@69 from 5 candidates
+[18:51:55] [support] @CharacterBody2D@69 received support target=(832.8, 57.9) receive=0.90 delay=0.55 duration=3.00
+[18:51:55] [fx] spawn relay burst from=(912.3, 218.2) to=(1272.5, 167.9)
+[18:51:56] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.041 new=0.065
+[18:51:56] [suspicion] Sentry triggered suspicion support flow at ship=(829.8, 82.8)
+[18:51:56] [search] start_search reason=SEARCH: SUSPICION pos=(829.8, 82.8) duration=3.00
+[18:51:56] [state] enemy_suspicious:Sentry | player=(829.8, 82.8) vel=162.5 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:56] [support] Sentry selected helper @CharacterBody2D@69 from 5 candidates
+[18:51:56] [support] @CharacterBody2D@69 received support target=(833.5, 58.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:56] [fx] spawn relay burst from=(912.3, 218.2) to=(1272.5, 167.9)
+[18:51:56] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.053 new=0.079
+[18:51:56] [suspicion] Sentry triggered suspicion support flow at ship=(829.4, 85.7)
+[18:51:56] [search] start_search reason=SEARCH: SUSPICION pos=(829.4, 85.7) duration=3.00
+[18:51:56] [state] enemy_suspicious:Sentry | player=(829.4, 85.7) vel=175.0 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:56] [support] Sentry selected helper @CharacterBody2D@63 from 5 candidates
+[18:51:56] [support] @CharacterBody2D@63 received support target=(833.7, 58.0) receive=0.90 delay=0.55 duration=3.00
+[18:51:56] [fx] spawn relay burst from=(912.3, 218.2) to=(859.2, -178.4)
+[18:51:56] [state] relax_enemies_for_hiding | player=(826.9, 107.5) vel=250.0 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=12
+[18:51:57] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.047 new=0.068
+[18:51:57] [suspicion] Sentry triggered suspicion support flow at ship=(813.5, 72.6)
+[18:51:57] [search] start_search reason=SEARCH: SUSPICION pos=(813.5, 72.6) duration=3.00
+[18:51:57] [state] enemy_suspicious:Sentry | player=(813.5, 72.6) vel=287.2 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:57] [support] Sentry selected helper @CharacterBody2D@62 from 4 candidates
+[18:51:57] [support] @CharacterBody2D@62 received support target=(813.0, 56.8) receive=0.90 delay=0.55 duration=3.00
+[18:51:57] [fx] spawn relay burst from=(912.3, 218.2) to=(726.5, -183.0)
+[18:51:57] [suspicion] Sentry became suspicious at (912.3, 218.2) old=0.056 new=0.079
+[18:51:57] [suspicion] Sentry triggered suspicion support flow at ship=(812.6, 67.7)
+[18:51:57] [search] start_search reason=SEARCH: SUSPICION pos=(812.6, 67.7) duration=3.00
+[18:51:57] [state] enemy_suspicious:Sentry | player=(812.6, 67.7) vel=299.7 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.00 phase=0 cooldown=0.00 alive=12
+[18:51:57] [support] Sentry selected helper @CharacterBody2D@69 from 4 candidates
+[18:51:57] [support] @CharacterBody2D@69 received support target=(812.1, 56.9) receive=0.90 delay=0.55 duration=3.00
+[18:51:57] [fx] spawn relay burst from=(912.3, 218.2) to=(1267.1, 248.7)
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(800.8, 7.4) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(799.6, 0.3) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(798.4, -6.8) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(797.6, -14.0) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(797.4, -21.1) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(797.6, -28.2) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(799.5, -42.1) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(800.7, -49.2) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(801.9, -56.3) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(803.5, -63.3) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(805.6, -70.2) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(807.7, -77.1) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(809.9, -84.0) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(812.1, -90.9) duration=3.85
+[18:51:57] [search] start_search reason=SEARCH: NOISE pos=(814.2, -97.7) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(843.1, -181.9) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(844.3, -188.9) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(844.1, -216.8) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(843.4, -223.9) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(842.5, -231.1) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(841.5, -238.2) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(840.5, -245.4) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(839.4, -252.5) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(838.2, -259.6) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(837.0, -266.7) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(835.8, -273.8) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(834.7, -281.0) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(833.9, -288.1) duration=3.85
+[18:51:58] [search] start_search reason=SEARCH: NOISE pos=(833.4, -295.3) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(843.7, -438.0) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(844.3, -445.2) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(844.8, -452.4) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(845.3, -459.6) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(845.8, -466.8) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(846.3, -474.0) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(846.7, -481.2) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(847.0, -488.4) duration=3.85
+[18:51:59] [search] start_search reason=SEARCH: NOISE pos=(847.4, -495.6) duration=3.85
+[18:52:00] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:00] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:00] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:00] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:00] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:00] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:01] [search] start_search reason=SEARCH: NOISE pos=(874.8, -720.5) duration=3.85
+[18:52:01] [search] start_search reason=SEARCH: NOISE pos=(875.2, -727.7) duration=3.85
+[18:52:01] [search] start_search reason=SEARCH: NOISE pos=(875.7, -734.9) duration=3.85
+[18:52:01] [search] start_search reason=SEARCH: NOISE pos=(875.7, -742.1) duration=3.85
+[18:52:01] [search] start_search reason=SEARCH: NOISE pos=(875.2, -749.3) duration=3.85
+[18:52:01] [state] relax_enemies_for_hiding | player=(875.2, -749.3) vel=432.1 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=12
+[18:52:02] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:02] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:02] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:03] [search] start_search reason=SEARCH: OBJECTIVE pos=(762.9, -775.5) duration=2.62
+[18:52:03] [state] relax_enemies_for_hiding | player=(825.6, -791.4) vel=224.6 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=12
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(777.9, -747.0) duration=3.85
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(772.3, -742.4) duration=3.85
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(766.8, -737.8) duration=3.85
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(761.3, -733.2) duration=3.85
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(755.8, -728.4) duration=3.85
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(750.7, -723.4) duration=3.85
+[18:52:06] [search] start_search reason=SEARCH: NOISE pos=(745.5, -718.4) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(674.0, -819.8) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(672.2, -833.7) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(671.5, -840.9) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(671.3, -848.1) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(671.6, -855.2) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(672.0, -862.4) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(672.8, -869.5) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(673.5, -876.7) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(674.4, -883.9) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(675.6, -891.0) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(677.1, -898.0) duration=3.85
+[18:52:07] [search] start_search reason=SEARCH: NOISE pos=(679.0, -905.0) duration=3.85
+[18:52:08] [search] start_search reason=SEARCH: NOISE pos=(828.3, -915.9) duration=3.85
+[18:52:08] [search] start_search reason=SEARCH: NOISE pos=(835.1, -913.6) duration=3.85
+[18:52:08] [search] start_search reason=SEARCH: NOISE pos=(841.8, -910.9) duration=3.85
+[18:52:08] [search] start_search reason=SEARCH: NOISE pos=(848.2, -907.7) duration=3.85
+[18:52:08] [search] start_search reason=SEARCH: NOISE pos=(854.3, -904.1) duration=3.85
+[18:52:08] [search] start_search reason=SEARCH: NOISE pos=(860.3, -900.2) duration=3.85
+[18:52:08] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:08] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:08] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:08] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:08] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:08] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:08] [state] relax_enemies_for_hiding | player=(887.3, -870.0) vel=409.9 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=12
+[18:52:10] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:10] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:10] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:15] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:15] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:15] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:15] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:15] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:15] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:17] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:17] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:17] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:17] [state] relax_enemies_for_hiding | player=(1337.9, -288.2) vel=343.9 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=12
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1419.2, -170.2) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1420.9, -163.1) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1422.7, -156.2) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1424.5, -149.2) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1426.4, -142.2) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1428.5, -135.4) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1430.7, -128.5) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1432.9, -121.6) duration=3.85
+[18:52:18] [search] start_search reason=SEARCH: NOISE pos=(1435.2, -114.8) duration=3.85
+[18:52:19] [search] start_search reason=SEARCH: NOISE pos=(1437.6, -108.0) duration=3.85
+[18:52:19] [search] start_search reason=SEARCH: NOISE pos=(1440.0, -101.2) duration=3.85
+[18:52:20] [search] start_search reason=SEARCH: NOISE pos=(1429.6, 40.0) duration=3.85
+[18:52:20] [search] start_search reason=SEARCH: NOISE pos=(1428.8, 47.2) duration=3.85
+[18:52:20] [search] start_search reason=SEARCH: NOISE pos=(1428.1, 54.4) duration=3.85
+[18:52:20] [search] start_search reason=SEARCH: NOISE pos=(1427.6, 61.6) duration=3.85
+[18:52:20] [search] start_search reason=SEARCH: NOISE pos=(1427.0, 68.8) duration=3.85
+[18:52:20] [search] start_search reason=SEARCH: NOISE pos=(1426.5, 75.9) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1481.7, 148.6) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1488.9, 149.0) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1496.1, 149.3) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1503.3, 149.7) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1510.5, 150.1) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1517.7, 150.5) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1524.9, 150.9) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1532.1, 151.2) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1539.3, 151.6) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1546.5, 152.0) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1553.7, 152.4) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1560.9, 152.7) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1568.1, 153.1) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1575.3, 153.5) duration=3.85
+[18:52:21] [search] start_search reason=SEARCH: NOISE pos=(1582.4, 153.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1589.6, 154.3) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1596.8, 154.6) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1604.0, 155.0) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1611.2, 155.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1618.4, 155.8) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1625.6, 156.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1632.8, 156.5) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1640.0, 156.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1647.2, 157.3) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1654.4, 157.7) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1661.6, 158.1) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1668.8, 158.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1676.0, 158.8) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1683.2, 159.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1690.4, 159.6) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1697.6, 160.0) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1704.8, 160.3) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1712.0, 160.7) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1719.2, 161.1) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1726.4, 161.5) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1733.6, 161.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1740.8, 162.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1748.0, 162.6) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1755.2, 163.0) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1762.4, 163.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1769.6, 163.7) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1776.8, 164.1) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1784.0, 164.5) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1791.2, 164.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1798.4, 165.3) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1805.6, 165.6) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1812.8, 166.0) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1820.0, 166.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1827.2, 166.8) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1834.4, 167.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1841.6, 167.5) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1848.8, 167.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1856.0, 168.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1863.2, 168.3) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1870.4, 167.8) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1877.5, 167.3) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1884.7, 166.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1891.6, 164.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1898.6, 163.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1905.6, 161.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1912.5, 159.6) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1919.5, 157.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1926.5, 156.1) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1933.5, 154.4) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1940.6, 153.1) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1947.7, 151.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1954.8, 150.9) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1962.0, 150.2) duration=3.85
+[18:52:22] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:22] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:22] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:22] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:22] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:22] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1969.2, 149.7) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1976.4, 149.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1983.6, 149.0) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1990.8, 149.2) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(1998.0, 149.6) duration=3.85
+[18:52:22] [search] start_search reason=SEARCH: NOISE pos=(2005.1, 150.2) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2012.3, 151.1) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2019.4, 152.1) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2026.6, 153.2) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2033.7, 154.5) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2040.5, 156.3) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2047.5, 158.2) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2054.3, 160.5) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2061.0, 163.3) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2067.4, 166.4) duration=3.85
+[18:52:23] [search] start_search reason=SEARCH: NOISE pos=(2073.9, 169.6) duration=3.85
+[18:52:24] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:24] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:24] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:30] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:30] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:30] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:30] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:30] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:30] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:32] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:32] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:32] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:35] [state] relax_enemies_for_hiding | player=(886.1, 238.3) vel=224.4 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=13
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(873.6, 13.9) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(874.9, 6.8) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(876.2, -0.3) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(877.5, -7.4) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(878.8, -14.5) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(880.0, -21.6) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(881.3, -28.7) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(882.6, -35.8) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(883.9, -42.9) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(885.2, -49.9) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(886.4, -57.0) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(887.4, -64.2) duration=3.85
+[18:52:37] [search] start_search reason=SEARCH: NOISE pos=(888.5, -71.3) duration=3.85
+[18:52:37] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:37] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:37] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:37] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:37] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:37] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:39] [state] relax_enemies_for_hiding | player=(816.0, -261.7) vel=362.4 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=1 cooldown=0.00 alive=13
+[18:52:39] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:39] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:39] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:45] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:45] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:45] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:45] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:45] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:45] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:47] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:47] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:47] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(794.6, -446.3) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(792.8, -439.3) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(791.0, -432.4) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(789.2, -425.4) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(787.4, -418.4) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(785.6, -411.4) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(783.8, -404.4) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(782.2, -397.4) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(780.8, -390.3) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(779.9, -383.2) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(779.5, -376.1) duration=3.85
+[18:52:47] [search] start_search reason=SEARCH: NOISE pos=(779.1, -368.9) duration=3.85
+[18:52:47] [state] relax_enemies_for_hiding | player=(779.1, -368.9) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=13
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(918.7, -345.7) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(925.8, -346.8) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(933.0, -347.5) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(940.1, -348.1) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(947.3, -348.5) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(954.5, -348.7) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(961.7, -348.7) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(969.0, -348.6) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(976.2, -348.5) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(983.4, -348.2) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(990.6, -347.9) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(997.8, -347.5) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1005.0, -347.1) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1012.1, -346.5) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1019.3, -345.6) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1026.4, -344.2) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1033.3, -342.4) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1040.1, -340.1) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1046.7, -337.4) duration=3.85
+[18:52:49] [search] start_search reason=SEARCH: NOISE pos=(1053.4, -334.5) duration=3.85
+[18:52:52] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:52] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:52] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:52] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:52] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:52] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:54] [search] start_search reason=SEARCH: NOISE pos=(1194.6, -312.1) duration=3.85
+[18:52:54] [search] start_search reason=SEARCH: NOISE pos=(1201.7, -311.3) duration=3.85
+[18:52:54] [search] start_search reason=SEARCH: NOISE pos=(1208.9, -310.5) duration=3.85
+[18:52:54] [search] start_search reason=SEARCH: NOISE pos=(1216.1, -309.6) duration=3.85
+[18:52:54] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:52:54] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:52:54] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:52:54] [suspicion] @CharacterBody2D@181 became suspicious at (1376.5, -220.2) old=0.039 new=0.063
+[18:52:54] [suspicion] @CharacterBody2D@181 triggered suspicion support flow at ship=(1257.0, -312.3)
+[18:52:54] [search] start_search reason=SEARCH: SUSPICION pos=(1257.0, -312.3) duration=3.00
+[18:52:54] [state] enemy_suspicious:@CharacterBody2D@181 | player=(1257.0, -312.3) vel=174.9 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.45 phase=0 cooldown=0.00 alive=13
+[18:52:54] [support] @CharacterBody2D@181 selected helper @CharacterBody2D@183 from 1 candidates
+[18:52:54] [support] @CharacterBody2D@183 received support target=(1257.0, -312.3) receive=0.90 delay=0.55 duration=3.00
+[18:52:54] [fx] spawn relay burst from=(1376.5, -220.2) to=(1306.5, 65.9)
+[18:52:54] [suspicion] @CharacterBody2D@181 became suspicious at (1376.5, -220.2) old=0.051 new=0.077
+[18:52:54] [suspicion] @CharacterBody2D@181 triggered suspicion support flow at ship=(1260.0, -313.0)
+[18:52:54] [search] start_search reason=SEARCH: SUSPICION pos=(1260.0, -313.0) duration=3.00
+[18:52:54] [state] enemy_suspicious:@CharacterBody2D@181 | player=(1260.0, -313.0) vel=187.4 dark=false hidden=false alert=0.18 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.43 phase=0 cooldown=0.00 alive=13
+[18:52:54] [support] @CharacterBody2D@181 selected helper @CharacterBody2D@183 from 1 candidates
+[18:52:54] [support] @CharacterBody2D@183 received support target=(1260.0, -313.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:54] [fx] spawn relay burst from=(1376.5, -220.2) to=(1306.5, 65.9)
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1480.2, -417.8) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1487.0, -415.7) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1493.9, -413.5) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1500.8, -411.4) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1507.7, -409.4) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1514.8, -407.9) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1521.8, -406.8) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1535.9, -406.2) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1563.7, -410.3) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1570.4, -412.4) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1577.1, -414.8) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1583.8, -417.4) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1590.5, -420.2) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1597.1, -423.1) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1603.7, -426.0) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1610.3, -429.0) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1616.8, -431.9) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1623.4, -434.9) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1630.0, -437.8) duration=3.85
+[18:52:55] [search] start_search reason=SEARCH: NOISE pos=(1636.4, -441.0) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1647.9, -281.0) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1647.9, -273.7) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1647.9, -266.5) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1647.9, -259.3) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1648.1, -252.1) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1648.3, -244.9) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1648.5, -237.7) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1648.7, -230.5) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1649.0, -223.3) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1649.3, -216.1) duration=3.85
+[18:52:57] [search] start_search reason=SEARCH: NOISE pos=(1649.5, -208.9) duration=3.85
+[18:52:58] [search] start_search reason=SEARCH: NOISE pos=(1525.7, -160.1) duration=3.85
+[18:52:58] [search] start_search reason=SEARCH: NOISE pos=(1518.6, -160.8) duration=3.85
+[18:52:59] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:52:59] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:52:59] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:52:59] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:52:59] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:52:59] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:52:59] [search] start_search reason=SEARCH: NOISE pos=(1489.2, 57.1) duration=3.85
+[18:52:59] [search] start_search reason=SEARCH: NOISE pos=(1491.6, 63.8) duration=3.85
+[18:52:59] [search] start_search reason=SEARCH: NOISE pos=(1494.2, 70.6) duration=3.85
+[18:52:59] [search] start_search reason=SEARCH: NOISE pos=(1496.9, 77.2) duration=3.85
+[18:52:59] [search] start_search reason=SEARCH: NOISE pos=(1499.6, 83.9) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1502.7, 90.4) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1506.2, 96.8) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1509.9, 102.9) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1513.9, 108.9) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1517.9, 114.9) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1522.0, 120.8) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1526.1, 126.8) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1530.1, 132.8) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1534.2, 138.7) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1538.3, 144.7) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1542.3, 150.6) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1546.3, 156.6) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1550.1, 162.7) duration=3.85
+[18:53:00] [search] start_search reason=SEARCH: NOISE pos=(1553.7, 169.0) duration=3.85
+[18:53:01] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:01] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:01] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1565.9, 155.9) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1558.7, 156.1) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1551.5, 156.4) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1544.3, 156.6) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1537.1, 156.8) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1529.9, 157.1) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1522.7, 157.3) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1515.5, 157.6) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1508.3, 157.8) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1501.1, 158.1) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1493.9, 158.3) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1486.7, 158.5) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1479.5, 158.8) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1472.2, 159.0) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1465.0, 159.3) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1457.8, 159.5) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1450.6, 159.8) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1443.4, 160.0) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1436.2, 160.2) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1429.0, 160.5) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1421.8, 160.7) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1414.6, 161.0) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1407.4, 161.2) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1400.2, 161.5) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1393.0, 161.7) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1385.8, 161.9) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1378.6, 162.2) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1371.4, 162.5) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1364.2, 163.0) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1357.1, 163.9) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1349.9, 164.8) duration=3.85
+[18:53:02] [search] start_search reason=SEARCH: NOISE pos=(1342.9, 166.2) duration=3.85
+[18:53:03] [search] start_search reason=SEARCH: NOISE pos=(1267.0, 247.6) duration=3.85
+[18:53:03] [search] start_search reason=SEARCH: NOISE pos=(1262.8, 253.4) duration=3.85
+[18:53:03] [search] start_search reason=SEARCH: NOISE pos=(1258.9, 259.5) duration=3.85
+[18:53:03] [search] start_search reason=SEARCH: NOISE pos=(1255.3, 265.7) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1397.3, 495.1) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1397.4, 502.3) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1397.2, 509.5) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1396.7, 516.7) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1396.2, 523.9) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1395.5, 531.1) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1394.5, 538.2) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1393.4, 545.3) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1392.2, 552.5) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1391.0, 559.6) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1389.7, 566.7) duration=3.85
+[18:53:05] [search] start_search reason=SEARCH: NOISE pos=(1388.4, 573.7) duration=3.85
+[18:53:05] [detect] @CharacterBody2D@191 detected player at ship=(1386.5, 584.6)
+[18:53:05] [search] start_search reason=SEARCH: CONTACT pos=(1386.5, 584.6) duration=4.12
+[18:53:05] [state] enemy_detected:@CharacterBody2D@191 | player=(1386.5, 584.6) vel=297.5 dark=false hidden=false alert=0.90 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=13
+[18:53:05] [support] @CharacterBody2D@191 selected helper @CharacterBody2D@183 from 2 candidates
+[18:53:05] [support] @CharacterBody2D@183 received support target=(1386.5, 584.6) receive=0.90 delay=0.55 duration=3.00
+[18:53:05] [fx] spawn relay burst from=(1552.4, 616.9) to=(1606.1, 269.7)
+[18:53:06] [search] start_search reason=SEARCH: OBJECTIVE pos=(1364.4, 701.5) duration=2.62
+[18:53:07] [state] relax_enemies_for_hiding | player=(1429.2, 689.5) vel=283.8 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=13
+[18:53:07] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:07] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:07] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:07] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:07] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:07] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:08] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:08] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:08] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1448.0, 522.4) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1446.7, 515.3) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1445.5, 508.2) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1444.3, 501.1) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1443.0, 494.0) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1441.8, 486.9) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1440.5, 479.8) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1439.3, 472.7) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1438.1, 465.6) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1436.8, 458.5) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1435.6, 451.4) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1434.3, 444.3) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1433.1, 437.2) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1431.9, 430.1) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1431.0, 423.0) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1430.4, 415.8) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1430.4, 408.6) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1430.8, 401.5) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1431.3, 394.3) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1432.3, 387.2) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1433.8, 380.2) duration=3.85
+[18:53:10] [search] start_search reason=SEARCH: NOISE pos=(1435.8, 373.3) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1518.0, 237.6) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1522.8, 232.2) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1527.6, 226.8) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1532.4, 221.4) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1537.3, 216.1) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1542.1, 210.8) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1547.1, 205.6) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1557.9, 196.3) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1563.8, 192.1) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1569.8, 188.5) duration=3.85
+[18:53:11] [search] start_search reason=SEARCH: NOISE pos=(1582.6, 182.1) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1589.2, 179.5) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1596.0, 177.3) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1602.9, 175.6) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1610.0, 174.0) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1617.0, 172.9) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1631.1, 172.3) duration=3.85
+[18:53:12] [search] start_search reason=SEARCH: NOISE pos=(1638.3, 172.4) duration=3.85
+[18:53:14] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:14] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:14] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:14] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:14] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:14] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:15] [search] start_search reason=SEARCH: NOISE pos=(1819.1, 190.7) duration=3.85
+[18:53:15] [search] start_search reason=SEARCH: NOISE pos=(1826.2, 191.3) duration=3.85
+[18:53:15] [search] start_search reason=SEARCH: NOISE pos=(1833.4, 192.0) duration=3.85
+[18:53:15] [search] start_search reason=SEARCH: NOISE pos=(1840.6, 192.6) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1847.8, 193.2) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1855.0, 193.9) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1862.1, 194.5) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1869.3, 195.1) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1876.5, 195.8) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1883.7, 196.4) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1890.9, 197.0) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1898.0, 197.7) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1905.2, 198.3) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1912.4, 198.9) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1919.6, 199.6) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1926.8, 200.2) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1933.9, 200.8) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1941.1, 201.5) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:16] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:16] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1948.3, 202.1) duration=3.85
+[18:53:16] [search] start_search reason=SEARCH: NOISE pos=(1955.5, 202.6) duration=3.85
+[18:53:16] [state] relax_enemies_for_hiding | player=(1955.5, 202.6) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=13
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2017.1, 40.3) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2017.3, 33.1) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2017.9, 25.9) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2018.5, 18.7) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2019.5, 11.6) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2020.5, 4.5) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2021.5, -2.7) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2022.5, -9.8) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2023.6, -17.0) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2024.6, -24.1) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2025.6, -31.2) duration=3.85
+[18:53:18] [search] start_search reason=SEARCH: NOISE pos=(2026.5, -38.4) duration=3.85
+[18:53:18] [detect] @CharacterBody2D@187 detected player at ship=(2027.5, -54.0)
+[18:53:18] [search] start_search reason=SEARCH: CONTACT pos=(2027.5, -54.0) duration=4.12
+[18:53:18] [state] enemy_detected:@CharacterBody2D@187 | player=(2027.5, -54.0) vel=272.7 dark=false hidden=false alert=0.09 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=13
+[18:53:18] [support] @CharacterBody2D@187 selected helper @CharacterBody2D@186 from 2 candidates
+[18:53:18] [support] @CharacterBody2D@186 received support target=(2027.5, -54.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:18] [fx] spawn relay burst from=(2078.0, 134.1) to=(1954.0, 293.0)
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2035.8, -184.6) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2036.2, -191.8) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2036.7, -199.0) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2037.2, -206.2) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2037.7, -213.4) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2038.1, -220.6) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2038.6, -227.8) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2039.1, -235.0) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2039.6, -242.2) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2040.0, -249.4) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2040.5, -256.5) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2041.0, -263.7) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2041.5, -270.9) duration=3.85
+[18:53:19] [search] start_search reason=SEARCH: NOISE pos=(2042.0, -278.1) duration=3.85
+[18:53:20] [search] start_search reason=SEARCH: ALERT pos=(2043.4, -297.7) duration=10.12
+[18:53:20] [state] trigger_alert:start | player=(2043.4, -297.7) vel=0.0 dark=false hidden=false alert=0.52 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=13
+[18:53:20] [state] trigger_alert:combat_entered | player=(2043.4, -297.7) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=13
+[18:53:21] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:21] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:21] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:21] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:21] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:21] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:23] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:23] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:23] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(363.7, 188.1) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(370.9, 188.6) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(378.1, 189.1) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(385.3, 189.6) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(392.4, 190.1) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(399.6, 190.6) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(406.8, 191.1) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(414.0, 191.6) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(421.2, 192.1) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(428.4, 192.5) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(435.6, 192.8) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(442.8, 192.9) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(450.0, 192.8) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(457.2, 192.3) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(464.4, 191.8) duration=3.85
+[18:53:24] [search] start_search reason=SEARCH: NOISE pos=(471.6, 191.1) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(422.0, 171.9) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(414.8, 172.0) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(407.6, 172.2) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(400.4, 172.5) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(393.2, 172.8) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(386.0, 173.1) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(378.8, 173.4) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(371.6, 173.8) duration=3.85
+[18:53:26] [search] start_search reason=SEARCH: NOISE pos=(364.4, 174.4) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(464.9, 204.1) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(471.9, 205.8) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(478.9, 207.6) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(485.9, 209.3) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(492.9, 211.1) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(499.9, 212.8) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(506.9, 214.5) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(513.9, 216.3) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(520.9, 218.0) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(527.9, 219.8) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(534.9, 221.5) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(541.9, 223.2) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(548.9, 225.0) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(555.9, 226.7) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(562.9, 228.5) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(569.8, 230.2) duration=3.85
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(576.8, 231.9) duration=3.85
+[18:53:28] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:28] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:28] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:28] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:28] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:28] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:28] [search] start_search reason=SEARCH: NOISE pos=(583.8, 233.7) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(590.8, 235.4) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(597.8, 237.1) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(604.8, 238.9) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(611.8, 240.6) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(618.8, 242.4) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(625.8, 244.1) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(632.8, 245.8) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(639.8, 247.6) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(646.8, 249.3) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(653.8, 251.1) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(660.8, 252.8) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(667.8, 254.5) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(674.8, 256.3) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(681.8, 258.0) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(688.8, 259.8) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(695.8, 261.5) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(702.7, 263.2) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(709.7, 265.0) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(716.7, 266.7) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(723.7, 268.4) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(730.7, 270.2) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(737.7, 271.9) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(744.7, 273.7) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(751.7, 275.4) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(758.7, 277.1) duration=3.85
+[18:53:29] [suspicion] Sweeper became suspicious at (764.4, 161.0) old=0.000 new=0.072
+[18:53:29] [suspicion] Sweeper triggered suspicion support flow at ship=(758.7, 277.1)
+[18:53:29] [search] start_search reason=SEARCH: SUSPICION pos=(758.7, 277.1) duration=3.00
+[18:53:29] [state] enemy_suspicious:Sweeper | player=(758.7, 277.1) vel=432.5 dark=false hidden=false alert=0.49 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.85 phase=0 cooldown=0.00 alive=20
+[18:53:29] [support] Sweeper selected helper Wisp from 4 candidates
+[18:53:29] [support] Wisp received support target=(758.7, 277.1) receive=0.90 delay=0.55 duration=3.00
+[18:53:29] [fx] spawn relay burst from=(764.4, 161.0) to=(1001.7, 79.0)
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(765.7, 278.9) duration=3.85
+[18:53:29] [suspicion] Sweeper became suspicious at (764.3, 161.9) old=0.059 new=0.130
+[18:53:29] [suspicion] Sweeper triggered suspicion support flow at ship=(765.7, 278.9)
+[18:53:29] [search] start_search reason=SEARCH: SUSPICION pos=(765.7, 278.9) duration=3.00
+[18:53:29] [state] enemy_suspicious:Sweeper | player=(765.7, 278.9) vel=432.5 dark=false hidden=false alert=0.50 combat=false caution=false search=true reason=SEARCH: SUSPICION search_timer=3.85 phase=0 cooldown=0.00 alive=20
+[18:53:29] [support] Sweeper selected helper @CharacterBody2D@282 from 4 candidates
+[18:53:29] [support] @CharacterBody2D@282 received support target=(765.7, 278.9) receive=0.90 delay=0.55 duration=3.00
+[18:53:29] [fx] spawn relay burst from=(764.3, 161.9) to=(680.0, 80.2)
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(772.7, 280.6) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(779.7, 282.4) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(786.7, 284.1) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(793.7, 285.3) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(800.8, 286.4) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(808.0, 287.1) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(815.1, 287.2) duration=3.85
+[18:53:29] [search] start_search reason=SEARCH: NOISE pos=(822.3, 286.9) duration=3.85
+[18:53:30] [detect] Sweeper detected player at ship=(866.9, 280.1)
+[18:53:30] [search] start_search reason=SEARCH: CONTACT pos=(866.9, 280.1) duration=4.12
+[18:53:30] [state] enemy_detected:Sweeper | player=(866.9, 280.1) vel=165.1 dark=false hidden=false alert=0.55 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=20
+[18:53:30] [support] Sweeper selected helper Wisp from 3 candidates
+[18:53:30] [support] Wisp received support target=(865.7, 294.5) receive=0.90 delay=0.55 duration=3.00
+[18:53:30] [fx] spawn relay burst from=(780.4, 199.3) to=(1001.7, 79.0)
+[18:53:30] [state] relax_enemies_for_hiding | player=(875.6, 242.8) vel=285.0 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=20
+[18:53:30] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:30] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:30] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(879.7, 37.3) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(879.5, 30.1) duration=3.85
+[18:53:32] [detect] Sweeper detected player at ship=(879.5, 30.1)
+[18:53:32] [search] start_search reason=SEARCH: CONTACT pos=(879.5, 30.1) duration=4.12
+[18:53:32] [state] enemy_detected:Sweeper | player=(879.5, 30.1) vel=432.5 dark=false hidden=false alert=0.01 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=20
+[18:53:32] [support] Sweeper selected helper Wisp from 2 candidates
+[18:53:32] [support] Wisp received support target=(879.5, 30.1) receive=0.90 delay=0.55 duration=3.00
+[18:53:32] [fx] spawn relay burst from=(796.9, 207.6) to=(1009.6, 224.5)
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(879.3, 22.9) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(879.1, 15.7) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(878.8, 8.5) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(878.6, 1.3) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(878.4, -5.9) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(878.1, -13.1) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(877.9, -20.3) duration=3.85
+[18:53:32] [search] start_search reason=SEARCH: NOISE pos=(877.7, -27.5) duration=3.85
+[18:53:33] [search] start_search reason=SEARCH: NOISE pos=(872.0, 92.7) duration=3.85
+[18:53:33] [search] start_search reason=SEARCH: NOISE pos=(871.6, 99.9) duration=3.85
+[18:53:33] [search] start_search reason=SEARCH: NOISE pos=(871.1, 107.1) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(870.7, 114.3) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(870.2, 121.5) duration=3.85
+[18:53:34] [state] relax_enemies_for_hiding | player=(870.2, 121.5) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=20
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(872.2, 60.5) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(872.5, 53.3) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(872.8, 46.1) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(873.1, 38.9) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(873.5, 31.7) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(873.8, 24.5) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(874.1, 17.3) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(874.4, 10.1) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(874.7, 2.9) duration=3.85
+[18:53:34] [search] start_search reason=SEARCH: NOISE pos=(875.1, -4.3) duration=3.85
+[18:53:35] [detect] Sweeper detected player at ship=(876.5, -23.9)
+[18:53:35] [search] start_search reason=SEARCH: CONTACT pos=(876.5, -23.9) duration=4.12
+[18:53:35] [state] enemy_detected:Sweeper | player=(876.5, -23.9) vel=0.0 dark=false hidden=false alert=0.07 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=20
+[18:53:35] [support] Sweeper selected helper Wisp from 2 candidates
+[18:53:35] [support] Wisp received support target=(876.5, -23.9) receive=0.90 delay=0.55 duration=3.00
+[18:53:35] [fx] spawn relay burst from=(731.0, 158.3) to=(974.7, 289.5)
+[18:53:36] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:36] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:36] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:36] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:36] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:36] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:36] [search] start_search reason=SEARCH: NOISE pos=(891.5, 106.0) duration=3.85
+[18:53:36] [search] start_search reason=SEARCH: NOISE pos=(891.5, 113.2) duration=3.85
+[18:53:36] [search] start_search reason=SEARCH: NOISE pos=(891.2, 120.4) duration=3.85
+[18:53:36] [search] start_search reason=SEARCH: NOISE pos=(890.6, 127.6) duration=3.85
+[18:53:36] [state] relax_enemies_for_hiding | player=(890.6, 127.6) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=20
+[18:53:38] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:38] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:38] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:41] [search] start_search reason=SEARCH: NOISE pos=(874.2, 33.8) duration=3.85
+[18:53:41] [search] start_search reason=SEARCH: NOISE pos=(873.9, 26.6) duration=3.85
+[18:53:41] [search] start_search reason=SEARCH: NOISE pos=(873.7, 19.4) duration=3.85
+[18:53:41] [search] start_search reason=SEARCH: NOISE pos=(873.4, 12.2) duration=3.85
+[18:53:41] [search] start_search reason=SEARCH: NOISE pos=(873.1, 5.0) duration=3.85
+[18:53:41] [search] start_search reason=SEARCH: NOISE pos=(872.7, -2.2) duration=3.85
+[18:53:41] [detect] Sweeper detected player at ship=(871.9, -21.8)
+[18:53:41] [search] start_search reason=SEARCH: CONTACT pos=(871.9, -21.8) duration=4.12
+[18:53:41] [state] enemy_detected:Sweeper | player=(871.9, -21.8) vel=0.0 dark=false hidden=false alert=0.04 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=20
+[18:53:41] [support] Sweeper selected helper Wisp from 3 candidates
+[18:53:41] [support] Wisp received support target=(871.9, -21.8) receive=0.90 delay=0.55 duration=3.00
+[18:53:41] [fx] spawn relay burst from=(719.9, 145.4) to=(681.8, 293.2)
+[18:53:42] [search] start_search reason=SEARCH: NOISE pos=(883.3, 101.6) duration=3.85
+[18:53:42] [search] start_search reason=SEARCH: NOISE pos=(884.1, 108.7) duration=3.85
+[18:53:42] [search] start_search reason=SEARCH: NOISE pos=(884.9, 115.9) duration=3.85
+[18:53:42] [search] start_search reason=SEARCH: NOISE pos=(885.7, 123.1) duration=3.85
+[18:53:42] [state] relax_enemies_for_hiding | player=(885.7, 123.1) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=20
+[18:53:43] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:43] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:43] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:43] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:43] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:43] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:44] [search] start_search reason=SEARCH: ALERT pos=(891.6, 199.4) duration=10.12
+[18:53:44] [state] trigger_alert:start | player=(891.6, 199.4) vel=0.0 dark=false hidden=true alert=0.12 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=19
+[18:53:44] [state] trigger_alert:combat_entered | player=(891.6, 199.4) vel=0.0 dark=false hidden=true alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=19
+[18:53:45] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:45] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:45] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:46] [search] start_search reason=SEARCH: NOISE pos=(919.2, 128.1) duration=3.85
+[18:53:46] [search] start_search reason=SEARCH: NOISE pos=(912.1, 127.1) duration=3.85
+[18:53:46] [search] start_search reason=SEARCH: NOISE pos=(904.9, 126.2) duration=3.85
+[18:53:46] [state] relax_enemies_for_hiding | player=(904.9, 126.2) vel=432.5 dark=false hidden=true alert=0.00 combat=false caution=false search=false reason= search_timer=0.00 phase=0 cooldown=0.00 alive=19
+[18:53:46] [search] start_search reason=SEARCH: NOISE pos=(794.1, 147.9) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(787.6, 150.9) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(780.9, 153.5) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(774.2, 156.1) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(767.3, 158.3) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(760.4, 160.0) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(746.4, 161.9) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(739.3, 162.2) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(725.0, 161.7) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(771.1, 49.4) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(775.0, 43.3) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(778.8, 37.3) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(782.7, 31.2) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(786.5, 25.1) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(790.4, 19.0) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(794.2, 12.9) duration=3.85
+[18:53:47] [search] start_search reason=SEARCH: NOISE pos=(798.1, 6.8) duration=3.85
+[18:53:48] [search] start_search reason=SEARCH: NOISE pos=(802.0, 0.7) duration=3.85
+[18:53:48] [search] start_search reason=SEARCH: NOISE pos=(805.8, -5.4) duration=3.85
+[18:53:48] [search] start_search reason=SEARCH: NOISE pos=(809.8, -11.4) duration=3.85
+[18:53:50] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:50] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:50] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:50] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:50] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:50] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:52] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:52] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:52] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(840.0, -178.1) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(840.9, -185.2) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(841.8, -192.4) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(842.8, -199.5) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(843.7, -206.7) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(844.5, -213.8) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(845.4, -221.0) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(846.3, -228.1) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(847.2, -235.3) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(848.0, -242.4) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(848.9, -249.6) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(850.3, -256.5) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(854.4, -270.2) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(857.0, -276.9) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(859.9, -283.5) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(862.9, -290.1) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(865.9, -296.6) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(868.9, -303.2) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(872.2, -309.6) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(875.5, -316.0) duration=3.85
+[18:53:56] [search] start_search reason=SEARCH: NOISE pos=(879.2, -322.1) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(952.5, -361.8) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(959.6, -363.0) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(973.7, -364.0) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(980.8, -363.9) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1042.5, -336.6) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1048.1, -332.1) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1053.8, -327.6) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1059.4, -323.1) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1065.0, -318.6) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1070.6, -314.1) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1076.3, -309.6) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1081.9, -305.1) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1087.5, -300.6) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1093.2, -296.1) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1098.8, -291.6) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1104.5, -287.2) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1110.1, -282.7) duration=3.85
+[18:53:57] [search] start_search reason=SEARCH: NOISE pos=(1189.9, -284.3) duration=3.85
+[18:53:57] [detect] Pulsar detected player at ship=(1207.2, -286.2)
+[18:53:57] [search] start_search reason=SEARCH: CONTACT pos=(1207.2, -286.2) duration=4.12
+[18:53:57] [state] enemy_detected:Pulsar | player=(1207.2, -286.2) vel=160.3 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=20
+[18:53:57] [support] Pulsar selected helper @CharacterBody2D@287 from 2 candidates
+[18:53:57] [support] @CharacterBody2D@287 received support target=(1207.2, -286.2) receive=0.90 delay=0.55 duration=3.00
+[18:53:57] [fx] spawn relay burst from=(1369.0, -318.1) to=(1453.1, -281.3)
+[18:53:58] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:53:58] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:53:58] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:53:58] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:53:58] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:53:58] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:53:59] [search] start_search reason=SEARCH: ALERT pos=(1110.0, -298.9) duration=10.12
+[18:53:59] [state] trigger_alert:start | player=(1110.0, -298.9) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=20
+[18:53:59] [state] trigger_alert:combat_entered | player=(1110.0, -298.9) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=20
+[18:53:59] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:53:59] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:53:59] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:00] [detect] Pulsar detected player at ship=(1254.0, -285.5)
+[18:54:00] [search] start_search reason=SEARCH: CONTACT pos=(1254.0, -285.5) duration=4.12
+[18:54:00] [state] enemy_detected:Pulsar | player=(1254.0, -285.5) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: CONTACT search_timer=8.89 phase=0 cooldown=4.00 alive=19
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1410.0, -335.6) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1414.4, -329.9) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1418.8, -324.1) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1423.2, -318.4) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1427.5, -312.7) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1431.9, -306.9) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1436.2, -301.2) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1440.6, -295.4) duration=3.85
+[18:54:01] [search] start_search reason=SEARCH: NOISE pos=(1444.9, -289.7) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1449.3, -284.0) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1453.8, -278.3) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1458.3, -272.7) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1462.9, -267.2) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1467.7, -261.8) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1472.5, -256.3) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1477.4, -251.1) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1482.5, -246.0) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1487.8, -241.1) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1493.4, -236.6) duration=3.85
+[18:54:02] [search] start_search reason=SEARCH: NOISE pos=(1499.0, -232.0) duration=3.85
+[18:54:05] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:05] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:05] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:05] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:05] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:05] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:07] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:07] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:07] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:12] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:12] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:12] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:12] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:12] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:12] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:14] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:14] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:14] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:19] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:19] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:19] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:19] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:19] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:19] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:21] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:21] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:21] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:27] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:27] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:27] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:27] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:27] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:27] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:29] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:29] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:29] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:34] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:34] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:34] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:34] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:34] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:34] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:36] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:36] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:36] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:42] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:42] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:42] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:42] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:42] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:42] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:44] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:44] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:44] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:49] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:49] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:49] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:49] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:49] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:49] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:51] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:51] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:51] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:54:56] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:54:56] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:54:56] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:54:56] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:54:56] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:54:56] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:54:58] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:54:58] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:54:58] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:04] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:04] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:04] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:04] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:04] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:04] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:06] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:06] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:06] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:11] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:11] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:11] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:11] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:11] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:11] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:13] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:13] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:13] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:19] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:19] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:19] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:19] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:19] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:19] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:20] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:20] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:20] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:26] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:26] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:26] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:26] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:26] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:26] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:28] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:28] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:28] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:33] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:33] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:33] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:33] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:33] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:33] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:35] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:35] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:35] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:41] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:41] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:41] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:41] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:41] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:41] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:43] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:43] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:43] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:48] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:48] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:48] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:48] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:48] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:48] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:50] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:50] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:50] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:55:55] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:55:55] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:55:55] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:55:55] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:55:55] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:55:55] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:55:57] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:55:57] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:55:57] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:56:03] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:56:03] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:56:03] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:56:03] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:56:03] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:56:03] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:56:05] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:56:05] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:56:05] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:56:10] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:56:10] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:56:10] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:56:10] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:56:10] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:56:10] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:56:12] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:56:12] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:56:12] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:56:17] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:56:17] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:56:17] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:56:17] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:56:17] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:56:17] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:56:19] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:56:19] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:56:19] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:56:25] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:56:25] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:56:25] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:56:25] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:56:25] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:56:25] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:56:27] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:56:27] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:56:27] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:56:33] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:56:33] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:56:33] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:56:33] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:56:33] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:56:33] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)
+[18:56:34] [search] start_search reason=SEARCH: ALERT pos=(450.0, 1150.0) duration=10.12
+[18:56:34] [state] trigger_alert:start | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.42 combat=false caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=0.00 alive=15
+[18:56:34] [state] trigger_alert:combat_entered | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=1.00 combat=true caution=false search=true reason=SEARCH: ALERT search_timer=10.12 phase=0 cooldown=4.00 alive=15
+[18:56:40] [detect] SweeperA detected player at ship=(450.0, 1150.0)
+[18:56:40] [search] start_search reason=SEARCH: CONTACT pos=(450.0, 1150.0) duration=4.12
+[18:56:40] [state] enemy_detected:SweeperA | player=(450.0, 1150.0) vel=0.0 dark=false hidden=false alert=0.00 combat=false caution=false search=true reason=SEARCH: CONTACT search_timer=4.12 phase=0 cooldown=0.00 alive=15
+[18:56:40] [support] SweeperA selected helper PulsarA from 1 candidates
+[18:56:40] [support] PulsarA received support target=(450.0, 1150.0) receive=0.90 delay=0.55 duration=3.00
+[18:56:40] [fx] spawn relay burst from=(675.1, 1160.0) to=(1050.0, 900.0)

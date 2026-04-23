@@ -1,7 +1,10 @@
 extends CharacterBody2D
 
+const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
+
 signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
+signal suspicious(enemy: Node)
 
 var is_alive: bool = true
 var combat_active: bool = false
@@ -12,11 +15,17 @@ var _alert_hold: float = 0.0
 var _suspicion: float = 0.0
 var _emp_disabled_timer: float = 0.0
 var _visual_state_key: String = ""
+var _support_receive_timer: float = 0.0
+var _support_delay_timer: float = 0.0
+var _support_search_timer: float = 0.0
+var _support_search_target: Vector2 = Vector2.ZERO
+var _suspicion_source_timer: float = 0.0
 
 const DARK_POCKET_AVOID_RADIUS := 82.0
 const DARK_POCKET_TARGET_RADIUS := 112.0
 const SEARCH_VISUAL_RADIUS := 150.0
 const DEFAULT_SEARCH_INTEREST_RADIUS := 210.0
+const SUSPICION_SOURCE_DURATION := 0.7
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
@@ -97,6 +106,8 @@ func stealth_reveal_level() -> float:
 func tick_alert_state(delta: float, suspicion_decay: float = 0.0) -> void:
 	var old_suspicion := _suspicion
 	var old_alerting := _alerting
+	if _suspicion_source_timer > 0.0:
+		_suspicion_source_timer = maxf(0.0, _suspicion_source_timer - delta)
 	if _alert_hold > 0.0:
 		_alert_hold -= delta
 		if _alert_hold <= 0.0:
@@ -111,6 +122,8 @@ func clear_alert_state() -> void:
 	_alerting = false
 	_alert_hold = 0.0
 	_suspicion = 0.0
+	_suspicion_source_timer = 0.0
+	_clear_support_state()
 	_refresh_visual_state(true)
 
 
@@ -126,7 +139,12 @@ func begin_alert_state(hold_seconds: float) -> void:
 func add_suspicion(amount: float) -> bool:
 	if is_emp_disabled():
 		return false
+	var old_suspicion := _suspicion
 	_suspicion = minf(1.0, _suspicion + amount)
+	if old_suspicion <= 0.06 and _suspicion > 0.06:
+		_suspicion_source_timer = SUSPICION_SOURCE_DURATION
+		RuntimeDebugLog.log("suspicion", "%s became suspicious at (%.1f, %.1f) old=%.3f new=%.3f" % [name, global_position.x, global_position.y, old_suspicion, _suspicion])
+		suspicious.emit(self)
 	_refresh_visual_state(true)
 	return _suspicion >= 1.0
 
@@ -136,6 +154,8 @@ func apply_emp_disable(duration: float) -> void:
 	_alerting = false
 	_alert_hold = 0.0
 	_suspicion = 0.0
+	_suspicion_source_timer = 0.0
+	_clear_support_state()
 	velocity = Vector2.ZERO
 	_refresh_visual_state(true)
 
@@ -199,12 +219,62 @@ func world_search_target_for_self() -> Vector2:
 
 
 func world_search_target_if_relevant(max_distance: float = DEFAULT_SEARCH_INTEREST_RADIUS) -> Variant:
+	var support_target: Variant = support_search_target_if_relevant(max_distance)
+	if support_target is Vector2:
+		return support_target
 	if not world_is_search_active():
 		return null
 	var target := world_search_target_for_self()
 	if global_position.distance_to(target) > max_distance:
 		return null
 	return target
+
+
+func can_receive_search_support() -> bool:
+	return is_alive and not combat_active and not is_emp_disabled()
+
+
+func receive_search_support(target: Vector2, receive_time: float, delay_time: float, duration: float) -> bool:
+	if not can_receive_search_support():
+		RuntimeDebugLog.log("support", "%s rejected support request" % name)
+		return false
+	_support_search_target = safe_enemy_target(target)
+	_support_receive_timer = maxf(_support_receive_timer, receive_time)
+	_support_delay_timer = maxf(_support_delay_timer, delay_time)
+	_support_search_timer = maxf(_support_search_timer, duration)
+	velocity = Vector2.ZERO
+	RuntimeDebugLog.log("support", "%s received support target=(%.1f, %.1f) receive=%.2f delay=%.2f duration=%.2f" % [name, _support_search_target.x, _support_search_target.y, receive_time, delay_time, duration])
+	_refresh_visual_state(true)
+	return true
+
+
+func tick_support_state(delta: float) -> bool:
+	var had_state := _support_receive_timer > 0.0 or _support_delay_timer > 0.0 or _support_search_timer > 0.0
+	var paused := false
+	if _support_receive_timer > 0.0:
+		_support_receive_timer = maxf(0.0, _support_receive_timer - delta)
+		paused = true
+	elif _support_delay_timer > 0.0:
+		_support_delay_timer = maxf(0.0, _support_delay_timer - delta)
+		paused = true
+	elif _support_search_timer > 0.0:
+		_support_search_timer = maxf(0.0, _support_search_timer - delta)
+		if _support_search_timer <= 0.0:
+			_support_search_target = Vector2.ZERO
+	if paused:
+		velocity = Vector2.ZERO
+	var has_state := _support_receive_timer > 0.0 or _support_delay_timer > 0.0 or _support_search_timer > 0.0
+	if had_state != has_state or paused:
+		_refresh_visual_state(true)
+	return paused
+
+
+func support_search_target_if_relevant(max_distance: float = DEFAULT_SEARCH_INTEREST_RADIUS) -> Variant:
+	if _support_receive_timer > 0.0 or _support_delay_timer > 0.0 or _support_search_timer <= 0.0:
+		return null
+	if global_position.distance_to(_support_search_target) > max_distance:
+		return null
+	return _support_search_target
 
 
 func world_is_point_jammed(point: Vector2) -> bool:
@@ -318,12 +388,18 @@ func enemy_state_outline() -> Color:
 		return Color(pulse_color.r, pulse_color.g, pulse_color.b, 0.98)
 	if _alerting and not combat_active:
 		return Color(1.0, 0.12, 0.08, 0.95)
+	var source_t := _suspicion_source_strength()
+	if source_t > 0.0 and not combat_active:
+		return Color(1.0, 0.9, 0.22, lerpf(0.84, 0.98, source_t))
+	var support_t := _support_visual_strength()
+	if support_t > 0.0 and not combat_active:
+		return Color(0.94, 0.62, 0.14, lerpf(0.64, 0.78, support_t))
 	if _suspicion > 0.06 and not combat_active:
 		var t := clampf(_suspicion, 0.0, 1.0)
-		return Color(1.0, lerpf(0.82, 0.22, t), 0.08, 0.88)
+		return Color(0.98, lerpf(0.74, 0.38, t), 0.12, 0.8)
 	var search_t := _search_visual_strength()
 	if search_t > 0.0 and not combat_active:
-		return Color(1.0, lerpf(0.62, 0.78, search_t), 0.14, lerpf(0.7, 0.84, search_t))
+		return Color(0.86, lerpf(0.48, 0.58, search_t), 0.12, lerpf(0.52, 0.66, search_t))
 	return ColorSystem.enemy_outline()
 
 
@@ -337,12 +413,18 @@ func enemy_state_fill(base_color: Color, alpha: float) -> Color:
 		return Color(pulse_color.r * 0.55, pulse_color.g * 0.34, pulse_color.b * 0.08, maxf(alpha, 0.2))
 	if _alerting and not combat_active:
 		return Color(0.72, 0.04, 0.02, maxf(alpha, 0.18))
+	var source_t := _suspicion_source_strength()
+	if source_t > 0.0 and not combat_active:
+		return Color(0.62, 0.34, 0.05, maxf(alpha, 0.12 + source_t * 0.08))
+	var support_t := _support_visual_strength()
+	if support_t > 0.0 and not combat_active:
+		return Color(0.42, 0.23, 0.04, maxf(alpha, 0.08 + support_t * 0.04))
 	if _suspicion > 0.06 and not combat_active:
 		var t := clampf(_suspicion, 0.0, 1.0)
-		return Color(0.7 + t * 0.18, 0.32 + (1.0 - t) * 0.22, 0.02, maxf(alpha, 0.12 + t * 0.08))
+		return Color(0.56 + t * 0.12, 0.26 + (1.0 - t) * 0.12, 0.03, maxf(alpha, 0.1 + t * 0.05))
 	var search_t := _search_visual_strength()
 	if search_t > 0.0 and not combat_active:
-		return Color(0.36 + search_t * 0.16, 0.18 + search_t * 0.08, 0.03, maxf(alpha, 0.08 + search_t * 0.04))
+		return Color(0.28 + search_t * 0.08, 0.16 + search_t * 0.04, 0.03, maxf(alpha, 0.06 + search_t * 0.03))
 	return fill
 
 
@@ -354,7 +436,9 @@ func _combat_pulse_color() -> Color:
 func _refresh_visual_state(force: bool = false) -> void:
 	var suspicion_bucket := int(floor(clampf(_suspicion, 0.0, 1.0) * 5.0))
 	var search_bucket := int(floor(_search_visual_strength() * 4.0))
-	var next_key := "%s|%s|%s|%s|%s" % [combat_active, is_emp_disabled(), _alerting, suspicion_bucket, search_bucket]
+	var source_bucket := int(floor(_suspicion_source_strength() * 4.0))
+	var support_bucket := int(floor(_support_visual_strength() * 4.0))
+	var next_key := "%s|%s|%s|%s|%s|%s|%s" % [combat_active, is_emp_disabled(), _alerting, suspicion_bucket, search_bucket, source_bucket, support_bucket]
 	if not force and next_key == _visual_state_key:
 		return
 	_visual_state_key = next_key
@@ -370,3 +454,29 @@ func _search_visual_strength() -> float:
 	if distance >= SEARCH_VISUAL_RADIUS:
 		return 0.0
 	return 1.0 - (distance / SEARCH_VISUAL_RADIUS)
+
+
+func _support_visual_strength() -> float:
+	if combat_active or is_emp_disabled():
+		return 0.0
+	if _support_receive_timer > 0.0 or _support_delay_timer > 0.0:
+		return 1.0
+	if _support_search_timer <= 0.0:
+		return 0.0
+	var distance := global_position.distance_to(_support_search_target)
+	if distance >= SEARCH_VISUAL_RADIUS:
+		return 0.0
+	return 1.0 - (distance / SEARCH_VISUAL_RADIUS)
+
+
+func _suspicion_source_strength() -> float:
+	if combat_active or is_emp_disabled() or _alerting or _suspicion <= 0.06:
+		return 0.0
+	return clampf(_suspicion_source_timer / SUSPICION_SOURCE_DURATION, 0.0, 1.0)
+
+
+func _clear_support_state() -> void:
+	_support_receive_timer = 0.0
+	_support_delay_timer = 0.0
+	_support_search_timer = 0.0
+	_support_search_target = Vector2.ZERO

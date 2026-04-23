@@ -59,6 +59,9 @@ func _physics_process(delta: float) -> void:
 	if tick_emp_disabled(delta):
 		queue_redraw()
 		return
+	if tick_support_state(delta):
+		queue_redraw()
+		return
 
 	tick_alert_state(delta, SUSPICION_DECAY)
 

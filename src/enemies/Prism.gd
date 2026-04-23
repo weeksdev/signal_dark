@@ -25,6 +25,9 @@ func _physics_process(delta: float) -> void:
 	if tick_emp_disabled(delta):
 		queue_redraw()
 		return
+	if tick_support_state(delta):
+		queue_redraw()
+		return
 
 	var spin_speed := combat_rotate_speed if combat_active else rotate_speed
 	facing_angle = wrapf(facing_angle + delta * spin_speed, 0.0, TAU)

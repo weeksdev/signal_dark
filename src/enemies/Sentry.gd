@@ -22,6 +22,9 @@ func _physics_process(delta: float) -> void:
 	if tick_emp_disabled(delta):
 		queue_redraw()
 		return
+	if tick_support_state(delta):
+		queue_redraw()
+		return
 	cooldown = maxf(cooldown - delta, 0.0)
 	tick_alert_state(delta, 0.7)
 	var player = ship if ship != null else get_tree().get_first_node_in_group("player_ship")
