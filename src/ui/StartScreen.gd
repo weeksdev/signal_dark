@@ -1,5 +1,7 @@
 extends Node2D
 
+const TITLE_MUSIC := preload("res://audio/signal_dark_title.wav")
+
 const LEVEL_SELECT_COMBO := [
 	"up",
 	"up",
@@ -21,6 +23,10 @@ var _selected_zone: int = 0
 var _arcade_mode: bool = false
 var _arcade_seed: int = 0
 var _arcade_difficulty: int = ArcadeState.Difficulty.MEDIUM
+var _root_menu_index: int = 0
+var _settings_open: bool = false
+var _settings_index: int = 0
+var _title_music_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
@@ -32,11 +38,55 @@ func _ready() -> void:
 	_arcade_difficulty = ArcadeState.Difficulty.MEDIUM
 	var t := get_tree().create_timer(0.6)
 	t.timeout.connect(func(): _ready_to_start = true)
+	_setup_title_music()
 
 
 func _process(delta: float) -> void:
 	_elapsed += delta
+	_update_title_music_volume(delta)
 	queue_redraw()
+
+
+func _exit_tree() -> void:
+	if Settings != null and Settings.settings_changed.is_connected(_on_settings_changed):
+		Settings.settings_changed.disconnect(_on_settings_changed)
+
+
+func _setup_title_music() -> void:
+	if _title_music_player != null:
+		return
+	_title_music_player = AudioStreamPlayer.new()
+	_title_music_player.bus = "Master"
+	_title_music_player.stream = TITLE_MUSIC
+	_title_music_player.volume_db = -80.0
+	add_child(_title_music_player)
+	_title_music_player.play()
+	if Settings != null and not Settings.settings_changed.is_connected(_on_settings_changed):
+		Settings.settings_changed.connect(_on_settings_changed)
+
+
+func _update_title_music_volume(delta: float) -> void:
+	if _title_music_player == null:
+		return
+	var target_db := _music_target_db(0.72)
+	_title_music_player.volume_db = lerpf(_title_music_player.volume_db, target_db, clampf(delta * 3.0, 0.0, 1.0))
+	if not _title_music_player.playing:
+		_title_music_player.play()
+
+
+func _music_target_db(mix: float) -> float:
+	if Settings == null:
+		return linear_to_db(mix)
+	var volume := clampf(Settings.music_volume, 0.0, 1.0)
+	if volume <= 0.001 or mix <= 0.001:
+		return -80.0
+	return linear_to_db(volume * mix)
+
+
+func _on_settings_changed() -> void:
+	if _title_music_player == null:
+		return
+	_title_music_player.volume_db = _music_target_db(0.72)
 
 
 func _input(event: InputEvent) -> void:
@@ -44,30 +94,42 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
+		if _settings_open:
+			_handle_settings_key(event.keycode)
+			return
 		if event.keycode == KEY_I:
 			GameState.start_enemy_info()
 			return
+		if event.keycode == KEY_ESCAPE:
+			_settings_open = false
+			return
 		if event.keycode == KEY_TAB:
-			_arcade_mode = not _arcade_mode
+			_root_menu_index = posmod(_root_menu_index + 1, 2)
+			return
+		if event.keycode == KEY_UP or event.keycode == KEY_W:
+			_root_menu_index = posmod(_root_menu_index - 1, 2)
+			return
+		if event.keycode == KEY_DOWN or event.keycode == KEY_S:
+			_root_menu_index = posmod(_root_menu_index + 1, 2)
 			return
 		# Left/right arrows switch modes (when level select not active)
-		if not _level_select_unlocked:
+		if _root_menu_index == 0 and not _level_select_unlocked:
 			if event.keycode == KEY_LEFT:
 				_arcade_mode = false
 				return
 			if event.keycode == KEY_RIGHT:
 				_arcade_mode = true
 				return
-		if _arcade_mode and event.keycode == KEY_R:
+		if _root_menu_index == 0 and _arcade_mode and event.keycode == KEY_R:
 			_arcade_seed = randi() % 90000 + 10000
 			return
-		if _arcade_mode and (event.keycode == KEY_UP or event.keycode == KEY_W):
+		if _root_menu_index == 0 and _arcade_mode and event.keycode == KEY_LEFT:
 			_arcade_difficulty = posmod(_arcade_difficulty - 1, ArcadeState.DIFFICULTY_NAMES.size())
 			return
-		if _arcade_mode and (event.keycode == KEY_DOWN or event.keycode == KEY_S):
+		if _root_menu_index == 0 and _arcade_mode and event.keycode == KEY_RIGHT:
 			_arcade_difficulty = posmod(_arcade_difficulty + 1, ArcadeState.DIFFICULTY_NAMES.size())
 			return
-		if not _arcade_mode:
+		if _root_menu_index == 0 and not _arcade_mode:
 			var action := _handle_level_select_key(event.keycode)
 			if action == "consumed":
 				return
@@ -75,57 +137,115 @@ func _input(event: InputEvent) -> void:
 				GameState.start_zone(_selected_zone)
 				return
 		if keycode_is_confirm(event.keycode):
-			if _arcade_mode:
+			if _root_menu_index == 1:
+				_settings_open = true
+			elif _arcade_mode:
 				GameState.start_arcade_run(_arcade_seed, _arcade_difficulty)
 			else:
 				GameState.start_run()
 		return
 
 	if event is InputEventJoypadButton and event.pressed:
+		if _settings_open:
+			_handle_settings_joypad(event.button_index)
+			return
 		if event.button_index == JOY_BUTTON_Y:
 			GameState.start_enemy_info()
 			return
+		if event.button_index == JOY_BUTTON_B:
+			_settings_open = false
+			return
 		if event.button_index == JOY_BUTTON_BACK:
-			_arcade_mode = not _arcade_mode
+			_root_menu_index = posmod(_root_menu_index + 1, 2)
 			return
 		# D-pad left/right switch modes (when level select not active)
-		if not _level_select_unlocked:
+		if _root_menu_index == 0 and not _level_select_unlocked:
 			if event.button_index == JOY_BUTTON_DPAD_LEFT:
 				_arcade_mode = false
 				return
 			if event.button_index == JOY_BUTTON_DPAD_RIGHT:
 				_arcade_mode = true
 				return
-		if not _arcade_mode:
+		if event.button_index == JOY_BUTTON_DPAD_UP:
+			_root_menu_index = posmod(_root_menu_index - 1, 2)
+			return
+		if event.button_index == JOY_BUTTON_DPAD_DOWN:
+			_root_menu_index = posmod(_root_menu_index + 1, 2)
+			return
+		if _root_menu_index == 0 and not _arcade_mode:
 			var combo_action := _handle_level_select_joypad(event.button_index)
 			if combo_action == "consumed":
 				return
 			if combo_action == "start_selected":
 				GameState.start_zone(_selected_zone)
 				return
-		if _arcade_mode:
-			if event.button_index == JOY_BUTTON_DPAD_UP:
+		if _root_menu_index == 0 and _arcade_mode:
+			if event.button_index == JOY_BUTTON_DPAD_LEFT:
 				_arcade_difficulty = posmod(_arcade_difficulty - 1, ArcadeState.DIFFICULTY_NAMES.size())
 				return
-			if event.button_index == JOY_BUTTON_DPAD_DOWN:
+			if event.button_index == JOY_BUTTON_DPAD_RIGHT:
 				_arcade_difficulty = posmod(_arcade_difficulty + 1, ArcadeState.DIFFICULTY_NAMES.size())
 				return
 		if event.button_index == JOY_BUTTON_START or event.button_index == JOY_BUTTON_A:
-			if _arcade_mode:
+			if _root_menu_index == 1:
+				_settings_open = true
+			elif _arcade_mode:
 				GameState.start_arcade_run(_arcade_seed, _arcade_difficulty)
 			else:
 				GameState.start_run()
 
 	if event is InputEventJoypadMotion:
-		if not _ready_to_start:
+		if not _ready_to_start or _settings_open:
 			return
-		if event.axis == JOY_AXIS_LEFT_X and absf(event.axis_value) > 0.5:
+		if event.axis == JOY_AXIS_LEFT_X and absf(event.axis_value) > 0.5 and _root_menu_index == 0:
 			_arcade_mode = event.axis_value > 0.0
-		if _arcade_mode and event.axis == JOY_AXIS_LEFT_Y and absf(event.axis_value) > 0.6:
+		if _arcade_mode and _root_menu_index == 0 and event.axis == JOY_AXIS_LEFT_Y and absf(event.axis_value) > 0.6:
 			_arcade_difficulty = posmod(
 				_arcade_difficulty + (1 if event.axis_value > 0.0 else -1),
 				ArcadeState.DIFFICULTY_NAMES.size()
 			)
+
+
+func _handle_settings_key(keycode: Key) -> void:
+	match keycode:
+		KEY_ESCAPE, KEY_BACKSPACE:
+			_settings_open = false
+		KEY_UP, KEY_W:
+			_settings_index = posmod(_settings_index - 1, 3)
+		KEY_DOWN, KEY_S:
+			_settings_index = posmod(_settings_index + 1, 3)
+		KEY_LEFT, KEY_A:
+			_adjust_setting(-1)
+		KEY_RIGHT, KEY_D:
+			_adjust_setting(1)
+		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+			_adjust_setting(1)
+
+
+func _handle_settings_joypad(button: JoyButton) -> void:
+	match button:
+		JOY_BUTTON_B, JOY_BUTTON_BACK:
+			_settings_open = false
+		JOY_BUTTON_DPAD_UP:
+			_settings_index = posmod(_settings_index - 1, 3)
+		JOY_BUTTON_DPAD_DOWN:
+			_settings_index = posmod(_settings_index + 1, 3)
+		JOY_BUTTON_DPAD_LEFT:
+			_adjust_setting(-1)
+		JOY_BUTTON_DPAD_RIGHT:
+			_adjust_setting(1)
+		JOY_BUTTON_A, JOY_BUTTON_START:
+			_adjust_setting(1)
+
+
+func _adjust_setting(direction: int) -> void:
+	match _settings_index:
+		0:
+			Settings.cycle_auto_fire_mode(direction)
+		1:
+			Settings.adjust_music_volume(direction)
+		2:
+			Settings.adjust_fx_volume(direction)
 
 
 func keycode_is_confirm(keycode: Key) -> bool:
@@ -268,31 +388,44 @@ func _draw() -> void:
 
 	# ── Mode selector ────────────────────────────────────────────────────────
 	var mode_y := vp.y * 0.52
-	var story_col  := Color(0.55, 1.0, 0.65, 0.95) if not _arcade_mode else Color(0.22, 0.55, 0.30, 0.45)
-	var arcade_col := Color(0.45, 0.82, 1.0, 0.95) if _arcade_mode     else Color(0.18, 0.48, 0.72, 0.45)
+	var story_selected := _root_menu_index == 0 and not _arcade_mode
+	var arcade_selected := _root_menu_index == 0 and _arcade_mode
+	var settings_selected := _root_menu_index == 1
+	var story_col  := Color(0.55, 1.0, 0.65, 0.95) if story_selected else Color(0.22, 0.55, 0.30, 0.45)
+	var arcade_col := Color(0.45, 0.82, 1.0, 0.95) if arcade_selected else Color(0.18, 0.48, 0.72, 0.45)
+	var settings_col := Color(0.92, 0.92, 0.62, 0.95) if settings_selected else Color(0.46, 0.48, 0.26, 0.5)
 
 	# Story option
-	if not _arcade_mode:
+	if story_selected:
 		draw_rect(Rect2(cx - 130.0, mode_y - 16.0, 114.0, 22.0),
 				Color(0.18, 0.55, 0.28, 0.18), true)
 		draw_rect(Rect2(cx - 130.0, mode_y - 16.0, 114.0, 22.0),
 				Color(0.35, 0.9, 0.48, 0.35), false, 1.0)
 	draw_string(font, Vector2(cx - 122.0, mode_y),
-			"▶ STORY MODE" if not _arcade_mode else "  STORY MODE",
+			"▶ STORY MODE" if story_selected else "  STORY MODE",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, story_col)
 
 	# Arcade option
-	if _arcade_mode:
+	if arcade_selected:
 		draw_rect(Rect2(cx + 4.0, mode_y - 16.0, 126.0, 22.0),
 				Color(0.08, 0.25, 0.55, 0.22), true)
 		draw_rect(Rect2(cx + 4.0, mode_y - 16.0, 126.0, 22.0),
 				Color(0.30, 0.65, 1.0, 0.45), false, 1.0)
 	draw_string(font, Vector2(cx + 12.0, mode_y),
-			"▶ ARCADE MODE" if _arcade_mode else "  ARCADE MODE",
+			"▶ ARCADE MODE" if arcade_selected else "  ARCADE MODE",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, arcade_col)
 
+	if settings_selected:
+		draw_rect(Rect2(cx - 72.0, mode_y + 24.0, 144.0, 22.0),
+				Color(0.44, 0.44, 0.10, 0.18), true)
+		draw_rect(Rect2(cx - 72.0, mode_y + 24.0, 144.0, 22.0),
+				Color(0.86, 0.86, 0.34, 0.35), false, 1.0)
+	draw_string(font, Vector2(cx - 56.0, mode_y + 40.0),
+			"▶ SETTINGS" if settings_selected else "  SETTINGS",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, settings_col)
+
 	draw_string(font, Vector2(cx - 130.0, mode_y + 14.0),
-			"TAB  /  SELECT BUTTON  to switch",
+			"TAB/BACK  or  UP/DOWN  to switch",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
 			Color(0.28, 0.62, 0.36, 0.50))
 	draw_string(font, Vector2(cx - 130.0, mode_y + 28.0),
@@ -301,8 +434,58 @@ func _draw() -> void:
 			Color(0.32, 0.70, 0.42, 0.54))
 
 	# ── Mode-specific prompts ─────────────────────────────────────────────────
-	if _arcade_mode:
-		var seed_y := mode_y + 48.0
+	if _settings_open:
+		var panel := Rect2(Vector2(cx - 188.0, mode_y + 62.0), Vector2(376.0, 188.0))
+		draw_rect(panel, Color(0.02, 0.05, 0.04, 0.9), true)
+		draw_rect(panel, Color(0.30, 0.82, 0.52, 0.22), false, 1.0)
+		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 22.0),
+				"SETTINGS", HORIZONTAL_ALIGNMENT_LEFT, -1, 14,
+				Color(0.66, 1.0, 0.78, 0.95))
+		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 40.0),
+				"LEFT/RIGHT or A/D  //  DPAD  to change",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+				Color(0.38, 0.74, 0.48, 0.62))
+		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 55.0),
+				"ESC / B  to close",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+				Color(0.38, 0.74, 0.48, 0.62))
+		var row_y := panel.position.y + 72.0
+		var row_height := 28.0
+		for row in 3:
+			var selected_row := _settings_index == row
+			if selected_row:
+				draw_rect(Rect2(Vector2(panel.position.x + 10.0, row_y + row * row_height), Vector2(panel.size.x - 20.0, row_height)),
+						Color(0.16, 0.48, 0.24, 0.18), true)
+		draw_string(font, Vector2(panel.position.x + 18.0, row_y + 19.0),
+				("%s AUTO FIRE" % ("▶" if _settings_index == 0 else " ")),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+				Color(0.74, 1.0, 0.82, 0.96) if _settings_index == 0 else Color(0.46, 0.82, 0.56, 0.72))
+		draw_string(font, Vector2(panel.end.x - 136.0, row_y + 19.0),
+				Settings.get_auto_fire_summary(),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+				Color(0.84, 0.96, 0.90, 0.94))
+		draw_string(font, Vector2(panel.position.x + 18.0, row_y + 47.0),
+				("%s MUSIC" % ("▶" if _settings_index == 1 else " ")),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+				Color(0.74, 1.0, 0.82, 0.96) if _settings_index == 1 else Color(0.46, 0.82, 0.56, 0.72))
+		draw_string(font, Vector2(panel.end.x - 136.0, row_y + 47.0),
+				Settings.get_music_volume_summary(),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+				Color(0.84, 0.96, 0.90, 0.94))
+		draw_string(font, Vector2(panel.position.x + 18.0, row_y + 75.0),
+				("%s FX" % ("▶" if _settings_index == 2 else " ")),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+				Color(0.74, 1.0, 0.82, 0.96) if _settings_index == 2 else Color(0.46, 0.82, 0.56, 0.72))
+		draw_string(font, Vector2(panel.end.x - 136.0, row_y + 75.0),
+				Settings.get_fx_volume_summary(),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+				Color(0.84, 0.96, 0.90, 0.94))
+		draw_string(font, Vector2(panel.position.x + 18.0, panel.position.y + 160.0),
+				"AUTO uses controller detection. Music crossfades in combat.",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+				Color(0.42, 0.76, 0.52, 0.64))
+	elif _arcade_mode:
+		var seed_y := mode_y + 62.0
 		draw_string(font, Vector2(cx - 60.0, seed_y),
 				"SEED  %d" % _arcade_seed,
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
@@ -319,7 +502,7 @@ func _draw() -> void:
 				"UP/DOWN  —  CHANGE DIFFICULTY",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.32, 0.72, 0.92, 0.58))
-		if fmod(t, 1.3) < 0.82:
+		if fmod(t, 1.3) < 0.82 and _root_menu_index == 0:
 			draw_string(font, Vector2(cx - 96.0, seed_y + 82.0),
 					"PRESS ENTER TO LAUNCH RUN",
 					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
@@ -330,7 +513,7 @@ func _draw() -> void:
 					"LEVEL SELECT UNLOCKED",
 					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
 					Color(0.48, 1.0, 0.62, 0.92))
-			var menu_y := mode_y + 72.0
+			var menu_y := mode_y + 86.0
 			for i in GameState.ZONE_SCENES.size():
 				var sel := i == _selected_zone
 				var label := "ZONE %02d" % (i + 1)
@@ -343,19 +526,19 @@ func _draw() -> void:
 					HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 					Color(0.28, 0.78, 0.42, 0.62))
 		else:
-			if fmod(t, 1.3) < 0.82:
-				draw_string(font, Vector2(cx - 96.0, mode_y + 48.0),
+			if fmod(t, 1.3) < 0.82 and _root_menu_index == 0:
+				draw_string(font, Vector2(cx - 96.0, mode_y + 62.0),
 						"PRESS ENTER TO START",
 						HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
 						Color(0.38, 1.0, 0.52, 0.90))
 
 	# Controls block
-	var hy    := vp.y * 0.73
+	var hy    := vp.y * 0.76
 	var hc    := Color(0.18, 0.52, 0.27, 0.48)
 	var hints := [
 		"MOVE          WASD  /  LEFT STICK",
 		"DARK MODE     SHIFT  /  L2          (reduces emission)",
-		"FIRE          SPACE  /  R1",
+		"FIRE          SPACE  /  R1          (AUTO FIRE OPTIONAL IN COMBAT)",
 		"BOOST         E  /  R2",
 		"PROBE         Q  /  X               (decoy beacon)",
 		"SUPPRESS      F  /  A               (silent kill from behind)",

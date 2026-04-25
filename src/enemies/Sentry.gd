@@ -41,8 +41,7 @@ func _physics_process(delta: float) -> void:
 			_check_warning(player)
 	if combat_active and player != null and cooldown <= 0.0:
 		var distance: float = global_position.distance_to(player.global_position)
-		var blocked: bool = is_world_line_blocked(global_position, player.global_position, [get_rid()])
-		if distance <= attack_range and not blocked:
+		if distance <= attack_range:
 			_fire_at(player.global_position)
 			cooldown = fire_interval
 	queue_redraw()

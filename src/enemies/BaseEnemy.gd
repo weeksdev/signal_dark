@@ -20,6 +20,9 @@ var _support_delay_timer: float = 0.0
 var _support_search_timer: float = 0.0
 var _support_search_target: Vector2 = Vector2.ZERO
 var _suspicion_source_timer: float = 0.0
+var _reentry_suspended: bool = false
+var _saved_collision_layer: int = 0
+var _saved_collision_mask: int = 0
 
 const DARK_POCKET_AVOID_RADIUS := 82.0
 const DARK_POCKET_TARGET_RADIUS := 112.0
@@ -33,6 +36,8 @@ const SUSPICION_SOURCE_DURATION := 0.7
 
 func _ready() -> void:
 	add_to_group("zone_enemy")
+	_saved_collision_layer = collision_layer
+	_saved_collision_mask = collision_mask
 	ColorSystem.mode_changed.connect(_on_mode_changed)
 	_refresh_visual_state(true)
 
@@ -103,6 +108,14 @@ func stealth_reveal_level() -> float:
 	return clampf(_suspicion, 0.0, 1.0)
 
 
+func is_valid_auto_fire_target(_from_point: Vector2) -> bool:
+	return is_alive and not _reentry_suspended
+
+
+func is_combat_targetable() -> bool:
+	return combat_active and is_alive and not _reentry_suspended
+
+
 func tick_alert_state(delta: float, suspicion_decay: float = 0.0) -> void:
 	var old_suspicion := _suspicion
 	var old_alerting := _alerting
@@ -125,6 +138,30 @@ func clear_alert_state() -> void:
 	_suspicion_source_timer = 0.0
 	_clear_support_state()
 	_refresh_visual_state(true)
+
+
+func suspend_for_patrol_reentry() -> void:
+	if _reentry_suspended:
+		return
+	_reentry_suspended = true
+	velocity = Vector2.ZERO
+	visible = false
+	collision_layer = 0
+	collision_mask = 0
+	set_physics_process(false)
+	set_process(false)
+
+
+func resume_from_patrol_reentry(position: Vector2) -> void:
+	global_position = position
+	_reentry_suspended = false
+	visible = true
+	collision_layer = _saved_collision_layer
+	collision_mask = _saved_collision_mask
+	set_process(true)
+	set_physics_process(true)
+	_refresh_visual_state(true)
+	queue_redraw()
 
 
 func begin_alert_state(hold_seconds: float) -> void:

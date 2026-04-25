@@ -3,6 +3,7 @@ extends CharacterBody2D
 signal destroyed
 
 const EMP_SHOCKWAVE_SCENE := preload("res://src/fx/EmpShockwave.tscn")
+const AUTO_FIRE_RANGE := 320.0
 
 @export var acceleration: float = 2400.0
 @export var drag: float = 1650.0
@@ -75,7 +76,10 @@ func _physics_process(delta: float) -> void:
 	_emp_flash = maxf(0.0, _emp_flash - delta * 1.8)
 
 	move_and_slide()
-	_update_aim_direction(move_input)
+	_sync_dark_pocket_state_immediate()
+	var auto_fire_direction := _get_auto_fire_direction() if Settings.is_auto_fire_enabled() and AlertSystem.combat_mode and not _hack_prompt_active else Vector2.ZERO
+	var auto_fire_active := auto_fire_direction != Vector2.ZERO
+	_update_aim_direction(move_input, auto_fire_direction)
 	rotation = aim_direction.angle() + PI / 2.0
 
 	_update_hack_prompt(delta)
@@ -84,7 +88,7 @@ func _physics_process(delta: float) -> void:
 	var probe_pressed := InputManager.is_probe_pressed()
 	if InputManager.is_emp_just_pressed() and not _hack_prompt_active:
 		_try_emp_blast()
-	if InputManager.is_fire_pressed():
+	if InputManager.is_fire_pressed() or auto_fire_active:
 		weapon_system.try_fire(aim_direction)
 	if probe_pressed and not _previous_probe_pressed:
 		if not _hack_prompt_active:
@@ -103,15 +107,82 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 
-func _update_aim_direction(move_input: Vector2) -> void:
+func _sync_dark_pocket_state_immediate() -> void:
+	var inside := false
+	var matched_pocket: Area2D = null
+	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+		if not (pocket is Area2D):
+			continue
+		if global_position.distance_to(pocket.global_position) > 70.0:
+			continue
+		inside = true
+		matched_pocket = pocket
+		break
+	if inside == in_dark_pocket:
+		return
+	in_dark_pocket = inside
+	var world := get_tree().current_scene
+	if world != null and world.has_method("set_player_dark_pocket_state"):
+		if matched_pocket != null:
+			world.set_player_dark_pocket_state(matched_pocket, true)
+		else:
+			for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+				if pocket is Area2D:
+					world.set_player_dark_pocket_state(pocket, false)
+
+
+func _update_aim_direction(move_input: Vector2, auto_fire_direction: Vector2 = Vector2.ZERO) -> void:
 	# Right stick always wins — explicit aim overrides everything
 	if InputManager.is_right_stick_active():
 		aim_direction = InputManager.get_aim_vector(aim_direction)
+		return
+	if auto_fire_direction != Vector2.ZERO:
+		aim_direction = auto_fire_direction
 		return
 	# Left stick / keyboard movement: face the direction you're moving
 	if move_input.length() > 0.1:
 		aim_direction = move_input.normalized()
 		return
+
+
+func _get_auto_fire_direction() -> Vector2:
+	var best_visible: Node2D = null
+	var best_visible_distance := INF
+	var best_combat_any: Node2D = null
+	var best_combat_any_distance := INF
+	var world := get_tree().current_scene
+	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
+		if enemy == null or not is_instance_valid(enemy):
+			continue
+		if not (enemy is Node2D):
+			continue
+		if not enemy.is_alive:
+			continue
+		if enemy.has_method("is_valid_auto_fire_target") and not enemy.is_valid_auto_fire_target(global_position):
+			continue
+		var enemy_node := enemy as Node2D
+		var distance: float = global_position.distance_to(enemy_node.global_position)
+		if distance > AUTO_FIRE_RANGE:
+			continue
+		var combat_targetable := false
+		if enemy.has_method("is_combat_targetable"):
+			combat_targetable = enemy.is_combat_targetable()
+		else:
+			combat_targetable = true
+		if combat_targetable:
+			if distance < best_combat_any_distance:
+				best_combat_any_distance = distance
+				best_combat_any = enemy_node
+		var visible := true
+		if world != null and world.has_method("is_line_blocked"):
+			visible = not world.is_line_blocked(global_position, enemy_node.global_position, [])
+		if visible and distance < best_visible_distance:
+			best_visible_distance = distance
+			best_visible = enemy_node
+	var target := best_visible if best_visible != null else best_combat_any
+	if target == null:
+		return Vector2.ZERO
+	return (target.global_position - global_position).normalized()
 
 
 func _update_emission(did_boost: bool) -> void:

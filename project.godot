@@ -14,6 +14,7 @@ GameState="*res://src/autoloads/GameState.gd"
 ArcadeState="*res://src/autoloads/ArcadeState.gd"
 AlertSystem="*res://src/autoloads/AlertSystem.gd"
 InputManager="*res://src/autoloads/InputManager.gd"
+Settings="*res://src/autoloads/Settings.gd"
 ColorSystem="*res://src/fx/ColorSystem.gd"
 DebugSystem="*res://src/autoloads/DebugSystem.gd"
 

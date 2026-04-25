@@ -3,14 +3,19 @@ extends Node2D
 const HUNTER_SCENE := preload("res://src/enemies/Hunter.tscn")
 const WISP_SCENE := preload("res://src/enemies/Wisp.tscn")
 const PRISM_SCENE := preload("res://src/enemies/Prism.tscn")
+const STEALTH_MUSIC := preload("res://audio/signal_dark_spy_stealth.wav")
+const SEARCH_MUSIC := preload("res://audio/signal_dark_spy_search.wav")
+const COMBAT_MUSIC := preload("res://audio/signal_dark_spy_combat.wav")
 const ObjectiveNode := preload("res://src/world/ObjectiveNode.gd")
 const SearchRelayBurst := preload("res://src/fx/SearchRelayBurst.gd")
 const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
+const PauseOverlayScene := preload("res://src/ui/PauseOverlay.gd")
 
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
 @onready var game_over_overlay = $CanvasLayer/GameOverOverlay
 @onready var zone_complete_overlay = $CanvasLayer/ZoneCompleteOverlay
+@onready var canvas_layer: CanvasLayer = $CanvasLayer
 @onready var grid: Node2D = $Grid
 
 var enemies: Array[Node] = []
@@ -30,6 +35,7 @@ var _hack_target: Node2D = null
 var _hack_sequence: Array = []
 var _hack_index: int = 0
 var _hack_wrong_flash: bool = false
+var _gate_hack_sequences: Dictionary = {}
 var _search_position: Vector2 = Vector2.ZERO
 var _search_timer: float = 0.0
 var _search_reason: String = ""
@@ -46,6 +52,21 @@ var _objective_progress: int = 0
 var _objective_type: String = ""
 var _interaction_text: String = ""
 var _alert_count: int = 0
+var _combat_heat: float = 0.0
+var _combat_reinforcement_budget: float = 0.0
+var _combat_reinforcement_timer: float = 0.0
+var _combat_dynamic_spawn_count: int = 0
+var _combat_baseline_enemy_count: int = 0
+var _combat_respawn_pool: Array[Dictionary] = []
+var _combat_lockdown_level: int = 0
+var _combat_locked_gate_ids: Array[int] = []
+var _combat_progress_locked: bool = false
+var _pause_overlay: Control = null
+var _patrol_recovery_claims: Dictionary = {}
+var _pending_patrol_reentries: Array[Dictionary] = []
+var _music_stealth: AudioStreamPlayer = null
+var _music_search: AudioStreamPlayer = null
+var _music_combat: AudioStreamPlayer = null
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
@@ -57,6 +78,30 @@ const SEARCH_SUPPORT_RADIUS := 460.0
 const SEARCH_SUPPORT_RECEIVE_TIME := 0.9
 const SEARCH_SUPPORT_DELAY := 0.55
 const SEARCH_SUPPORT_DURATION := 3.0
+const COMBAT_HEAT_PER_SECOND := 0.08
+const COMBAT_HEAT_PER_KILL := 0.34
+const COMBAT_HEAT_PER_DETECTION := 0.18
+const COMBAT_REINFORCEMENT_BUDGET_PER_SECOND := 0.22
+const COMBAT_REINFORCEMENT_BUDGET_PER_KILL := 0.95
+const COMBAT_REINFORCEMENT_BUDGET_CAP := 10.0
+const COMBAT_REINFORCEMENT_MIN_DISTANCE := 220.0
+const COMBAT_REINFORCEMENT_MAX_DISTANCE := 1280.0
+const COMBAT_REINFORCEMENT_BLOCKED_BONUS := 240.0
+const COMBAT_REINFORCEMENT_RETRY_TIME := 1.1
+const COMBAT_REINFORCEMENT_INTERVAL_HIGH := 2.6
+const COMBAT_REINFORCEMENT_INTERVAL_LOW := 1.45
+const COMBAT_REINFORCEMENT_IMMEDIATE_KILL_DELAY := 0.35
+const COMBAT_REINFORCEMENT_RECOVERY_DELAY := 0.16
+const COMBAT_REINFORCEMENT_MIN_ACTIVE := 4
+const COMBAT_REINFORCEMENT_MAX_ACTIVE := 7
+const COMBAT_LOCKDOWN_LEVEL_ONE_HEAT := 0.56
+const COMBAT_LOCKDOWN_LEVEL_TWO_HEAT := 0.86
+const COMBAT_LOCKDOWN_GOAL_EXCLUSION := 170.0
+const COMBAT_LOCKDOWN_POCKET_EXCLUSION := 190.0
+const COMBAT_LOCKDOWN_PLAYER_EXCLUSION := 150.0
+const PATROL_RECOVERY_SLOT_RADIUS := 44.0
+const PATROL_REENTRY_DELAY := 1.1
+const PATROL_REENTRY_PLAYER_CLEAR := 260.0
 
 
 func _ready() -> void:
@@ -78,6 +123,9 @@ func _ready() -> void:
 	var exit := get_node_or_null("ExitZone")
 	if exit:
 		exit.player_reached.connect(_on_exit_reached)
+	_refresh_gate_hack_previews()
+	_ensure_pause_overlay()
+	_setup_scene_music()
 
 
 func _process(delta: float) -> void:
@@ -92,6 +140,63 @@ func _process(delta: float) -> void:
 	_update_search(delta)
 	_update_jammer(delta)
 	_update_objectives(delta)
+	_update_patrol_reentries(delta)
+	_update_scene_music(delta)
+
+
+func _exit_tree() -> void:
+	if Settings != null and Settings.settings_changed.is_connected(_on_music_settings_changed):
+		Settings.settings_changed.disconnect(_on_music_settings_changed)
+
+
+func _setup_scene_music() -> void:
+	_music_stealth = _make_scene_music_player(STEALTH_MUSIC)
+	_music_search = _make_scene_music_player(SEARCH_MUSIC)
+	_music_combat = _make_scene_music_player(COMBAT_MUSIC)
+	for player in [_music_stealth, _music_search, _music_combat]:
+		add_child(player)
+		player.play()
+	if Settings != null and not Settings.settings_changed.is_connected(_on_music_settings_changed):
+		Settings.settings_changed.connect(_on_music_settings_changed)
+
+
+func _make_scene_music_player(stream: AudioStream) -> AudioStreamPlayer:
+	var player := AudioStreamPlayer.new()
+	player.bus = "Master"
+	player.stream = stream
+	player.volume_db = -80.0
+	return player
+
+
+func _update_scene_music(delta: float) -> void:
+	if _music_stealth == null:
+		return
+	_fade_scene_music(_music_stealth, _music_target_db(0.78), delta)
+	_fade_scene_music(_music_search, _music_target_db(0.46 if is_search_active() else 0.0), delta)
+	_fade_scene_music(_music_combat, _music_target_db(0.62 if AlertSystem.combat_mode else 0.0), delta)
+	for player in [_music_stealth, _music_search, _music_combat]:
+		if not player.playing:
+			player.play()
+
+
+func _fade_scene_music(player: AudioStreamPlayer, target_db: float, delta: float) -> void:
+	player.volume_db = lerpf(player.volume_db, target_db, clampf(delta * 3.0, 0.0, 1.0))
+
+
+func _music_target_db(mix: float) -> float:
+	var volume := Settings.music_volume if Settings != null else 0.75
+	volume = clampf(volume, 0.0, 1.0)
+	if volume <= 0.001 or mix <= 0.001:
+		return -80.0
+	return linear_to_db(volume * mix)
+
+
+func _on_music_settings_changed() -> void:
+	if _music_stealth == null:
+		return
+	_music_stealth.volume_db = _music_target_db(0.78)
+	_music_search.volume_db = _music_target_db(0.46 if is_search_active() else 0.0)
+	_music_combat.volume_db = _music_target_db(0.62 if AlertSystem.combat_mode else 0.0)
 
 
 func _update_caution(delta: float) -> void:
@@ -130,6 +235,7 @@ func _on_enemy_detected(enemy: Node) -> void:
 		_cancel_caution()
 		return
 	if AlertSystem.combat_mode:
+		_combat_heat = minf(1.0, _combat_heat + COMBAT_HEAT_PER_DETECTION)
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
 	if _caution_active:
@@ -163,11 +269,18 @@ func _on_enemy_killed(enemy: Node, silent: bool) -> void:
 	var snapshot := _snapshot_enemy(enemy)
 	if not snapshot.is_empty():
 		_defeated_enemy_snapshots.append(snapshot)
+		if AlertSystem.combat_mode:
+			_combat_respawn_pool.append(snapshot.duplicate(true))
 	_kill_count += 1
 	if _caution_enemy == enemy:
 		_cancel_caution()
 	if not silent and not AlertSystem.combat_mode:
 		trigger_alert()
+	elif AlertSystem.combat_mode:
+		_combat_heat = minf(1.0, _combat_heat + COMBAT_HEAT_PER_KILL)
+		_combat_reinforcement_budget = minf(COMBAT_REINFORCEMENT_BUDGET_CAP, _combat_reinforcement_budget + COMBAT_REINFORCEMENT_BUDGET_PER_KILL)
+		_combat_reinforcement_timer = minf(_combat_reinforcement_timer, COMBAT_REINFORCEMENT_IMMEDIATE_KILL_DELAY)
+		RuntimeDebugLog.log("combat", "kill raised heat=%.2f budget=%.2f pool=%d" % [_combat_heat, _combat_reinforcement_budget, _combat_respawn_pool.size()])
 	if _living_enemy_count() == 0:
 		_exit_combat_to_stealth()
 
@@ -180,6 +293,7 @@ func _on_exit_reached() -> void:
 		start_search(ship.global_position, SEARCH_DURATION * 0.45, "SEARCH: EXIT LOCK")
 		return
 	completing = true
+	get_tree().paused = false
 	zone_complete_overlay.trigger(_kill_count == 0)
 
 
@@ -187,7 +301,21 @@ func _on_ship_destroyed() -> void:
 	if restarting or completing:
 		return
 	restarting = true
+	get_tree().paused = false
 	game_over_overlay.trigger()
+
+
+func can_pause_game() -> bool:
+	return not restarting and not completing
+
+
+func _ensure_pause_overlay() -> void:
+	if canvas_layer == null or _pause_overlay != null:
+		return
+	_pause_overlay = PauseOverlayScene.new()
+	canvas_layer.add_child(_pause_overlay)
+	if _pause_overlay.has_method("setup"):
+		_pause_overlay.setup(self)
 
 
 func trigger_alert() -> void:
@@ -199,6 +327,7 @@ func trigger_alert() -> void:
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
 	AlertSystem.enter_combat()
+	_begin_combat_pressure()
 	_spawn_reinforcements_for_alert()
 	combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 	for enemy in enemies:
@@ -292,7 +421,9 @@ func set_player_dark_pocket_state(pocket: Area2D, active: bool) -> void:
 func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 	_interaction_text = ""
 	var objective := _nearest_objective(ship_node)
-	if objective != null and objective.can_be_triggered_by(ship_node):
+	if objective != null and _combat_progress_locked and objective.can_be_triggered_by(ship_node):
+		_interaction_text = "REDLINE  //  LOSE CONTACT"
+	elif objective != null and objective.can_be_triggered_by(ship_node):
 		objective.complete()
 		_interaction_text = "%s LINKED" % objective.objective_name
 		start_search(objective.global_position, SEARCH_DURATION * 0.35, "SEARCH: OBJECTIVE")
@@ -300,6 +431,7 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 	var gate := _find_nearest_hack_gate(ship_node)
 	if gate == null:
 		_reset_hack_state()
+		_refresh_gate_hack_previews()
 		return {
 			"visible": false,
 			"sequence": [],
@@ -309,7 +441,7 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 
 	if gate != _hack_target:
 		_hack_target = gate
-		_hack_sequence = _make_hack_sequence()
+		_hack_sequence = _ensure_gate_hack_sequence(gate)
 		_hack_index = 0
 
 	_hack_wrong_flash = false
@@ -327,7 +459,9 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 			gate.set_hacked_open(true)
 			_respawn_defeated_enemies()
 			var success_pos := gate.global_position + Vector2(0.0, -54.0)
+			_gate_hack_sequences.erase(gate.get_instance_id())
 			_reset_hack_state()
+			_refresh_gate_hack_previews()
 			return {
 				"visible": true,
 				"world_pos": success_pos,
@@ -336,6 +470,7 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 				"wrong_flash": false,
 			}
 
+	_refresh_gate_hack_previews()
 	return {
 		"visible": true,
 		"world_pos": gate.global_position + Vector2(0.0, -54.0),
@@ -359,6 +494,34 @@ func _make_hack_sequence() -> Array:
 	for _i in range(length):
 		sequence.append(buttons[randi() % buttons.size()])
 	return sequence
+
+
+func _ensure_gate_hack_sequence(gate: Node2D) -> Array:
+	if gate == null:
+		return []
+	var gate_id := gate.get_instance_id()
+	if not _gate_hack_sequences.has(gate_id):
+		_gate_hack_sequences[gate_id] = _make_hack_sequence()
+	return (_gate_hack_sequences[gate_id] as Array).duplicate()
+
+
+func _refresh_gate_hack_previews() -> void:
+	for child in get_children():
+		if child == null or not child.has_method("set_hack_preview"):
+			continue
+		if child.has_method("is_lockdown_candidate") and child.is_lockdown_candidate():
+			child.set_hack_preview([], 0, false)
+			continue
+		if not child.has_method("is_open") or child.is_open():
+			child.set_hack_preview([], 0, false)
+			continue
+		var sequence := _ensure_gate_hack_sequence(child)
+		var progress := 0
+		var wrong_flash := false
+		if child == _hack_target:
+			progress = _hack_index
+			wrong_flash = _hack_wrong_flash
+		child.set_hack_preview(sequence, progress, wrong_flash)
 
 
 func get_hud_objective_text() -> String:
@@ -387,9 +550,12 @@ func get_hud_combat_state_text() -> String:
 		return "CAUTION  %.1fs" % maxf(_caution_timer, 0.0)
 	if not AlertSystem.combat_mode:
 		return ""
+	var lockdown_text := ""
+	if _combat_lockdown_level > 0:
+		lockdown_text = "  //  LOCKDOWN L%d" % _combat_lockdown_level
 	if _enemy_still_threatening():
-		return "TRACKED  //  BREAK LINE OF SIGHT"
-	return "EVADE  %.1fs" % maxf(combat_cooldown_remaining, 0.0)
+		return "TRACKED  //  HEAT %02d%%%s  //  BREAK LINE OF SIGHT" % [int(round(_combat_heat * 100.0)), lockdown_text]
+	return "EVADE  %.1fs  //  HEAT %02d%%%s" % [maxf(combat_cooldown_remaining, 0.0), int(round(_combat_heat * 100.0)), lockdown_text]
 
 
 func is_search_active() -> bool:
@@ -629,6 +795,7 @@ func _configure_camera() -> void:
 
 
 func _update_combat_cooldown(delta: float) -> void:
+	_update_combat_pressure(delta)
 	if _enemy_still_threatening():
 		combat_cooldown_remaining = COMBAT_LOSE_CONTACT_SECONDS
 		return
@@ -652,6 +819,7 @@ func _enemy_still_threatening() -> bool:
 
 
 func _exit_combat_to_stealth() -> void:
+	begin_patrol_recovery_cycle()
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
 			continue
@@ -661,6 +829,7 @@ func _exit_combat_to_stealth() -> void:
 			enemy.clear_alert_state()
 	AlertSystem.exit_combat()
 	combat_cooldown_remaining = 0.0
+	_reset_combat_pressure()
 	start_search(_last_known_player_position if _last_known_player_position != Vector2.ZERO else ship.global_position, SEARCH_DURATION, "SEARCH: SWEEP")
 	_log_system_state("combat_exit_to_stealth")
 	for enemy in enemies:
@@ -679,6 +848,7 @@ func _relax_enemies_for_hiding() -> void:
 	_search_position = Vector2.ZERO
 	_last_known_player_position = Vector2.ZERO
 	combat_cooldown_remaining = 0.0
+	_reset_combat_pressure()
 	if AlertSystem.combat_mode:
 		for enemy in enemies:
 			if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
@@ -700,6 +870,84 @@ func _relax_enemies_for_hiding() -> void:
 	_log_system_state("relax_enemies_for_hiding")
 
 
+func begin_patrol_recovery_cycle() -> void:
+	_patrol_recovery_claims.clear()
+
+
+func reserve_patrol_recovery_point(enemy: Node2D, candidate_points: Array) -> Variant:
+	if enemy == null or candidate_points.is_empty():
+		return null
+	for point in candidate_points:
+		if not (point is Vector2):
+			continue
+		var candidate: Vector2 = point
+		if _is_patrol_recovery_point_claimed(candidate):
+			continue
+		_patrol_recovery_claims[_patrol_recovery_key(candidate)] = enemy.get_instance_id()
+		return candidate
+	return null
+
+
+func schedule_enemy_patrol_reentry(enemy: Node2D, candidate_points: Array) -> void:
+	if enemy == null or candidate_points.is_empty():
+		return
+	if not enemy.has_method("suspend_for_patrol_reentry"):
+		return
+	for pending in _pending_patrol_reentries:
+		if pending.get("enemy") == enemy:
+			return
+	enemy.suspend_for_patrol_reentry()
+	_pending_patrol_reentries.append({
+		"enemy": enemy,
+		"timer": PATROL_REENTRY_DELAY,
+		"points": candidate_points.duplicate(true),
+	})
+
+
+func _update_patrol_reentries(delta: float) -> void:
+	if _pending_patrol_reentries.is_empty():
+		return
+	for i in range(_pending_patrol_reentries.size() - 1, -1, -1):
+		var pending: Dictionary = _pending_patrol_reentries[i]
+		var enemy: Node2D = pending.get("enemy")
+		if enemy == null or not is_instance_valid(enemy):
+			_pending_patrol_reentries.remove_at(i)
+			continue
+		var timer: float = float(pending.get("timer", 0.0)) - delta
+		pending["timer"] = timer
+		if timer > 0.0:
+			_pending_patrol_reentries[i] = pending
+			continue
+		var reserved: Variant = reserve_patrol_recovery_point(enemy, pending.get("points", []))
+		if reserved is Vector2:
+			var target: Vector2 = reserved
+			if ship != null and target.distance_to(ship.global_position) < PATROL_REENTRY_PLAYER_CLEAR:
+				pending["timer"] = 0.35
+				_pending_patrol_reentries[i] = pending
+				continue
+			if enemy.has_method("resume_from_patrol_reentry"):
+				enemy.resume_from_patrol_reentry(target)
+			_pending_patrol_reentries.remove_at(i)
+			continue
+		pending["timer"] = 0.4
+		_pending_patrol_reentries[i] = pending
+
+
+func _is_patrol_recovery_point_claimed(point: Vector2) -> bool:
+	for key in _patrol_recovery_claims.keys():
+		var parts := str(key).split(":")
+		if parts.size() != 2:
+			continue
+		var claimed := Vector2(float(parts[0]), float(parts[1]))
+		if claimed.distance_to(point) < PATROL_RECOVERY_SLOT_RADIUS:
+			return true
+	return false
+
+
+func _patrol_recovery_key(point: Vector2) -> String:
+	return "%.1f:%.1f" % [point.x, point.y]
+
+
 func _log_system_state(reason: String) -> void:
 	if ship == null:
 		return
@@ -709,7 +957,7 @@ func _log_system_state(reason: String) -> void:
 			alive_count += 1
 	RuntimeDebugLog.log(
 		"state",
-		"%s | player=(%.1f, %.1f) vel=%.1f dark=%s hidden=%s alert=%.2f combat=%s caution=%s search=%s reason=%s search_timer=%.2f phase=%d cooldown=%.2f alive=%d" % [
+		"%s | player=(%.1f, %.1f) vel=%.1f dark=%s hidden=%s alert=%.2f combat=%s caution=%s search=%s reason=%s search_timer=%.2f phase=%d cooldown=%.2f heat=%.2f budget=%.2f pool=%d lockdown=%d gates=%d alive=%d" % [
 			reason,
 			ship.global_position.x,
 			ship.global_position.y,
@@ -724,9 +972,204 @@ func _log_system_state(reason: String) -> void:
 			_search_timer,
 			_search_phase,
 			combat_cooldown_remaining,
+			_combat_heat,
+			_combat_reinforcement_budget,
+			_combat_respawn_pool.size(),
+			_combat_lockdown_level,
+			_combat_locked_gate_ids.size(),
 			alive_count,
 		]
 	)
+
+
+func _begin_combat_pressure() -> void:
+	_combat_heat = maxf(_combat_heat, 0.24)
+	_combat_reinforcement_budget = maxf(_combat_reinforcement_budget, 0.65)
+	_combat_reinforcement_timer = _combat_interval_for_heat()
+	_combat_dynamic_spawn_count = 0
+	_combat_baseline_enemy_count = _living_enemy_count()
+	_combat_respawn_pool.clear()
+	_set_combat_lockdown_level(0)
+	RuntimeDebugLog.log("combat", "begin pressure heat=%.2f budget=%.2f baseline=%d target=%d" % [_combat_heat, _combat_reinforcement_budget, _combat_baseline_enemy_count, _combat_target_alive_count()])
+
+
+func _reset_combat_pressure() -> void:
+	_combat_heat = 0.0
+	_combat_reinforcement_budget = 0.0
+	_combat_reinforcement_timer = 0.0
+	_combat_dynamic_spawn_count = 0
+	_combat_baseline_enemy_count = 0
+	_combat_respawn_pool.clear()
+	_set_combat_lockdown_level(0)
+
+
+func _update_combat_pressure(delta: float) -> void:
+	if not AlertSystem.combat_mode:
+		return
+	var alive_now := _living_enemy_count()
+	var target_alive := _combat_target_alive_count()
+	_combat_heat = minf(1.0, _combat_heat + delta * COMBAT_HEAT_PER_SECOND)
+	_update_combat_lockdown()
+	_combat_reinforcement_budget = minf(COMBAT_REINFORCEMENT_BUDGET_CAP, _combat_reinforcement_budget + delta * COMBAT_REINFORCEMENT_BUDGET_PER_SECOND * lerpf(0.7, 1.4, _combat_heat))
+	if alive_now < target_alive:
+		var missing := target_alive - alive_now
+		_combat_reinforcement_budget = maxf(_combat_reinforcement_budget, float(missing))
+		_combat_reinforcement_timer = minf(_combat_reinforcement_timer, COMBAT_REINFORCEMENT_RECOVERY_DELAY)
+	_combat_reinforcement_timer = maxf(0.0, _combat_reinforcement_timer - delta)
+	if _combat_reinforcement_budget < 1.0 or _combat_reinforcement_timer > 0.0:
+		return
+	if _spawn_dynamic_combat_reinforcement():
+		_combat_dynamic_spawn_count += 1
+		_combat_reinforcement_budget = maxf(0.0, _combat_reinforcement_budget - 1.0)
+		alive_now = _living_enemy_count()
+		target_alive = _combat_target_alive_count()
+		if alive_now < target_alive:
+			_combat_reinforcement_timer = COMBAT_REINFORCEMENT_RECOVERY_DELAY
+		else:
+			_combat_reinforcement_timer = _combat_interval_for_heat()
+		RuntimeDebugLog.log("combat", "dynamic reinforcement spawned count=%d heat=%.2f budget=%.2f alive=%d target=%d" % [_combat_dynamic_spawn_count, _combat_heat, _combat_reinforcement_budget, alive_now, target_alive])
+	else:
+		_combat_reinforcement_timer = COMBAT_REINFORCEMENT_RETRY_TIME
+
+
+func _combat_interval_for_heat() -> float:
+	return lerpf(COMBAT_REINFORCEMENT_INTERVAL_HIGH, COMBAT_REINFORCEMENT_INTERVAL_LOW, _combat_heat)
+
+
+func _combat_target_alive_count() -> int:
+	if _combat_baseline_enemy_count <= 0:
+		return COMBAT_REINFORCEMENT_MIN_ACTIVE
+	var scaled_target := int(ceil(float(_combat_baseline_enemy_count) * lerpf(0.62, 0.82, _combat_heat)))
+	return clampi(maxi(COMBAT_REINFORCEMENT_MIN_ACTIVE, scaled_target), COMBAT_REINFORCEMENT_MIN_ACTIVE, COMBAT_REINFORCEMENT_MAX_ACTIVE)
+
+
+func _update_combat_lockdown() -> void:
+	var next_level := 0
+	if _combat_heat >= COMBAT_LOCKDOWN_LEVEL_TWO_HEAT:
+		next_level = 2
+	elif _combat_heat >= COMBAT_LOCKDOWN_LEVEL_ONE_HEAT:
+		next_level = 1
+	_set_combat_lockdown_level(next_level)
+
+
+func _set_combat_lockdown_level(level: int) -> void:
+	level = clampi(level, 0, 2)
+	if _combat_lockdown_level == level and (level == 0 or not _combat_locked_gate_ids.is_empty()):
+		return
+	_combat_lockdown_level = level
+	var gates := _get_lockdown_gates()
+	for gate in gates:
+		gate.set_lockdown_closed(false)
+	_combat_locked_gate_ids.clear()
+	if level <= 0:
+		_refresh_progress_lock_state()
+		return
+	var to_lock := _select_lockdown_gates(level)
+	for gate in to_lock:
+		gate.set_lockdown_closed(true)
+		_combat_locked_gate_ids.append(gate.get_instance_id())
+	_refresh_progress_lock_state()
+	_interaction_text = "LOCKDOWN L%d  //  ROUTES SHIFTING" % level
+	RuntimeDebugLog.log("lockdown", "level=%d locked=%d" % [level, _combat_locked_gate_ids.size()])
+	_log_system_state("combat_lockdown_l%d" % level)
+
+
+func _get_lockdown_gates() -> Array:
+	var gates: Array = []
+	var lockdown_only: Array = []
+	for child in get_children():
+		if child == null or not child.has_method("set_lockdown_closed"):
+			continue
+		gates.append(child)
+		if child.has_method("is_lockdown_candidate") and child.is_lockdown_candidate():
+			lockdown_only.append(child)
+	if not lockdown_only.is_empty():
+		return lockdown_only
+	return gates
+
+
+func _select_lockdown_gates(level: int) -> Array:
+	var gates := _get_lockdown_gates()
+	if gates.is_empty():
+		return []
+	var safe_anchor := _nearest_dark_pocket_position()
+	if safe_anchor == Vector2.ZERO:
+		safe_anchor = _goal_anchor_position()
+	var goal_anchor := _goal_anchor_position()
+	var desired_dir := _lockdown_desired_direction(goal_anchor)
+	var candidates: Array[Dictionary] = []
+	var fallback: Array[Dictionary] = []
+	for gate in gates:
+		var pos: Vector2 = gate.global_position
+		if pos.distance_to(ship.global_position) < COMBAT_LOCKDOWN_PLAYER_EXCLUSION:
+			continue
+		if safe_anchor != Vector2.ZERO and pos.distance_to(safe_anchor) < COMBAT_LOCKDOWN_POCKET_EXCLUSION:
+			continue
+		if goal_anchor != Vector2.ZERO and pos.distance_to(goal_anchor) < COMBAT_LOCKDOWN_GOAL_EXCLUSION:
+			fallback.append({"gate": gate, "score": 1.0})
+			continue
+		var to_gate: Vector2 = pos - ship.global_position
+		var score: float = to_gate.length()
+		if desired_dir != Vector2.ZERO:
+			score += maxf(desired_dir.dot(to_gate.normalized()), 0.0) * 260.0
+		if safe_anchor != Vector2.ZERO:
+			score += minf(pos.distance_to(safe_anchor), 520.0) * 0.28
+		if goal_anchor != Vector2.ZERO:
+			score += maxf(420.0 - pos.distance_to(goal_anchor), 0.0) * 0.45
+		candidates.append({"gate": gate, "score": score})
+	if candidates.is_empty():
+		candidates = fallback
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a["score"]) > float(b["score"])
+	)
+	var selected: Array = []
+	for candidate in candidates:
+		if selected.size() >= level:
+			break
+		selected.append(candidate["gate"])
+	return selected
+
+
+func _nearest_dark_pocket_position() -> Vector2:
+	var best := Vector2.ZERO
+	var best_dist := INF
+	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+		if not (pocket is Node2D):
+			continue
+		var dist: float = ship.global_position.distance_to(pocket.global_position)
+		if dist < best_dist:
+			best_dist = dist
+			best = pocket.global_position
+	return best
+
+
+func _goal_anchor_position() -> Vector2:
+	var objective := _nearest_objective(ship)
+	if objective != null:
+		return objective.global_position
+	var exit := get_node_or_null("ExitZone")
+	if exit is Node2D:
+		return exit.global_position
+	return Vector2.ZERO
+
+
+func _lockdown_desired_direction(goal_anchor: Vector2) -> Vector2:
+	if ship.velocity.length() > 1.0:
+		return ship.velocity.normalized()
+	if goal_anchor != Vector2.ZERO:
+		return (goal_anchor - ship.global_position).normalized()
+	return Vector2.ZERO
+
+
+func _refresh_progress_lock_state() -> void:
+	var should_lock_progress := AlertSystem.combat_mode and _combat_lockdown_level >= 1
+	_combat_progress_locked = should_lock_progress
+	if should_lock_progress:
+		var exit := get_node_or_null("ExitZone")
+		if exit != null and exit.has_method("set_locked"):
+			exit.set_locked(true, "REDLINE")
+		return
+	_set_exit_locked(_objective_required > 0 and _objective_progress < _objective_required)
 
 
 func _build_search_points(position: Vector2) -> Array[Vector2]:
@@ -866,6 +1309,113 @@ func _spawn_reinforcements_for_alert() -> void:
 		_reinforcements_spawned = true
 
 
+func _spawn_dynamic_combat_reinforcement() -> bool:
+	var candidates: Array[Dictionary] = []
+	var fallback_candidates: Array[Dictionary] = []
+	for point in _get_reinforcement_points():
+		var marker: Marker2D = point["marker"]
+		var pos: Vector2 = marker.global_position
+		var score := _combat_spawn_score(pos, false)
+		var data := {
+			"source": "marker",
+			"score": score,
+			"kind": point["kind"],
+			"position": pos,
+		}
+		if score > 0.0:
+			candidates.append(data)
+		elif _combat_fallback_spawn_ok(pos):
+			data["score"] = _combat_fallback_score(pos)
+			fallback_candidates.append(data)
+	for i in range(_combat_respawn_pool.size()):
+		var snapshot: Dictionary = _combat_respawn_pool[i]
+		var pos: Vector2 = snapshot.get("global_position", Vector2.ZERO)
+		var score := _combat_spawn_score(pos, true)
+		var data := {
+			"source": "snapshot",
+			"score": score + 60.0,
+			"snapshot_index": i,
+			"snapshot": snapshot,
+			"position": pos,
+		}
+		if score > 0.0:
+			candidates.append(data)
+		elif _combat_fallback_spawn_ok(pos):
+			data["score"] = _combat_fallback_score(pos) + 40.0
+			fallback_candidates.append(data)
+	if candidates.is_empty():
+		candidates = fallback_candidates
+		if candidates.is_empty():
+			RuntimeDebugLog.log("combat", "no dynamic reinforcement candidates passed filters")
+			return false
+		RuntimeDebugLog.log("combat", "using fallback reinforcement candidates count=%d" % candidates.size())
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a["score"]) > float(b["score"])
+	)
+	var chosen: Dictionary = candidates[0]
+	if str(chosen["source"]) == "snapshot":
+		var respawned := _instantiate_snapshot_enemy(chosen["snapshot"])
+		if respawned == null:
+			return false
+		register_spawned_enemy(respawned)
+		_combat_respawn_pool.remove_at(int(chosen["snapshot_index"]))
+		RuntimeDebugLog.log("combat", "respawned snapshot enemy at (%.1f, %.1f)" % [respawned.global_position.x, respawned.global_position.y])
+		return true
+	var enemy := _instantiate_reinforcement(str(chosen["kind"]))
+	if enemy == null:
+		return false
+	enemy.global_position = chosen["position"]
+	register_spawned_enemy(enemy)
+	RuntimeDebugLog.log("combat", "spawned marker reinforcement kind=%s at (%.1f, %.1f)" % [chosen["kind"], enemy.global_position.x, enemy.global_position.y])
+	return true
+
+
+func _combat_spawn_score(position: Vector2, from_snapshot: bool) -> float:
+	var distance := position.distance_to(ship.global_position)
+	if distance < COMBAT_REINFORCEMENT_MIN_DISTANCE or distance > COMBAT_REINFORCEMENT_MAX_DISTANCE:
+		return -1.0
+	for enemy in enemies:
+		if not is_instance_valid(enemy) or not enemy.is_alive:
+			continue
+		if enemy.global_position.distance_to(position) < (84.0 if from_snapshot else 110.0):
+			return -1.0
+	var blocked := is_line_blocked(position, ship.global_position, [])
+	var score := distance
+	if blocked:
+		score += COMBAT_REINFORCEMENT_BLOCKED_BONUS
+	if ship.velocity.length() > 1.0:
+		var to_spawn: Vector2 = (position - ship.global_position).normalized()
+		var move_dir: Vector2 = ship.velocity.normalized()
+		score += maxf(-move_dir.dot(to_spawn), 0.0) * 160.0
+	else:
+		score += absf(position.x - ship.global_position.x) * 0.08 + absf(position.y - ship.global_position.y) * 0.08
+	return score
+
+
+func _combat_fallback_spawn_ok(position: Vector2) -> bool:
+	var distance := position.distance_to(ship.global_position)
+	if distance < 180.0 or distance > COMBAT_REINFORCEMENT_MAX_DISTANCE * 1.15:
+		return false
+	for enemy in enemies:
+		if not is_instance_valid(enemy) or not enemy.is_alive:
+			continue
+		if enemy.global_position.distance_to(position) < 72.0:
+			return false
+	return true
+
+
+func _combat_fallback_score(position: Vector2) -> float:
+	var distance := position.distance_to(ship.global_position)
+	var score := distance * 0.85
+	if is_line_blocked(position, ship.global_position, []):
+		score += COMBAT_REINFORCEMENT_BLOCKED_BONUS * 0.55
+	if ship.velocity.length() > 1.0:
+		var to_spawn: Vector2 = (position - ship.global_position).normalized()
+		var move_dir: Vector2 = ship.velocity.normalized()
+		score += maxf(-move_dir.dot(to_spawn), 0.0) * 110.0
+	return score
+
+
 func _get_reinforcement_points() -> Array[Dictionary]:
 	var points: Array[Dictionary] = []
 	for node in find_children("*", "Marker2D", true, false):
@@ -897,3 +1447,19 @@ func _instantiate_reinforcement(kind: String) -> Node:
 			return WISP_SCENE.instantiate()
 		_:
 			return HUNTER_SCENE.instantiate()
+
+
+func _instantiate_snapshot_enemy(snapshot: Dictionary) -> Node:
+	if snapshot.is_empty():
+		return null
+	var scene: PackedScene = load(snapshot["scene_path"])
+	if scene == null:
+		return null
+	var enemy := scene.instantiate()
+	enemy.global_position = snapshot["global_position"]
+	enemy.rotation = snapshot["rotation"]
+	if snapshot.has("patrol_a") and enemy.has_node("PatrolA"):
+		enemy.get_node("PatrolA").position = snapshot["patrol_a"]
+	if snapshot.has("patrol_b") and enemy.has_node("PatrolB"):
+		enemy.get_node("PatrolB").position = snapshot["patrol_b"]
+	return enemy

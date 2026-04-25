@@ -11,6 +11,8 @@ func _ready() -> void:
 	top_level = true
 	z_index = 200
 	visible = false
+	if InputManager != null and not InputManager.controller_layout_changed.is_connected(_on_controller_layout_changed):
+		InputManager.controller_layout_changed.connect(_on_controller_layout_changed)
 
 
 func _process(delta: float) -> void:
@@ -57,4 +59,10 @@ func _draw() -> void:
 		draw_circle(center, 15.0, bg)
 		draw_arc(center, 15.0, 0.0, TAU, 32, ring, 3.6)
 		draw_circle(center, 10.0, Color(0.08, 0.11, 0.09, 0.96))
-		draw_string(font, center + Vector2(-5.5, 5.5), str(_sequence[i]), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, text_col)
+		var label := InputManager.get_hack_button_display(str(_sequence[i]))
+		draw_string(font, center + Vector2(-5.5, 5.5), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, text_col)
+
+
+func _on_controller_layout_changed(_using_controller: bool) -> void:
+	if _visible_state:
+		queue_redraw()

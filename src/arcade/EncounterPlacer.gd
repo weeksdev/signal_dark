@@ -82,6 +82,7 @@ func place(world: Node2D, graph,
 		first_combat_room = false
 
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
+	_place_lockdown_corridor_gates(world, graph, node_rects, node_cells)
 
 
 # ── Budget & composition ──────────────────────────────────────────────────────
@@ -483,23 +484,27 @@ func _build_sweeper_corridor_layout(inner: Rect2, center: Vector2, doorways: Arr
 		var patrol_y := clampf(center.y, inner.position.y + 24.0, inner.end.y - 24.0)
 		points = [
 			Vector2(left_entry.x, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.20, patrol_y),
 			Vector2(inner.position.x + inner.size.x * 0.35, patrol_y),
 			Vector2(inner.position.x + inner.size.x * 0.65, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.80, patrol_y),
 			Vector2(right_entry.x, patrol_y),
 		]
-		choke_indices = [0, 3]
+		choke_indices = [0, 5]
 	else:
 		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 28.0))
 		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 28.0))
 		var patrol_x := clampf(center.x, inner.position.x + 24.0, inner.end.x - 24.0)
 		points = [
 			Vector2(patrol_x, top_entry.y),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.20),
 			Vector2(patrol_x, inner.position.y + inner.size.y * 0.35),
 			Vector2(patrol_x, inner.position.y + inner.size.y * 0.65),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.80),
 			Vector2(patrol_x, bottom_entry.y),
 		]
-		choke_indices = [0, 3]
-	return _finalize_wisp_layout(points, choke_indices, 0, 2)
+		choke_indices = [0, 5]
+	return _finalize_wisp_layout(points, choke_indices, 0, 3)
 
 
 func _build_sweeper_room_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:
@@ -790,6 +795,47 @@ func _spawn_gatelock(world: Node2D, rect_a: Rect2, rect_b: Rect2,
 		return
 
 	world.add_child(gate)
+
+
+func _place_lockdown_corridor_gates(world: Node2D, graph,
+		node_rects: Dictionary, node_cells: Dictionary) -> void:
+	for edge in graph.edges:
+		if not node_rects.has(edge.from_id) or not node_rects.has(edge.to_id):
+			continue
+		if not node_cells.has(edge.from_id) or not node_cells.has(edge.to_id):
+			continue
+		var gate: Node2D = _make_corridor_gatelock(
+			node_rects[edge.from_id], node_rects[edge.to_id],
+			node_cells[edge.from_id], node_cells[edge.to_id]
+		)
+		if gate == null:
+			continue
+		gate.name = "LockdownGate_%d_%d" % [edge.from_id, edge.to_id]
+		gate.set("lockdown_only", true)
+		gate.set("open_in_combat", true)
+		world.add_child(gate)
+
+
+func _make_corridor_gatelock(rect_a: Rect2, rect_b: Rect2,
+		cell_a: Vector2i, cell_b: Vector2i) -> Node2D:
+	var diff: Vector2i = cell_b - cell_a
+	var gate: Node2D = GATELOCK_SCENE.instantiate()
+
+	if diff == Vector2i(1, 0):
+		gate.position = Vector2(rect_a.position.x + _ROOM_W + _CORRIDOR * 0.5, rect_a.get_center().y)
+		gate.rotation = PI * 0.5
+	elif diff == Vector2i(-1, 0):
+		gate.position = Vector2(rect_b.position.x + _ROOM_W + _CORRIDOR * 0.5, rect_a.get_center().y)
+		gate.rotation = PI * 0.5
+	elif diff == Vector2i(0, 1):
+		gate.position = Vector2(rect_a.get_center().x, rect_a.position.y + _ROOM_H + _CORRIDOR * 0.5)
+	elif diff == Vector2i(0, -1):
+		gate.position = Vector2(rect_a.get_center().x, rect_b.position.y + _ROOM_H + _CORRIDOR * 0.5)
+	else:
+		gate.queue_free()
+		return null
+
+	return gate
 
 
 # ── Dark pocket placement ─────────────────────────────────────────────────────

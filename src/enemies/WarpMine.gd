@@ -85,6 +85,14 @@ func stealth_reveal_level() -> float:
 	return 1.0 if _alerting else 0.0
 
 
+func is_valid_auto_fire_target(_from_point: Vector2) -> bool:
+	return is_alive and _emp_disabled_timer <= 0.0
+
+
+func is_combat_targetable() -> bool:
+	return is_alive
+
+
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
 	if not is_alive or combat_active or _arming:
 		return false

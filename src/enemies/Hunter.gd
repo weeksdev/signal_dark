@@ -15,6 +15,7 @@ var spawn_point: Vector2 = Vector2.ZERO
 var patrol_points: Array[Vector2] = []
 var patrol_index: int = 0
 var patrol_pause: float = 0.0
+var _stuck_auto_target_cooldown: float = 0.0
 
 
 func _ready() -> void:
@@ -41,9 +42,11 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		_push_out_of_dark_pockets(delta)
 		if get_slide_collision_count() > 0:
+			_stuck_auto_target_cooldown = 0.35
 			velocity = Vector2.ZERO
 			_advance_patrol()
 	else:
+		_stuck_auto_target_cooldown = maxf(0.0, _stuck_auto_target_cooldown - delta)
 		var search_target: Variant = world_search_target_if_relevant(SEARCH_INTEREST_RADIUS)
 		if search_target is Vector2:
 			_run_search(delta, search_target)
@@ -97,7 +100,14 @@ func deactivate_to_stealth() -> void:
 	ship = null
 	velocity = Vector2.ZERO
 	patrol_pause = 0.0
+	_snap_to_patrol_route()
 	clear_alert_state()
+
+
+func is_valid_auto_fire_target(from_point: Vector2) -> bool:
+	if not super.is_valid_auto_fire_target(from_point):
+		return false
+	return _stuck_auto_target_cooldown <= 0.0
 
 
 func can_be_suppressed_by(_ship_node: Node2D) -> bool:
@@ -168,3 +178,38 @@ func _advance_patrol() -> void:
 		return
 	patrol_index = posmod(patrol_index + 1, patrol_points.size())
 	patrol_pause = PATROL_DWELL
+
+
+func _snap_to_patrol_route() -> void:
+	var ordered_points := _ordered_recovery_points()
+	var reserved: Variant = world_call("reserve_patrol_recovery_point", [self, ordered_points])
+	if reserved is Vector2:
+		_apply_reserved_patrol_point(reserved)
+		return
+	world_call("schedule_enemy_patrol_reentry", [self, ordered_points])
+
+
+func _ordered_recovery_points() -> Array:
+	var points: Array = patrol_points.duplicate() if not patrol_points.is_empty() else [spawn_point]
+	points.sort_custom(func(a: Vector2, b: Vector2) -> bool:
+		return global_position.distance_to(a) < global_position.distance_to(b)
+	)
+	return points
+
+
+func _apply_reserved_patrol_point(point: Vector2) -> void:
+	if patrol_points.is_empty():
+		global_position = spawn_point
+		patrol_pause = PATROL_DWELL * 0.4
+		return
+	for i in range(patrol_points.size()):
+		if patrol_points[i].distance_to(point) < 1.0:
+			patrol_index = i
+			break
+	global_position = point
+	patrol_pause = PATROL_DWELL * 0.4
+
+
+func resume_from_patrol_reentry(position: Vector2) -> void:
+	_apply_reserved_patrol_point(position)
+	super.resume_from_patrol_reentry(position)

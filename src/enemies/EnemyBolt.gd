@@ -25,5 +25,3 @@ func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player_ship"):
 		body.take_hit()
 		queue_free()
-	elif body.collision_layer & 4 != 0:
-		queue_free()

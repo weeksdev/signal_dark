@@ -91,7 +91,14 @@ func deactivate_to_stealth() -> void:
 	combat_active = false
 	ship = null
 	velocity = Vector2.ZERO
+	_snap_to_patrol_route()
 	clear_alert_state()
+
+
+func is_valid_auto_fire_target(from_point: Vector2) -> bool:
+	if not super.is_valid_auto_fire_target(from_point):
+		return false
+	return _stuck_timer < 0.12
 
 
 func can_be_suppressed_by(ship_node: Node2D) -> bool:
@@ -168,6 +175,88 @@ func _update_stuck_recovery(delta: float, offset: Vector2) -> void:
 func _recover_from_block() -> void:
 	_advance_route()
 	velocity = Vector2.ZERO
+
+
+func _snap_to_patrol_route() -> void:
+	var ordered_points := _ordered_recovery_points()
+	var reserved: Variant = world_call("reserve_patrol_recovery_point", [self, ordered_points])
+	if reserved is Vector2:
+		_apply_reserved_patrol_point(reserved)
+		return
+	world_call("schedule_enemy_patrol_reentry", [self, ordered_points])
+
+
+func _ordered_recovery_points() -> Array:
+	var points: Array = patrol_points.duplicate() if use_route_patrol and patrol_points.size() >= 2 else [anchor]
+	if points.size() <= 1:
+		return points
+	var indexed: Array = []
+	for i in range(points.size()):
+		indexed.append({
+			"index": i,
+			"point": points[i],
+			"distance": global_position.distance_to(points[i]),
+			"choke_buffer": _route_steps_to_nearest_choke(i, points.size()),
+		})
+	indexed.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if int(a["choke_buffer"]) != int(b["choke_buffer"]):
+			return int(a["choke_buffer"]) > int(b["choke_buffer"])
+		return float(a["distance"]) > float(b["distance"])
+	)
+	points.clear()
+	for entry in indexed:
+		points.append(entry["point"])
+	return points
+
+
+func _apply_reserved_patrol_point(point: Vector2) -> void:
+	if use_route_patrol and patrol_points.size() >= 2:
+		for i in range(patrol_points.size()):
+			if patrol_points[i].distance_to(point) < 1.0:
+				_patrol_index = i
+				break
+		patrol_step = _preferred_patrol_step(_patrol_index, patrol_points.size())
+		global_position = point
+	else:
+		global_position = anchor
+	_last_position = global_position
+	_stuck_timer = 0.0
+	_route_pause = 0.18
+
+
+func resume_from_patrol_reentry(position: Vector2) -> void:
+	_apply_reserved_patrol_point(position)
+	super.resume_from_patrol_reentry(position)
+
+
+func _route_steps_to_nearest_choke(index: int, route_size: int) -> int:
+	if choke_indices.is_empty() or route_size <= 2:
+		return 999
+	var best: int = route_size
+	for choke in choke_indices:
+		var choke_index: int = clampi(int(choke), 0, route_size - 1)
+		var raw_delta: int = absi(index - choke_index)
+		best = mini(best, mini(raw_delta, route_size - raw_delta))
+	return best
+
+
+func _steps_to_choke_in_direction(start_index: int, direction: int, route_size: int) -> int:
+	if choke_indices.is_empty() or route_size <= 2:
+		return 999
+	var index := start_index
+	for step_count in range(1, route_size + 1):
+		index = posmod(index + direction, route_size)
+		if index in choke_indices:
+			return step_count
+	return route_size
+
+
+func _preferred_patrol_step(index: int, route_size: int) -> int:
+	var forward_steps := _steps_to_choke_in_direction(index, 1, route_size)
+	var backward_steps := _steps_to_choke_in_direction(index, -1, route_size)
+	if forward_steps == backward_steps:
+		return patrol_step if patrol_step != 0 else 1
+	return 1 if forward_steps > backward_steps else -1
 
 
 func _update_palette() -> void:

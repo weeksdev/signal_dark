@@ -1,7 +1,24 @@
 extends Node
 
+signal controller_layout_changed(using_controller: bool)
+
 const DEADZONE := 0.25
 const AIM_DEADZONE := 0.3
+
+var _controller_present: bool = false
+
+
+func _ready() -> void:
+	_controller_present = not Input.get_connected_joypads().is_empty()
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	var connected := not Input.get_connected_joypads().is_empty()
+	if connected == _controller_present:
+		return
+	_controller_present = connected
+	controller_layout_changed.emit(_controller_present)
 
 
 func get_move_vector() -> Vector2:
@@ -52,6 +69,26 @@ func get_hack_button_just_pressed() -> String:
 	if Input.is_action_just_pressed("hack_y"):
 		return "Y"
 	return ""
+
+
+func has_controller() -> bool:
+	return _controller_present
+
+
+func get_hack_button_display(token: String) -> String:
+	if has_controller():
+		return token
+	match token:
+		"A":
+			return "J"
+		"B":
+			return "K"
+		"X":
+			return "U"
+		"Y":
+			return "I"
+		_:
+			return token
 
 
 func is_restart_just_pressed() -> bool:
