@@ -3,13 +3,27 @@ extends Node2D
 const HUNTER_SCENE := preload("res://src/enemies/Hunter.tscn")
 const WISP_SCENE := preload("res://src/enemies/Wisp.tscn")
 const PRISM_SCENE := preload("res://src/enemies/Prism.tscn")
-const STEALTH_MUSIC := preload("res://audio/signal_dark_spy_stealth.wav")
-const SEARCH_MUSIC := preload("res://audio/signal_dark_spy_search.wav")
-const COMBAT_MUSIC := preload("res://audio/signal_dark_spy_combat.wav")
+const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
 const ObjectiveNode := preload("res://src/world/ObjectiveNode.gd")
 const SearchRelayBurst := preload("res://src/fx/SearchRelayBurst.gd")
-const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
 const PauseOverlayScene := preload("res://src/ui/PauseOverlay.gd")
+const ArcadeSummaryOverlayScene := preload("res://src/ui/ArcadeRunSummaryOverlay.gd")
+const ALERT_SPOTTED_SFX_PATH := "res://audio/sfx_alert_spotted.wav"
+const PLAYER_FIRE_SFX_PATHS := [
+	"res://audio/ship_fire_1.wav",
+	"res://audio/ship_fire_2.wav",
+]
+const GUN_PULSE_SFX_PATH := "res://audio/sfx_gun_pulse.wav"
+const MUSIC_FLIP_SFX_PATH := "res://audio/sfx_music_flip.wav"
+const ENEMY_EXPLOSION_SFX_PATHS := [
+	"res://audio/enemy_explosion_a.wav",
+	"res://audio/enemy_explosion_b.wav",
+]
+const ENEMY_EXPLOSION_START_OFFSETS := {
+	"res://audio/enemy_explosion_a.wav": 0.0032,
+	"res://audio/enemy_explosion_b.wav": 0.1205,
+}
+const ENEMY_EXPLOSION_SEMITONE_LOOP := [0, 3, -3, 2, -2, 1, -1]
 
 @onready var ship = $Ship
 @onready var hud = $CanvasLayer/HUD
@@ -17,6 +31,9 @@ const PauseOverlayScene := preload("res://src/ui/PauseOverlay.gd")
 @onready var zone_complete_overlay = $CanvasLayer/ZoneCompleteOverlay
 @onready var canvas_layer: CanvasLayer = $CanvasLayer
 @onready var grid: Node2D = $Grid
+@onready var music_stealth_player: AudioStreamPlayer = get_node_or_null("MusicStealth")
+@onready var music_search_player: AudioStreamPlayer = get_node_or_null("MusicSearch")
+@onready var music_combat_player: AudioStreamPlayer = get_node_or_null("MusicCombat")
 
 var enemies: Array[Node] = []
 var probe_target: Vector2 = Vector2.ZERO
@@ -61,12 +78,23 @@ var _combat_respawn_pool: Array[Dictionary] = []
 var _combat_lockdown_level: int = 0
 var _combat_locked_gate_ids: Array[int] = []
 var _combat_progress_locked: bool = false
+var _stealth_reentry_timer: float = 0.0
 var _pause_overlay: Control = null
 var _patrol_recovery_claims: Dictionary = {}
 var _pending_patrol_reentries: Array[Dictionary] = []
-var _music_stealth: AudioStreamPlayer = null
-var _music_search: AudioStreamPlayer = null
-var _music_combat: AudioStreamPlayer = null
+var _arcade_summary_overlay: Control = null
+var _suppressed_kill_count: int = 0
+var _hacks_completed: int = 0
+var _probes_used: int = 0
+var _arcade_result_recorded: bool = false
+var _floor_started_msec: int = 0
+var _active_music_mode: StringName = &""
+var _music_transition_from: StringName = &""
+var _sfx_cache: Dictionary = {}
+var _music_resume_positions: Dictionary = {}
+var _player_fire_sfx_index: int = 0
+var _enemy_explosion_sfx_index: int = 0
+var _enemy_explosion_pitch_index: int = 0
 
 const COMBAT_LOSE_CONTACT_SECONDS := 4.0
 const THREAT_DISTANCE := 420.0
@@ -102,6 +130,16 @@ const COMBAT_LOCKDOWN_PLAYER_EXCLUSION := 150.0
 const PATROL_RECOVERY_SLOT_RADIUS := 44.0
 const PATROL_REENTRY_DELAY := 1.1
 const PATROL_REENTRY_PLAYER_CLEAR := 260.0
+const STEALTH_REENTRY_DURATION := 1.0
+const STEALTH_REENTRY_HIDDEN_DURATION := 1.45
+const STEALTH_REENTRY_DETECTION_CLEAR_DISTANCE := 185.0
+const STEALTH_REENTRY_ALERT_DECAY := 0.65
+const MUSIC_CROSSFADE_SPEED := 5.0
+const MUSIC_START_OFFSETS := {
+	&"stealth": 0.0175,
+	&"search": 0.0175,
+	&"combat": 0.005,
+}
 
 
 func _ready() -> void:
@@ -112,6 +150,7 @@ func _ready() -> void:
 	GameState.enforce_desktop_window_size()
 	restarting = false
 	completing = false
+	_floor_started_msec = Time.get_ticks_msec()
 	ship.destroyed.connect(_on_ship_destroyed)
 	_configure_camera()
 	enemies = get_tree().get_nodes_in_group("zone_enemy")
@@ -125,6 +164,7 @@ func _ready() -> void:
 		exit.player_reached.connect(_on_exit_reached)
 	_refresh_gate_hack_previews()
 	_ensure_pause_overlay()
+	_ensure_arcade_summary_overlay()
 	_setup_scene_music()
 
 
@@ -138,6 +178,7 @@ func _process(delta: float) -> void:
 	if _caution_active and not AlertSystem.combat_mode:
 		_update_caution(delta)
 	_update_search(delta)
+	_update_stealth_reentry(delta)
 	_update_jammer(delta)
 	_update_objectives(delta)
 	_update_patrol_reentries(delta)
@@ -145,58 +186,203 @@ func _process(delta: float) -> void:
 
 
 func _exit_tree() -> void:
+	_persist_arcade_music_resume_positions()
 	if Settings != null and Settings.settings_changed.is_connected(_on_music_settings_changed):
 		Settings.settings_changed.disconnect(_on_music_settings_changed)
 
 
 func _setup_scene_music() -> void:
-	_music_stealth = _make_scene_music_player(STEALTH_MUSIC)
-	_music_search = _make_scene_music_player(SEARCH_MUSIC)
-	_music_combat = _make_scene_music_player(COMBAT_MUSIC)
-	for player in [_music_stealth, _music_search, _music_combat]:
-		add_child(player)
-		player.play()
+	_restore_arcade_music_resume_positions()
+	for player in [music_stealth_player, music_search_player, music_combat_player]:
+		if player == null:
+			continue
+		player.bus = "Master"
+		player.process_mode = Node.PROCESS_MODE_ALWAYS
+		player.volume_db = -80.0
+		player.stop()
+	RuntimeDebugLog.log("music", "scene music setup stealth=%s search=%s combat=%s" % [
+		str(music_stealth_player != null and music_stealth_player.stream != null),
+		str(music_search_player != null and music_search_player.stream != null),
+		str(music_combat_player != null and music_combat_player.stream != null),
+	])
 	if Settings != null and not Settings.settings_changed.is_connected(_on_music_settings_changed):
 		Settings.settings_changed.connect(_on_music_settings_changed)
-
-
-func _make_scene_music_player(stream: AudioStream) -> AudioStreamPlayer:
-	var player := AudioStreamPlayer.new()
-	player.bus = "Master"
-	player.stream = stream
-	player.volume_db = -80.0
-	return player
+	_sync_scene_music_mode()
 
 
 func _update_scene_music(delta: float) -> void:
-	if _music_stealth == null:
+	if music_stealth_player == null:
 		return
-	_fade_scene_music(_music_stealth, _music_target_db(0.78), delta)
-	_fade_scene_music(_music_search, _music_target_db(0.46 if is_search_active() else 0.0), delta)
-	_fade_scene_music(_music_combat, _music_target_db(0.62 if AlertSystem.combat_mode else 0.0), delta)
-	for player in [_music_stealth, _music_search, _music_combat]:
-		if not player.playing:
-			player.play()
+	_sync_scene_music_mode(delta)
 
 
-func _fade_scene_music(player: AudioStreamPlayer, target_db: float, delta: float) -> void:
-	player.volume_db = lerpf(player.volume_db, target_db, clampf(delta * 3.0, 0.0, 1.0))
+func _desired_music_mode() -> StringName:
+	if AlertSystem.combat_mode:
+		return &"combat"
+	return &"stealth"
 
 
-func _music_target_db(mix: float) -> float:
+func _music_target_db() -> float:
 	var volume := Settings.music_volume if Settings != null else 0.75
 	volume = clampf(volume, 0.0, 1.0)
-	if volume <= 0.001 or mix <= 0.001:
+	if volume <= 0.001:
 		return -80.0
-	return linear_to_db(volume * mix)
+	return linear_to_db(volume)
+
+
+func _sync_scene_music_mode(delta: float = 1.0) -> void:
+	var desired_mode := _desired_music_mode()
+	var target_db := _music_target_db()
+	if desired_mode != _active_music_mode:
+		_music_transition_from = _active_music_mode
+		_store_music_resume_position(_music_transition_from)
+		_active_music_mode = desired_mode
+		if _music_transition_from != &"":
+			play_music_transition_sfx()
+		RuntimeDebugLog.log("music", "scene mode=%s" % String(desired_mode))
+	var fade_weight := clampf(delta * MUSIC_CROSSFADE_SPEED, 0.0, 1.0)
+	for mode in [&"stealth", &"search", &"combat"]:
+		var player := _music_player_for_mode(mode)
+		if player == null:
+			continue
+		if mode == _active_music_mode:
+			if not player.playing:
+				player.play()
+				player.seek(_music_resume_position_for_mode(mode))
+			player.volume_db = lerpf(player.volume_db, target_db, fade_weight)
+		elif mode == _music_transition_from:
+			if not player.playing:
+				player.play()
+				player.seek(_music_resume_position_for_mode(mode))
+			player.volume_db = lerpf(player.volume_db, -80.0, fade_weight)
+			if player.volume_db <= -70.0:
+				_store_music_resume_position(mode)
+				player.stop()
+				player.volume_db = -80.0
+				if mode == _music_transition_from:
+					_music_transition_from = &""
+		else:
+			_store_music_resume_position(mode)
+			player.stop()
+			player.volume_db = -80.0
+
+
+func _music_player_for_mode(mode: StringName) -> AudioStreamPlayer:
+	match mode:
+		&"combat":
+			return music_combat_player
+		&"search":
+			return music_search_player
+		_:
+			return music_stealth_player
+
+
+func _music_start_offset_for_mode(mode: StringName) -> float:
+	return float(MUSIC_START_OFFSETS.get(mode, 0.0))
+
+
+func _music_resume_position_for_mode(mode: StringName) -> float:
+	return float(_music_resume_positions.get(mode, _music_start_offset_for_mode(mode)))
+
+
+func _store_music_resume_position(mode: StringName) -> void:
+	if mode == &"":
+		return
+	var player := _music_player_for_mode(mode)
+	if player == null or not player.playing:
+		return
+	var start_offset := _music_start_offset_for_mode(mode)
+	var position := maxf(player.get_playback_position(), start_offset)
+	_music_resume_positions[mode] = position
+	if ArcadeState.is_active:
+		ArcadeState.set_music_resume_position(mode, position)
+
+
+func _restore_arcade_music_resume_positions() -> void:
+	if not ArcadeState.is_active:
+		return
+	for mode in [&"stealth", &"search", &"combat"]:
+		_music_resume_positions[mode] = ArcadeState.get_music_resume_position(mode, _music_start_offset_for_mode(mode))
+
+
+func _persist_arcade_music_resume_positions() -> void:
+	if not ArcadeState.is_active:
+		return
+	for mode in [&"stealth", &"search", &"combat"]:
+		_store_music_resume_position(mode)
+
+
+func _fx_target_db(scale: float = 1.0) -> float:
+	var volume := Settings.fx_volume if Settings != null else 0.85
+	volume = clampf(volume * scale, 0.0, 1.0)
+	if volume <= 0.001:
+		return -80.0
+	return linear_to_db(volume)
+
+
+func _play_one_shot_sfx(stream: AudioStream, volume_scale: float = 1.0, pitch_scale: float = 1.0, start_offset: float = 0.0) -> void:
+	if stream == null:
+		return
+	var player := AudioStreamPlayer.new()
+	player.stream = stream
+	player.bus = &"Master"
+	player.volume_db = _fx_target_db(volume_scale)
+	player.pitch_scale = pitch_scale
+	player.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(player)
+	player.finished.connect(player.queue_free)
+	player.play(start_offset)
+
+
+func play_spotted_sfx(_world_position: Vector2 = Vector2.ZERO) -> void:
+	_play_one_shot_sfx(_load_sfx(ALERT_SPOTTED_SFX_PATH), 0.95, randf_range(0.98, 1.02))
+
+
+func play_music_transition_sfx() -> void:
+	_play_one_shot_sfx(_load_sfx(MUSIC_FLIP_SFX_PATH), 0.62, randf_range(0.98, 1.03))
+
+
+func play_player_fire_sfx(_world_position: Vector2 = Vector2.ZERO) -> void:
+	if PLAYER_FIRE_SFX_PATHS.is_empty():
+		_play_one_shot_sfx(_load_sfx(GUN_PULSE_SFX_PATH), 0.42, randf_range(1.03, 1.08))
+		return
+	var path: String = PLAYER_FIRE_SFX_PATHS[_player_fire_sfx_index % PLAYER_FIRE_SFX_PATHS.size()]
+	_player_fire_sfx_index += 1
+	_play_one_shot_sfx(_load_sfx(path), 0.72, randf_range(0.98, 1.03))
+
+
+func play_enemy_fire_sfx(_world_position: Vector2 = Vector2.ZERO) -> void:
+	_play_one_shot_sfx(_load_sfx(GUN_PULSE_SFX_PATH), 0.34, randf_range(0.88, 0.96))
+
+
+func play_enemy_explosion_sfx(_world_position: Vector2 = Vector2.ZERO, silent: bool = false) -> void:
+	if ENEMY_EXPLOSION_SFX_PATHS.is_empty():
+		return
+	var path: String = ENEMY_EXPLOSION_SFX_PATHS[_enemy_explosion_sfx_index % ENEMY_EXPLOSION_SFX_PATHS.size()]
+	_enemy_explosion_sfx_index += 1
+	var semitone: int = ENEMY_EXPLOSION_SEMITONE_LOOP[_enemy_explosion_pitch_index % ENEMY_EXPLOSION_SEMITONE_LOOP.size()]
+	_enemy_explosion_pitch_index += 1
+	var pitch_scale := pow(2.0, float(semitone) / 12.0)
+	var volume_scale := 0.52 if silent else 0.68
+	var start_offset := float(ENEMY_EXPLOSION_START_OFFSETS.get(path, 0.0))
+	_play_one_shot_sfx(_load_sfx(path), volume_scale, pitch_scale, start_offset)
+
+
+func _load_sfx(path: String) -> AudioStream:
+	if _sfx_cache.has(path):
+		return _sfx_cache[path]
+	var stream := load(path) as AudioStream
+	_sfx_cache[path] = stream
+	return stream
 
 
 func _on_music_settings_changed() -> void:
-	if _music_stealth == null:
+	if music_stealth_player == null:
 		return
-	_music_stealth.volume_db = _music_target_db(0.78)
-	_music_search.volume_db = _music_target_db(0.46 if is_search_active() else 0.0)
-	_music_combat.volume_db = _music_target_db(0.62 if AlertSystem.combat_mode else 0.0)
+	_active_music_mode = &""
+	_music_transition_from = &""
+	_music_resume_positions.clear()
+	_sync_scene_music_mode(1.0 / MUSIC_CROSSFADE_SPEED)
 
 
 func _update_caution(delta: float) -> void:
@@ -248,6 +434,7 @@ func _on_enemy_detected(enemy: Node) -> void:
 	_caution_timer = CAUTION_DURATION
 	_caution_enemy = enemy
 	AlertSystem.set_alert_level(maxf(AlertSystem.alert_level, 0.42))
+	play_spotted_sfx(enemy.global_position)
 	_maybe_request_search_support(enemy, ship.global_position)
 
 
@@ -256,6 +443,7 @@ func _on_enemy_suspicious(enemy: Node) -> void:
 		RuntimeDebugLog.log("suspicion", "%s suspicious ignored; ship hidden or missing" % enemy.name)
 		return
 	RuntimeDebugLog.log("suspicion", "%s triggered suspicion support flow at ship=(%.1f, %.1f)" % [enemy.name, ship.global_position.x, ship.global_position.y])
+	play_spotted_sfx(enemy.global_position)
 	_last_known_player_position = ship.global_position
 	start_search(ship.global_position, SEARCH_DURATION * 0.4, "SEARCH: SUSPICION")
 	AlertSystem.set_alert_level(maxf(AlertSystem.alert_level, 0.18))
@@ -271,6 +459,7 @@ func _on_enemy_killed(enemy: Node, silent: bool) -> void:
 		_defeated_enemy_snapshots.append(snapshot)
 		if AlertSystem.combat_mode:
 			_combat_respawn_pool.append(snapshot.duplicate(true))
+	play_enemy_explosion_sfx(enemy.global_position, silent)
 	_kill_count += 1
 	if _caution_enemy == enemy:
 		_cancel_caution()
@@ -281,6 +470,8 @@ func _on_enemy_killed(enemy: Node, silent: bool) -> void:
 		_combat_reinforcement_budget = minf(COMBAT_REINFORCEMENT_BUDGET_CAP, _combat_reinforcement_budget + COMBAT_REINFORCEMENT_BUDGET_PER_KILL)
 		_combat_reinforcement_timer = minf(_combat_reinforcement_timer, COMBAT_REINFORCEMENT_IMMEDIATE_KILL_DELAY)
 		RuntimeDebugLog.log("combat", "kill raised heat=%.2f budget=%.2f pool=%d" % [_combat_heat, _combat_reinforcement_budget, _combat_respawn_pool.size()])
+	if silent:
+		_suppressed_kill_count += 1
 	if _living_enemy_count() == 0:
 		_exit_combat_to_stealth()
 
@@ -294,6 +485,10 @@ func _on_exit_reached() -> void:
 		return
 	completing = true
 	get_tree().paused = false
+	if ArcadeState.is_active:
+		_record_arcade_floor_result(true)
+		_show_arcade_run_summary(ArcadeState.is_final_floor(), true)
+		return
 	zone_complete_overlay.trigger(_kill_count == 0)
 
 
@@ -302,6 +497,10 @@ func _on_ship_destroyed() -> void:
 		return
 	restarting = true
 	get_tree().paused = false
+	if ArcadeState.is_active:
+		_record_arcade_floor_result(false)
+		_show_arcade_run_summary(false)
+		return
 	game_over_overlay.trigger()
 
 
@@ -316,6 +515,13 @@ func _ensure_pause_overlay() -> void:
 	canvas_layer.add_child(_pause_overlay)
 	if _pause_overlay.has_method("setup"):
 		_pause_overlay.setup(self)
+
+
+func _ensure_arcade_summary_overlay() -> void:
+	if canvas_layer == null or _arcade_summary_overlay != null:
+		return
+	_arcade_summary_overlay = ArcadeSummaryOverlayScene.new()
+	canvas_layer.add_child(_arcade_summary_overlay)
 
 
 func trigger_alert() -> void:
@@ -347,6 +553,17 @@ func register_spawned_enemy(enemy: Node) -> void:
 		enemy.killed.connect(_on_enemy_killed)
 	if AlertSystem.combat_mode and enemy.has_method("activate_for_combat"):
 		enemy.activate_for_combat(ship)
+
+
+func _register_combat_temporary_enemy(enemy: Node) -> void:
+	if enemy != null and is_instance_valid(enemy):
+		enemy.set_meta("combat_temporary", true)
+
+
+func _clear_enemy_projectiles() -> void:
+	for projectile in get_tree().get_nodes_in_group("enemy_projectile"):
+		if is_instance_valid(projectile):
+			projectile.queue_free()
 
 
 func _maybe_request_search_support(source_enemy: Node, target_position: Vector2) -> bool:
@@ -389,6 +606,7 @@ func _spawn_search_relay_fx(from_point: Vector2, to_point: Vector2) -> void:
 func register_probe(position: Vector2, duration: float) -> void:
 	probe_target = position
 	probe_expire_time = _now() + duration
+	_probes_used += 1
 	start_search(position, duration, "SEARCH: PROBE")
 
 
@@ -457,6 +675,7 @@ func update_gate_hacking(ship_node: Node2D, _delta: float) -> Dictionary:
 
 		if _hack_index >= _hack_sequence.size():
 			gate.set_hacked_open(true)
+			_hacks_completed += 1
 			_respawn_defeated_enemies()
 			var success_pos := gate.global_position + Vector2(0.0, -54.0)
 			_gate_hack_sequences.erase(gate.get_instance_id())
@@ -543,12 +762,16 @@ func get_hud_interaction_text() -> String:
 func get_hud_combat_state_text() -> String:
 	if ship != null and ship.in_dark_pocket:
 		if AlertSystem.combat_mode:
-			return "HIDDEN  //  CLEARING"
+			return "HIDDEN  //  COOLING %.1fs" % maxf(combat_cooldown_remaining, 0.0)
+		if _stealth_reentry_timer > 0.0:
+			return "HIDDEN  //  RESET %.1fs" % _stealth_reentry_timer
 		if _caution_active:
 			return "HIDDEN  //  SAFE"
 	if _caution_active:
 		return "CAUTION  %.1fs" % maxf(_caution_timer, 0.0)
 	if not AlertSystem.combat_mode:
+		if _stealth_reentry_timer > 0.0:
+			return "STEALTH WINDOW  %.1fs" % _stealth_reentry_timer
 		return ""
 	var lockdown_text := ""
 	if _combat_lockdown_level > 0:
@@ -556,6 +779,16 @@ func get_hud_combat_state_text() -> String:
 	if _enemy_still_threatening():
 		return "TRACKED  //  HEAT %02d%%%s  //  BREAK LINE OF SIGHT" % [int(round(_combat_heat * 100.0)), lockdown_text]
 	return "EVADE  %.1fs  //  HEAT %02d%%%s" % [maxf(combat_cooldown_remaining, 0.0), int(round(_combat_heat * 100.0)), lockdown_text]
+
+
+func get_hud_level_time_text() -> String:
+	if _floor_started_msec <= 0:
+		return "00:00"
+	var elapsed_seconds := maxf(0.0, float(Time.get_ticks_msec() - _floor_started_msec) / 1000.0)
+	var total_seconds := int(floor(elapsed_seconds))
+	var minutes := total_seconds / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d" % [minutes, seconds]
 
 
 func is_search_active() -> bool:
@@ -721,6 +954,26 @@ func _on_objective_completed(_node: ObjectiveNode) -> void:
 		_interaction_text = "EXIT UNLOCKED"
 
 
+func _record_arcade_floor_result(cleared: bool) -> void:
+	if not ArcadeState.is_active or _arcade_result_recorded:
+		return
+	_arcade_result_recorded = true
+	ArcadeState.record_floor_result({
+		"kills": _kill_count,
+		"suppressed_kills": _suppressed_kill_count,
+		"alerts_triggered": _alert_count,
+		"hacks_completed": _hacks_completed,
+		"probes_used": _probes_used,
+		"floor_time_seconds": maxf(0.0, float(Time.get_ticks_msec() - _floor_started_msec) / 1000.0),
+	}, cleared)
+
+
+func _show_arcade_run_summary(completed: bool, floor_clear: bool = false) -> void:
+	_ensure_arcade_summary_overlay()
+	if _arcade_summary_overlay != null and _arcade_summary_overlay.has_method("show_summary"):
+		_arcade_summary_overlay.show_summary(ArcadeState.build_run_summary(completed), "floor_clear" if floor_clear and not completed else "run_end")
+
+
 func _set_exit_locked(active: bool) -> void:
 	var exit := get_node_or_null("ExitZone")
 	if exit != null and exit.has_method("set_locked"):
@@ -745,6 +998,8 @@ func _update_search(delta: float) -> void:
 		return
 	if ship.in_dark_pocket and not AlertSystem.combat_mode:
 		_search_timer = maxf(0.0, _search_timer - delta * 1.8)
+	elif _stealth_reentry_timer > 0.0 and not AlertSystem.combat_mode:
+		_search_timer = maxf(0.0, _search_timer - delta * 1.2)
 	else:
 		_search_timer = maxf(0.0, _search_timer - delta)
 	_search_phase_timer = maxf(0.0, _search_phase_timer - delta)
@@ -823,13 +1078,19 @@ func _exit_combat_to_stealth() -> void:
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
 			continue
+		if bool(enemy.get_meta("combat_temporary", false)):
+			enemy.queue_free()
+			continue
 		if enemy.has_method("deactivate_to_stealth"):
 			enemy.deactivate_to_stealth()
 		if enemy.has_method("clear_alert_state"):
 			enemy.clear_alert_state()
+	_clear_enemy_projectiles()
+	_prune_enemy_list()
 	AlertSystem.exit_combat()
 	combat_cooldown_remaining = 0.0
 	_reset_combat_pressure()
+	_begin_stealth_reentry(ship != null and ship.in_dark_pocket)
 	start_search(_last_known_player_position if _last_known_player_position != Vector2.ZERO else ship.global_position, SEARCH_DURATION, "SEARCH: SWEEP")
 	_log_system_state("combat_exit_to_stealth")
 	for enemy in enemies:
@@ -839,6 +1100,19 @@ func _exit_combat_to_stealth() -> void:
 			enemy.call("_update_palette")
 		if enemy.has_method("queue_redraw"):
 			enemy.queue_redraw()
+
+
+func _prune_enemy_list() -> void:
+	var retained: Array[Node] = []
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		if not enemy.is_alive:
+			continue
+		if bool(enemy.get_meta("combat_temporary", false)):
+			continue
+		retained.append(enemy)
+	enemies = retained
 
 
 func _relax_enemies_for_hiding() -> void:
@@ -851,13 +1125,21 @@ func _relax_enemies_for_hiding() -> void:
 	_reset_combat_pressure()
 	if AlertSystem.combat_mode:
 		for enemy in enemies:
-			if is_instance_valid(enemy) and enemy.has_method("deactivate_to_stealth"):
+			if not is_instance_valid(enemy):
+				continue
+			if bool(enemy.get_meta("combat_temporary", false)):
+				enemy.queue_free()
+				continue
+			if enemy.has_method("deactivate_to_stealth"):
 				enemy.deactivate_to_stealth()
 		AlertSystem.exit_combat()
 	else:
 		AlertSystem.set_alert_level(0.0)
 	for enemy in enemies:
 		if not is_instance_valid(enemy):
+			continue
+		if bool(enemy.get_meta("combat_temporary", false)):
+			enemy.queue_free()
 			continue
 		if enemy.has_method("clear_alert_state"):
 			enemy.clear_alert_state()
@@ -867,7 +1149,38 @@ func _relax_enemies_for_hiding() -> void:
 			enemy.call("_update_palette")
 		if enemy.has_method("queue_redraw"):
 			enemy.queue_redraw()
+	_clear_enemy_projectiles()
+	_prune_enemy_list()
+	_begin_stealth_reentry(true)
 	_log_system_state("relax_enemies_for_hiding")
+
+
+func is_stealth_reentry_active() -> bool:
+	return _stealth_reentry_timer > 0.0 and not AlertSystem.combat_mode
+
+
+func should_suppress_enemy_detection(enemy: Node2D, player: Node2D) -> bool:
+	if enemy == null or player == null:
+		return false
+	if player.in_dark_pocket:
+		return true
+	if not is_stealth_reentry_active():
+		return false
+	if enemy.global_position.distance_to(player.global_position) >= STEALTH_REENTRY_DETECTION_CLEAR_DISTANCE:
+		return true
+	return is_line_blocked(enemy.global_position, player.global_position, [enemy.get_rid()])
+
+
+func _begin_stealth_reentry(hidden_reset: bool) -> void:
+	_stealth_reentry_timer = maxf(_stealth_reentry_timer, STEALTH_REENTRY_HIDDEN_DURATION if hidden_reset else STEALTH_REENTRY_DURATION)
+
+
+func _update_stealth_reentry(delta: float) -> void:
+	if _stealth_reentry_timer <= 0.0 or AlertSystem.combat_mode:
+		return
+	_stealth_reentry_timer = maxf(0.0, _stealth_reentry_timer - delta)
+	if AlertSystem.alert_level > 0.0:
+		AlertSystem.set_alert_level(maxf(0.0, AlertSystem.alert_level - delta * STEALTH_REENTRY_ALERT_DECAY))
 
 
 func begin_patrol_recovery_cycle() -> void:
@@ -1302,6 +1615,7 @@ func _spawn_reinforcements_for_alert() -> void:
 		if enemy == null:
 			continue
 		enemy.global_position = candidate["marker"].global_position
+		_register_combat_temporary_enemy(enemy)
 		register_spawned_enemy(enemy)
 		spawned += 1
 
@@ -1357,6 +1671,7 @@ func _spawn_dynamic_combat_reinforcement() -> bool:
 		var respawned := _instantiate_snapshot_enemy(chosen["snapshot"])
 		if respawned == null:
 			return false
+		_register_combat_temporary_enemy(respawned)
 		register_spawned_enemy(respawned)
 		_combat_respawn_pool.remove_at(int(chosen["snapshot_index"]))
 		RuntimeDebugLog.log("combat", "respawned snapshot enemy at (%.1f, %.1f)" % [respawned.global_position.x, respawned.global_position.y])
@@ -1365,6 +1680,7 @@ func _spawn_dynamic_combat_reinforcement() -> bool:
 	if enemy == null:
 		return false
 	enemy.global_position = chosen["position"]
+	_register_combat_temporary_enemy(enemy)
 	register_spawned_enemy(enemy)
 	RuntimeDebugLog.log("combat", "spawned marker reinforcement kind=%s at (%.1f, %.1f)" % [chosen["kind"], enemy.global_position.x, enemy.global_position.y])
 	return true

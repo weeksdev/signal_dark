@@ -1,0 +1,15 @@
+#!/bin/zsh
+set -euo pipefail
+
+ROOT_DIR="${0:A:h}"
+cd "$ROOT_DIR"
+
+DEFAULT_IOS_TEAM_ID="XQ9D888PGU"
+DEFAULT_IOS_BUNDLE_ID="com.andrewweeks.signaldark.dev"
+DEFAULT_IOS_EXPORT_ROOT="/tmp/signal_dark_build"
+
+export SIGNAL_DARK_IOS_TEAM_ID="${SIGNAL_DARK_IOS_TEAM_ID:-$DEFAULT_IOS_TEAM_ID}"
+export SIGNAL_DARK_IOS_BUNDLE_ID="${SIGNAL_DARK_IOS_BUNDLE_ID:-$DEFAULT_IOS_BUNDLE_ID}"
+export SIGNAL_DARK_IOS_EXPORT_ROOT="${SIGNAL_DARK_IOS_EXPORT_ROOT:-$DEFAULT_IOS_EXPORT_ROOT}"
+
+exec "$ROOT_DIR/tasks/export_ios_local.sh"

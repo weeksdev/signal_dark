@@ -83,6 +83,9 @@ func _check_detection() -> void:
 	if player.in_dark_pocket:
 		_suspicion = 0.0
 		return
+	if should_suppress_detection_of(player):
+		_suspicion = 0.0
+		return
 
 	var emission: float = player.get_effective_emission()
 	var speed_ratio: float = clampf(player.velocity.length() / maxf(player.max_speed, 1.0), 0.0, 1.0)

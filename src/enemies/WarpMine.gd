@@ -50,6 +50,10 @@ func _physics_process(delta: float) -> void:
 	var player := ship if ship != null else get_tree().get_first_node_in_group("player_ship")
 	if player == null:
 		return
+	var world := get_tree().current_scene
+	if world != null and world.has_method("should_suppress_enemy_detection"):
+		if world.should_suppress_enemy_detection(self, player):
+			return
 	if player.in_dark_pocket and not combat_active:
 		return
 

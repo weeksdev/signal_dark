@@ -62,11 +62,21 @@ Keyboard:
 - `Q`: launch probe
 - `F` or `Right Mouse`: hack interact
 - `J / K / U / I`: hack sequence buttons `A / B / X / Y`
+- `C`: EMP
 - `R`: reroll arcade seed on the start screen
+- `Esc` / `P`: pause in-game
 
 Controller:
 - Left stick / D-pad: move and menu navigation
+- Right stick: aim
+- `L2`: dark mode
+- `R2`: boost
+- `R1`: fire
+- `A`: suppress
+- `X`: launch probe
+- `Y`: hack / interact
 - `A`: confirm
+- `Start`: confirm / pause
 - `Y`: open enemy index from the start screen
 - `Back`: toggle between story and arcade on the start screen
 - Face buttons also drive hack sequences
@@ -75,11 +85,14 @@ Controller:
 
 From the title screen:
 - `Enter` / `Space` / `A` / `Start`: start selected mode
-- `Tab`, left/right arrows, or controller left/right: switch between story and arcade
+- `Up/Down` or `W/S` or D-pad: move between `PLAY` and `SETTINGS`
+- `Left/Right` or D-pad left/right: switch between story and arcade while `PLAY` is selected
+- `Tab` or controller `Back`: quick toggle root menu focus
 - `I` or `Y`: open the enemy info screen
 - In arcade mode:
   - `R`: reroll seed
-  - `Up/Down` or `W/S`: change difficulty
+  - `Left/Right`: change difficulty
+  - controller stick left/right or D-pad left/right: change difficulty
 
 There is also a hidden level select unlock sequence in the start screen logic.
 

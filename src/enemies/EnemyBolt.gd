@@ -8,6 +8,7 @@ var direction: Vector2 = Vector2.RIGHT
 
 
 func _ready() -> void:
+	add_to_group("enemy_projectile")
 	var timer := get_tree().create_timer(lifetime)
 	timer.timeout.connect(queue_free)
 

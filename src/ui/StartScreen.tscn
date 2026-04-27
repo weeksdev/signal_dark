@@ -1,6 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/ui/StartScreen.gd" id="1"]
+[ext_resource type="AudioStreamWAV" path="res://audio/download_title_dead_drop_drive.wav" id="2"]
 
 [node name="StartScreen" type="Node2D"]
 script = ExtResource("1")
+
+[node name="TitleMusicTest" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2")
+autoplay = true
+volume_db = -6.0
+bus = &"Master"

@@ -7,6 +7,7 @@ var status_text: String = "PROBES 3   SPEED 000"
 var objective_text: String = ""
 var interaction_text: String = ""
 var combat_state_text: String = ""
+var level_time_text: String = "00:00"
 var blink: float = 0.0
 
 
@@ -37,6 +38,10 @@ func _process(delta: float) -> void:
 		combat_state_text = world.get_hud_combat_state_text()
 	else:
 		combat_state_text = ""
+	if world != null and world.has_method("get_hud_level_time_text"):
+		level_time_text = world.get_hud_level_time_text()
+	else:
+		level_time_text = "00:00"
 	queue_redraw()
 
 
@@ -91,6 +96,14 @@ func _draw() -> void:
 	if interaction_text != "":
 		var interaction_y := 116.0 if combat_state_text != "" else 100.0
 		draw_string(font, inner.position + Vector2(8.0, interaction_y), interaction_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, tiny_size, Color(ui_color.r, ui_color.g, ui_color.b, 0.8))
+
+	var time_width := 92.0
+	var time_panel := Rect2(Vector2(viewport_size.x - time_width - 16.0, 16.0), Vector2(time_width, 34.0))
+	draw_rect(time_panel, Color(0.0, 0.0, 0.0, 0.3), true)
+	draw_rect(time_panel.grow(-6.0), Color(0.01, 0.04, 0.03, 0.74), true)
+	draw_rect(time_panel.grow(-5.0), Color(0.0, 0.2, 0.1, 0.12), false, 1.0)
+	draw_string(font, time_panel.position + Vector2(10.0, 14.0), "TIME", HORIZONTAL_ALIGNMENT_LEFT, -1.0, tiny_size, Color(ui_color.r, ui_color.g, ui_color.b, 0.72))
+	draw_string(font, time_panel.position + Vector2(10.0, 28.0), level_time_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, Color(0.9, 1.0, 0.92, 0.96))
 
 
 func _draw_bar(rect: Rect2, ratio: float, tint: Color, segmented: bool) -> void:

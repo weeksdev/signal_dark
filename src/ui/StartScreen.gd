@@ -1,7 +1,5 @@
 extends Node2D
 
-const TITLE_MUSIC := preload("res://audio/signal_dark_title.wav")
-
 const LEVEL_SELECT_COMBO := [
 	"up",
 	"up",
@@ -26,7 +24,6 @@ var _arcade_difficulty: int = ArcadeState.Difficulty.MEDIUM
 var _root_menu_index: int = 0
 var _settings_open: bool = false
 var _settings_index: int = 0
-var _title_music_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
@@ -38,55 +35,15 @@ func _ready() -> void:
 	_arcade_difficulty = ArcadeState.Difficulty.MEDIUM
 	var t := get_tree().create_timer(0.6)
 	t.timeout.connect(func(): _ready_to_start = true)
-	_setup_title_music()
 
 
 func _process(delta: float) -> void:
 	_elapsed += delta
-	_update_title_music_volume(delta)
 	queue_redraw()
 
 
 func _exit_tree() -> void:
-	if Settings != null and Settings.settings_changed.is_connected(_on_settings_changed):
-		Settings.settings_changed.disconnect(_on_settings_changed)
-
-
-func _setup_title_music() -> void:
-	if _title_music_player != null:
-		return
-	_title_music_player = AudioStreamPlayer.new()
-	_title_music_player.bus = "Master"
-	_title_music_player.stream = TITLE_MUSIC
-	_title_music_player.volume_db = -80.0
-	add_child(_title_music_player)
-	_title_music_player.play()
-	if Settings != null and not Settings.settings_changed.is_connected(_on_settings_changed):
-		Settings.settings_changed.connect(_on_settings_changed)
-
-
-func _update_title_music_volume(delta: float) -> void:
-	if _title_music_player == null:
-		return
-	var target_db := _music_target_db(0.72)
-	_title_music_player.volume_db = lerpf(_title_music_player.volume_db, target_db, clampf(delta * 3.0, 0.0, 1.0))
-	if not _title_music_player.playing:
-		_title_music_player.play()
-
-
-func _music_target_db(mix: float) -> float:
-	if Settings == null:
-		return linear_to_db(mix)
-	var volume := clampf(Settings.music_volume, 0.0, 1.0)
-	if volume <= 0.001 or mix <= 0.001:
-		return -80.0
-	return linear_to_db(volume * mix)
-
-
-func _on_settings_changed() -> void:
-	if _title_music_player == null:
-		return
-	_title_music_player.volume_db = _music_target_db(0.72)
+	pass
 
 
 func _input(event: InputEvent) -> void:
@@ -442,7 +399,7 @@ func _draw() -> void:
 				"SETTINGS", HORIZONTAL_ALIGNMENT_LEFT, -1, 14,
 				Color(0.66, 1.0, 0.78, 0.95))
 		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 40.0),
-				"LEFT/RIGHT or A/D  //  DPAD  to change",
+				"LEFT/RIGHT or A/D  //  DPAD LEFT/RIGHT  to change",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.38, 0.74, 0.48, 0.62))
 		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 55.0),
@@ -499,7 +456,7 @@ func _draw() -> void:
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.28, 0.60, 0.88, 0.50))
 		draw_string(font, Vector2(cx - 60.0, seed_y + 54.0),
-				"UP/DOWN  —  CHANGE DIFFICULTY",
+				"LEFT/RIGHT  —  CHANGE DIFFICULTY",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.32, 0.72, 0.92, 0.58))
 		if fmod(t, 1.3) < 0.82 and _root_menu_index == 0:
@@ -538,10 +495,11 @@ func _draw() -> void:
 	var hints := [
 		"MOVE          WASD  /  LEFT STICK",
 		"DARK MODE     SHIFT  /  L2          (reduces emission)",
-		"FIRE          SPACE  /  R1          (AUTO FIRE OPTIONAL IN COMBAT)",
-		"BOOST         E  /  R2",
+		"FIRE          LMB  /  R1            (AUTO FIRE OPTIONAL IN COMBAT)",
+		"BOOST         SPACE  /  R2",
 		"PROBE         Q  /  X               (decoy beacon)",
-		"SUPPRESS      F  /  A               (silent kill from behind)",
+		"SUPPRESS      E  /  A               (silent kill from behind)",
+		"HACK          F or RMB  /  Y        (gate / objective interact)",
 	]
 	for i in hints.size():
 		draw_string(font, Vector2(cx - 130.0, hy + i * 15.0),

@@ -11,7 +11,8 @@ const STEER_ACCEL := 360.0
 @export var combat_speed: float = 110.0
 @export var suppress_range: float = 28.0
 @export var alert_radius: float = 36.0
-@export var search_interest_radius: float = 124.0
+@export var search_interest_radius: float = 210.0
+@export var suspicion_follow_radius: float = 220.0
 
 var anchor: Vector2 = Vector2.ZERO
 var phase: float = 0.0
@@ -122,6 +123,8 @@ func _check_alert_radius() -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player == null:
 		return
+	if should_suppress_detection_of(player):
+		return
 	if world_is_point_jammed(global_position) or world_is_point_jammed(player.global_position):
 		return
 	if player.in_dark_pocket:
@@ -142,11 +145,28 @@ func _stealth_target() -> Vector2:
 			roam_target = patrol_points[_patrol_index]
 		else:
 			roam_target = route_b if patrol_step >= 0 else route_a
+	var player = get_tree().get_first_node_in_group("player_ship")
+	if player != null and _can_follow_suspicious_target(player):
+		return safe_enemy_target(player.global_position)
 	if world_is_search_active():
 		var search_target: Vector2 = world_search_target_for_self()
 		if global_position.distance_to(search_target) <= search_interest_radius:
 			return safe_enemy_target(search_target)
 	return roam_target
+
+
+func _can_follow_suspicious_target(player: Node2D) -> bool:
+	if should_suppress_detection_of(player):
+		return false
+	if player.in_dark_pocket:
+		return false
+	if world_is_point_jammed(global_position) or world_is_point_jammed(player.global_position):
+		return false
+	if _alerting:
+		return true
+	if _suspicion <= 0.06:
+		return false
+	return global_position.distance_to(player.global_position) <= suspicion_follow_radius
 
 
 func _advance_route() -> void:

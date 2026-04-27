@@ -20,4 +20,7 @@ func try_fire(direction: Vector2) -> void:
 	var pulse_shot = pulse_shot_scene.instantiate()
 	pulse_shot.global_position = get_parent().global_position + direction.normalized() * 22.0
 	pulse_shot.direction = direction.normalized()
-	get_tree().current_scene.add_child(pulse_shot)
+	var world := get_tree().current_scene
+	if world != null and world.has_method("play_player_fire_sfx"):
+		world.play_player_fire_sfx(pulse_shot.global_position)
+	world.add_child(pulse_shot)

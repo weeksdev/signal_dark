@@ -8,7 +8,9 @@ const AUTO_FIRE_RANGE := 320.0
 @export var acceleration: float = 2400.0
 @export var drag: float = 1650.0
 @export var max_speed: float = 460.0
-@export var dark_mode_speed_scale: float = 0.76
+@export var dark_mode_speed_scale: float = 0.68
+@export var dark_mode_acceleration_scale: float = 0.74
+@export var dark_mode_drag_scale: float = 0.86
 @export var boost_impulse: float = 560.0
 @export var boost_cooldown: float = 0.22
 @export var signal_probe_scene: PackedScene
@@ -58,11 +60,13 @@ func _physics_process(delta: float) -> void:
 	dark_mode = InputManager.is_dark_mode()
 	var move_input := InputManager.get_move_vector()
 	var speed_scale := dark_mode_speed_scale if dark_mode else 1.0
+	var acceleration_scale := dark_mode_acceleration_scale if dark_mode else 1.0
+	var drag_scale := dark_mode_drag_scale if dark_mode else 1.0
 	if _emp_slow_timer > 0.0:
 		speed_scale *= emp_speed_scale
 	var target_velocity := move_input * max_speed * speed_scale
-	velocity = velocity.move_toward(target_velocity, acceleration * delta)
-	velocity = velocity.move_toward(Vector2.ZERO, drag * delta)
+	velocity = velocity.move_toward(target_velocity, acceleration * acceleration_scale * delta)
+	velocity = velocity.move_toward(Vector2.ZERO, drag * drag_scale * delta)
 
 	var did_boost := false
 	if InputManager.is_boost_pressed() and _emp_slow_timer <= 0.0 and not dark_mode and move_input != Vector2.ZERO and boost_cooldown_remaining <= 0.0:

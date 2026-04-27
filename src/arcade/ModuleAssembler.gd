@@ -5,10 +5,10 @@ const ZoneGraph := preload("res://src/arcade/ArcadeZoneGraph.gd")
 const WALL_SCENE := preload("res://src/terrain/LatticeWall.tscn")
 const EXIT_SCENE := preload("res://src/world/ExitZone.tscn")
 
-const ROOM_W := 480.0
-const ROOM_H := 360.0
-const CORRIDOR := 120.0
-const DOOR_W := 180.0
+const ROOM_W := 560.0
+const ROOM_H := 420.0
+const CORRIDOR := 140.0
+const DOOR_W := 200.0
 const WALL_UNIT := 144.0
 const CELL_X := ROOM_W + CORRIDOR   # 600
 const CELL_Y := ROOM_H + CORRIDOR   # 480

@@ -319,6 +319,15 @@ func world_is_point_jammed(point: Vector2) -> bool:
 	return bool(result) if result != null else false
 
 
+func should_suppress_detection_of(player: Node2D) -> bool:
+	if player == null:
+		return false
+	if player.in_dark_pocket:
+		return true
+	var result: Variant = world_call("should_suppress_enemy_detection", [self, player])
+	return bool(result) if result != null else false
+
+
 func safe_enemy_target(target: Vector2) -> Vector2:
 	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
 		if not (pocket is Node2D):

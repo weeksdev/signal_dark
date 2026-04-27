@@ -23,9 +23,9 @@ const COSTS := {
 	"warpmine": 4,
 }
 
-const ENEMY_MARGIN    := 110.0
-const POCKET_MARGIN   := 90.0
-const DOORWAY_CLEAR   := 130.0
+const ENEMY_MARGIN    := 126.0
+const POCKET_MARGIN   := 104.0
+const DOORWAY_CLEAR   := 148.0
 const SPREAD_MIN      := 80.0
 const CENTER_BIAS_PULL := 0.42
 const POCKET_ENEMY_CLEAR := 132.0
@@ -39,9 +39,9 @@ const TEMPLATE_BRANCH_BAIT := "branch_bait"
 const TEMPLATE_SETPIECE_CROSSFIRE := "setpiece_crossfire"
 
 # Room/corridor dimensions mirrored from ModuleAssembler (kept local to avoid cross-dependency)
-const _ROOM_W   := 480.0
-const _ROOM_H   := 360.0
-const _CORRIDOR := 120.0
+const _ROOM_W   := 560.0
+const _ROOM_H   := 420.0
+const _CORRIDOR := 140.0
 
 # Enemies unlocked per floor index (cumulative)
 const FLOOR_POOLS: Array = [
@@ -370,7 +370,7 @@ func _spawn_basic(world: Node2D, scene: PackedScene, pos: Vector2) -> void:
 
 
 func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2, node, doorways: Array) -> void:
-	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-58.0), pos, doorways, node.type)
+	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-72.0), pos, doorways, node.type)
 	var patrol_points: Array = patrol_layout.get("points", [])
 	var start_index := 0
 	if node.type == ZoneGraph.NodeType.CORRIDOR and patrol_points.size() >= 4:
@@ -397,7 +397,7 @@ func _spawn_pattern_sweeper(world: Node2D, patrol_layout: Dictionary, start_inde
 
 func _spawn_corridor_sweeper_pair(world: Node2D, room_rect: Rect2, node, doorways: Array, placed: Array) -> void:
 	var center := room_rect.get_center()
-	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-58.0), center, doorways, node.type)
+	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-72.0), center, doorways, node.type)
 	var patrol_points: Array = patrol_layout.get("points", [])
 	if patrol_points.is_empty():
 		patrol_points = [center]
@@ -479,44 +479,50 @@ func _build_sweeper_corridor_layout(inner: Rect2, center: Vector2, doorways: Arr
 	var points: Array = []
 	var choke_indices: Array = []
 	if horizontal:
-		var left_entry := _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 28.0, center.y))
-		var right_entry := _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 28.0, center.y))
-		var patrol_y := clampf(center.y, inner.position.y + 24.0, inner.end.y - 24.0)
+		var left_entry := _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 34.0, center.y))
+		var right_entry := _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 34.0, center.y))
+		var patrol_y := clampf(center.y, inner.position.y + 26.0, inner.end.y - 26.0)
 		points = [
 			Vector2(left_entry.x, patrol_y),
-			Vector2(inner.position.x + inner.size.x * 0.20, patrol_y),
-			Vector2(inner.position.x + inner.size.x * 0.35, patrol_y),
-			Vector2(inner.position.x + inner.size.x * 0.65, patrol_y),
-			Vector2(inner.position.x + inner.size.x * 0.80, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.12, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.24, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.36, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.50, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.64, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.76, patrol_y),
+			Vector2(inner.position.x + inner.size.x * 0.88, patrol_y),
 			Vector2(right_entry.x, patrol_y),
 		]
-		choke_indices = [0, 5]
+		choke_indices = [0, 8]
 	else:
-		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 28.0))
-		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 28.0))
-		var patrol_x := clampf(center.x, inner.position.x + 24.0, inner.end.x - 24.0)
+		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 34.0))
+		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 34.0))
+		var patrol_x := clampf(center.x, inner.position.x + 26.0, inner.end.x - 26.0)
 		points = [
 			Vector2(patrol_x, top_entry.y),
-			Vector2(patrol_x, inner.position.y + inner.size.y * 0.20),
-			Vector2(patrol_x, inner.position.y + inner.size.y * 0.35),
-			Vector2(patrol_x, inner.position.y + inner.size.y * 0.65),
-			Vector2(patrol_x, inner.position.y + inner.size.y * 0.80),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.12),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.24),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.36),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.50),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.64),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.76),
+			Vector2(patrol_x, inner.position.y + inner.size.y * 0.88),
 			Vector2(patrol_x, bottom_entry.y),
 		]
-		choke_indices = [0, 5]
-	return _finalize_wisp_layout(points, choke_indices, 0, 3)
+		choke_indices = [0, 8]
+	return _finalize_wisp_layout(points, choke_indices, 0, 4)
 
 
 func _build_sweeper_room_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:
 	var points: Array = [
 		_best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 28.0, center.y)),
-		Vector2(inner.position.x + 28.0, inner.position.y + 28.0),
+		Vector2(inner.position.x + inner.size.x * 0.22, inner.position.y + 32.0),
 		_best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 28.0)),
-		Vector2(inner.end.x - 28.0, inner.position.y + 28.0),
+		Vector2(inner.end.x - inner.size.x * 0.22, inner.position.y + 32.0),
 		_best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 28.0, center.y)),
-		Vector2(inner.end.x - 28.0, inner.end.y - 28.0),
+		Vector2(inner.end.x - inner.size.x * 0.22, inner.end.y - 32.0),
 		_best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 28.0)),
-		Vector2(inner.position.x + 28.0, inner.end.y - 28.0),
+		Vector2(inner.position.x + inner.size.x * 0.22, inner.end.y - 32.0),
 	]
 	var choke_indices: Array = []
 	for i in [0, 2, 4, 6]:
@@ -544,38 +550,42 @@ func _build_wisp_corridor_layout(inner: Rect2, center: Vector2, doorways: Array)
 	var points: Array = []
 	var choke_indices: Array = []
 	if horizontal:
-		var left_entry := _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 24.0, center.y))
-		var right_entry := _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 24.0, center.y))
-		var top_lane := inner.position.y + 18.0
-		var bottom_lane := inner.end.y - 18.0
+		var left_entry := _best_side_doorway_point(doorways, inner, "left", Vector2(inner.position.x + 30.0, center.y))
+		var right_entry := _best_side_doorway_point(doorways, inner, "right", Vector2(inner.end.x - 30.0, center.y))
+		var top_lane := inner.position.y + 22.0
+		var bottom_lane := inner.end.y - 22.0
 		points = [
 			Vector2(left_entry.x, top_lane),
-			Vector2(inner.position.x + inner.size.x * 0.34, top_lane),
+			Vector2(inner.position.x + inner.size.x * 0.22, top_lane),
+			Vector2(inner.position.x + inner.size.x * 0.42, top_lane),
 			Vector2(right_entry.x, top_lane),
 			right_entry,
 			Vector2(right_entry.x, bottom_lane),
-			Vector2(inner.position.x + inner.size.x * 0.66, bottom_lane),
+			Vector2(inner.position.x + inner.size.x * 0.58, bottom_lane),
+			Vector2(inner.position.x + inner.size.x * 0.78, bottom_lane),
 			Vector2(left_entry.x, bottom_lane),
 			left_entry,
 		]
-		choke_indices = [3, 7]
+		choke_indices = [4, 9]
 	else:
-		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 24.0))
-		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 24.0))
-		var left_lane := inner.position.x + 18.0
-		var right_lane := inner.end.x - 18.0
+		var top_entry := _best_side_doorway_point(doorways, inner, "top", Vector2(center.x, inner.position.y + 30.0))
+		var bottom_entry := _best_side_doorway_point(doorways, inner, "bottom", Vector2(center.x, inner.end.y - 30.0))
+		var left_lane := inner.position.x + 22.0
+		var right_lane := inner.end.x - 22.0
 		points = [
 			Vector2(left_lane, top_entry.y),
-			Vector2(left_lane, inner.position.y + inner.size.y * 0.34),
+			Vector2(left_lane, inner.position.y + inner.size.y * 0.22),
+			Vector2(left_lane, inner.position.y + inner.size.y * 0.42),
 			Vector2(left_lane, bottom_entry.y),
 			bottom_entry,
 			Vector2(right_lane, bottom_entry.y),
-			Vector2(right_lane, inner.position.y + inner.size.y * 0.66),
+			Vector2(right_lane, inner.position.y + inner.size.y * 0.58),
+			Vector2(right_lane, inner.position.y + inner.size.y * 0.78),
 			Vector2(right_lane, top_entry.y),
 			top_entry,
 		]
-		choke_indices = [3, 7]
-	return _finalize_wisp_layout(points, choke_indices, 7, 3)
+		choke_indices = [4, 9]
+	return _finalize_wisp_layout(points, choke_indices, points.size() - 1, int(points.size() / 2))
 
 
 func _build_wisp_branch_layout(inner: Rect2, center: Vector2, doorways: Array) -> Dictionary:

@@ -1,5 +1,9 @@
 # Attack Mode Design
 
+Status note:
+
+This doc is still useful as combat-direction guidance, but it is no longer purely aspirational. Parts of the combat state language, escape logic, EMP tradeoff, reinforcement pressure, and lockdown behavior are now implemented and should be read against current code, not as untouched concept work.
+
 Attack mode should feel like a **Signal Breach**: fast, dangerous electronic warfare inside the same dark surveillance world. `Geometry Wars` is a useful mechanical reference for movement pressure and readability, but the tone should stay darker, harsher, and more cohesive with stealth mode.
 
 ## Design Goal
@@ -8,6 +12,23 @@ Attack mode should feel like a **Signal Breach**: fast, dangerous electronic war
 - It is the system punishing a blown stealth trace.
 - The player should understand whether they are tracked, evading, hidden, or clear.
 - The best outcome is not always killing everything; escape and reset should be valid.
+
+## Current Implementation Snapshot
+
+What exists now:
+
+- combat state transitions between `TRACKED`, `EVADE`, `HIDDEN`, and stealth recovery are already represented in HUD/state flow
+- combat can be escaped by breaking contact instead of only killing everything
+- EMP exists as a tactical room-control tool and also slows the player
+- reinforcements and lockdown pressure already escalate if the player stays loud
+- hidden lockdown gates can now constrain route progression during redline states
+- auto-fire exists as an accessibility/casual play option and is combat-only
+
+What still needs work:
+
+- stronger combat readability and ownership cues
+- sharper enemy combat-role separation
+- cleaner route pressure that preserves escape without letting combat trivialize stealth
 
 ## Combat State Language
 
@@ -166,3 +187,4 @@ Future variants:
 - EMP exists and should remain a tactical tradeoff, not a kill button.
 - Suspicion/alert colors now help bridge stealth into combat.
 - Next highest-value pass is combat visibility and projectile/enemy readability.
+- The current live problem is not “does combat exist,” but “does combat remain costly enough that stealth stays optimal.”

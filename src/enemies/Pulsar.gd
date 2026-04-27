@@ -107,6 +107,9 @@ func _start_pulse() -> void:
 	if player.in_dark_pocket:
 		_suspicion = 0.0
 		return
+	if should_suppress_detection_of(player):
+		_suspicion = 0.0
+		return
 	var distance: float = global_position.distance_to(player.global_position)
 	if distance > _current_range():
 		return

@@ -1,5 +1,9 @@
 # MGS-Style Gameplay Gaps
 
+Status note:
+
+This document now describes remaining gaps, not a blank slate. Several items below are partially implemented and should be interpreted as “needs stronger or cleaner execution” rather than “missing entirely.”
+
 This document tracks the remaining gaps between `Signal Dark` and the kind of stealth texture that makes classic `Metal Gear Solid` feel readable, tense, and fair.
 
 The goal is not to copy MGS literally. The goal is to identify the missing gameplay fundamentals that create:
@@ -10,6 +14,26 @@ The goal is not to copy MGS literally. The goal is to identify the missing gamep
 - recovery after mistakes
 
 Several of the items below are partially implemented already. This list is about what still needs to feel stronger, cleaner, or more intentional.
+
+## Current Reality Check
+
+Already present in some form:
+
+- defined patrol logic for several enemies
+- suspicion, caution, and search states
+- dark pockets as stealth reset spaces
+- hacking pressure and gate planning
+- local consequences short of immediate failure
+- arcade encounter templates
+- combat escape and stealth re-entry loops
+
+Still weak or inconsistent:
+
+- patrol readability in generated choke spaces
+- objective variety
+- route clarity in some arcade floors
+- complete control/prompt normalization
+- room-level authored stealth stories in procgen spaces
 
 ## 1. Patrol Language
 
@@ -248,6 +272,11 @@ If the next goal is `make arcade mode truly playable and fun`, the highest-value
 7. Tool differentiation polish
 8. Feedback and sound pass
 
+Current adjustment:
+
+- encounter templates and patrol readability are no longer theoretical; they are active tuning work
+- objective variety and route clarity have moved up in importance because the foundational stealth systems already exist
+
 ## Immediate Next Tasks
 
 Concrete next implementation steps:
@@ -258,6 +287,8 @@ Concrete next implementation steps:
 4. Add at least two more objective variants beyond the current node-link flow.
 5. Tune search state so it feels dangerous but escapable.
 6. Improve objective routing clarity so targets are never visually or spatially ambiguous.
+
+This list should be used as a gap-tracking companion to `docs/spec/`, not as the source of truth for currently implemented behavior.
 
 ## Engineering Risks To Address
 

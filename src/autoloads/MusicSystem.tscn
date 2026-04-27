@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3 uid="uid://music_system_signal_dark"]
+
+[ext_resource type="Script" path="res://src/autoloads/MusicSystem.gd" id="1"]
+[ext_resource type="AudioStreamWAV" path="res://audio/signal_dark_title.wav" id="2"]
+[ext_resource type="AudioStreamWAV" path="res://audio/signal_dark_spy_stealth.wav" id="3"]
+[ext_resource type="AudioStreamWAV" path="res://audio/signal_dark_spy_search.wav" id="4"]
+[ext_resource type="AudioStreamWAV" path="res://audio/signal_dark_spy_combat.wav" id="5"]
+
+[node name="MusicSystem" type="Node"]
+process_mode = 3
+script = ExtResource("1")
+
+[node name="TitlePlayer" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("2")
+volume_db = -80.0
+bus = &"Master"
+
+[node name="StealthPlayer" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("3")
+volume_db = -80.0
+bus = &"Master"
+
+[node name="SearchPlayer" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("4")
+volume_db = -80.0
+bus = &"Master"
+
+[node name="CombatPlayer" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("5")
+volume_db = -80.0
+bus = &"Master"

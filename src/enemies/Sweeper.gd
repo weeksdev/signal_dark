@@ -17,7 +17,7 @@ const PULSE_SPEED      := 115.0
 const PULSE_TOLERANCE  := 13.0
 const ALERT_HOLD_SECONDS := 3.0
 const SUSPICION_DECAY  := 0.75
-const WARN_RANGE       := 200.0
+const WARN_RANGE       := 184.0
 
 # Rhythm: single pulse, then two quick, then long gap — repeating
 const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]
@@ -298,6 +298,9 @@ func _check_detection() -> void:
 	if player.in_dark_pocket and distance > 28.0:
 		_suspicion = 0.0
 		return
+	if should_suppress_detection_of(player):
+		_suspicion = 0.0
+		return
 
 	# Contact range — always triggers
 	if distance < 22.0 and emission > 0.015:
@@ -314,11 +317,11 @@ func _check_detection() -> void:
 
 	var risk := _proximity_risk(distance, emission, speed_ratio, player.dark_mode)
 	if world_is_search_active():
-		risk *= 1.25
-	if risk > 0.0:
-		if add_suspicion(risk * 0.04):
-			_begin_alert_hold()
-			return
+		risk *= 1.12
+	if risk > 0.105:
+		_suspicion = 0.0
+		_begin_alert_hold()
+		return
 
 	# Pulse arc hit
 	var hit := false
@@ -329,6 +332,7 @@ func _check_detection() -> void:
 				break
 
 	if hit:
+		_suspicion = 0.0
 		_begin_alert_hold()
 
 
@@ -340,8 +344,8 @@ func _proximity_risk(distance: float, emission: float, speed_ratio: float, dark_
 	if distance > WARN_RANGE:
 		return 0.0
 	var closeness := 1.0 - (distance / WARN_RANGE)
-	var speed_risk := 0.3 + speed_ratio * 0.9
-	var emission_risk := emission * 2.8
+	var speed_risk := 0.24 + speed_ratio * 0.76
+	var emission_risk := emission * 2.25
 	var dark_penalty := 0.55 if dark_mode else 1.0
 	return (closeness * (speed_risk + emission_risk)) * dark_penalty
 

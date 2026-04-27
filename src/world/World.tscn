@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
@@ -15,9 +15,27 @@
 [ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="13"]
 [ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="14"]
 [ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="15"]
+[ext_resource type="AudioStreamWAV" path="res://audio/download_search_red_file_sprint_alt.wav" id="16"]
+[ext_resource type="AudioStreamWAV" path="res://audio/download_search_red_file_sprint_alt.wav" id="17"]
+[ext_resource type="AudioStreamWAV" path="res://audio/download_combat_red_wire_chase.wav" id="18"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1")
+
+[node name="MusicStealth" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("16")
+volume_db = -80.0
+bus = &"Master"
+
+[node name="MusicSearch" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("17")
+volume_db = -80.0
+bus = &"Master"
+
+[node name="MusicCombat" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("18")
+volume_db = -80.0
+bus = &"Master"
 
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("2")

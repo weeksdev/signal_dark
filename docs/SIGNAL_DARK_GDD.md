@@ -8,6 +8,49 @@
 
 ---
 
+## Current Status Warning
+
+This document is historically useful, but it is no longer the source of truth for the live project.
+
+Major drift from current implementation:
+
+- the game is now actively developed as a desktop/macOS Godot project with keyboard, mouse, and controller support
+- title screen, settings, pause flow, arcade mode, music, stealth/combat escalation, and enemy behaviors have evolved well beyond this foundation draft
+- the live project is no longer “controller-first, no touch fallback in v1” in a practical design sense
+
+Use this file for long-range thematic intent and older framing only.
+
+For current behavior and product direction, prefer:
+
+- `docs/signal_dark_living_next_steps.md`
+- `docs/spec/signal_dark_spec.md`
+- `docs/spec/control_mapping.md`
+- `docs/spec/enemy_matrix.md`
+- `docs/spec/arcade_generation_spec.md`
+
+## Current Implementation Snapshot
+
+The current game already includes:
+
+- story mode plus seeded 4-floor arcade runs
+- difficulty selection
+- stealth/combat transitions with suspicion, caution, search, and escape states
+- dark pockets, hacking, probes, suppression, boost, EMP, and reactive enemy escalation
+- pause/settings flow
+- controller detection and adaptive hack prompts
+- title and in-game music layers
+
+The current project does not yet fully include:
+
+- tutorial / Zone 00 onboarding
+- arcade run summary and scoring
+- daily challenge seed
+- between-floor upgrades
+
+Read the rest of this file as foundational concept language, not as a literal implementation spec.
+
+---
+
 ## 1. Vision Statement
 
 Signal Dark is a top-down stealth-action game set inside an abstract geometric machine world. The player pilots a small geometric vessel through a vast scrolling map populated by hostile geometric entities. The default state is stealth — everything is rendered in monochrome green, slow, and quiet. Stealth breaks into geometry wars-style combat — explosive color, particle chaos, and swarm pressure — before the player must find silence again.

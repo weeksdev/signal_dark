@@ -83,11 +83,17 @@ func _fire_at(target: Vector2) -> void:
 	bolt.global_position = global_position + direction * 16.0
 	bolt.direction = direction
 	bolt.tint = Color("b8fff8") if AlertSystem.combat_mode else Color("5ba57d")
+	var world := get_tree().current_scene
+	if world != null and world.has_method("play_enemy_fire_sfx"):
+		world.play_enemy_fire_sfx(bolt.global_position)
 	add_effect_to_world(bolt)
 
 
 func _check_warning(player: Node2D) -> void:
 	if player.in_dark_pocket:
+		_suspicion = 0.0
+		return
+	if should_suppress_detection_of(player):
 		_suspicion = 0.0
 		return
 	if world_is_point_jammed(global_position) or world_is_point_jammed(player.global_position):
@@ -107,7 +113,7 @@ func _check_warning(player: Node2D) -> void:
 	risk *= 1.0 - (distance / 220.0)
 	if risk <= 0.04:
 		return
-	if add_suspicion(risk * 0.05):
+	if add_suspicion(risk * 0.025):
 		_begin_alert()
 
 

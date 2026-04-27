@@ -1,6 +1,6 @@
 extends StaticBody2D
 
-@export var open_in_combat: bool = true
+@export var open_in_combat: bool = false
 @export var hack_radius: float = 96.0
 @export var hack_duration: float = 10.0
 @export var lockdown_only: bool = false
