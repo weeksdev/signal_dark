@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="13"]
 [ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="14"]
 [ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="15"]
+[ext_resource type="PackedScene" path="res://src/enemies/WallSensor.tscn" id="16"]
 
 [node name="World02" type="Node2D"]
 script = ExtResource("1")
@@ -449,3 +450,11 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("15")
+
+[node name="WallSensorA" parent="." instance=ExtResource("16")]
+position = Vector2(870, 1082)
+rotation = 1.5708
+
+[node name="WallSensorB" parent="." instance=ExtResource("16")]
+position = Vector2(2170, 1278)
+rotation = -1.5708

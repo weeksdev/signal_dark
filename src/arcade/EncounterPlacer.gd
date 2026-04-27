@@ -10,6 +10,7 @@ const HUNTER_SCENE      := preload("res://src/enemies/Hunter.tscn")
 const WISP_SCENE        := preload("res://src/enemies/Wisp.tscn")
 const PRISM_SCENE       := preload("res://src/enemies/Prism.tscn")
 const WARPMINE_SCENE    := preload("res://src/enemies/WarpMine.tscn")
+const WALL_SENSOR_SCENE := preload("res://src/enemies/WallSensor.tscn")
 const DARK_POCKET_SCENE := preload("res://src/terrain/DarkPocket.tscn")
 const GATELOCK_SCENE    := preload("res://src/terrain/GateLock.tscn")
 
@@ -79,6 +80,7 @@ func place(world: Node2D, graph,
 
 		var pocket_positions := _place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
 		_place_enemies(world, rect, node, types, template, doorways, pocket_positions, rng)
+		_place_wall_sensors(world, rect, node, doorways, pocket_positions, rng)
 		first_combat_room = false
 
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
@@ -369,6 +371,46 @@ func _spawn_basic(world: Node2D, scene: PackedScene, pos: Vector2) -> void:
 	world.register_spawned_enemy(enemy)
 
 
+func _spawn_wall_sensor(world: Node2D, pos: Vector2, facing_rotation: float) -> void:
+	var sensor: Node2D = WALL_SENSOR_SCENE.instantiate()
+	sensor.position = pos
+	sensor.rotation = facing_rotation
+	world.register_spawned_enemy(sensor)
+
+
+func _place_wall_sensors(world: Node2D, rect: Rect2, node, doorways: Array, blocked_positions: Array, rng) -> void:
+	var chance := 0
+	match node.type:
+		ZoneGraph.NodeType.CORRIDOR:
+			chance = 58
+		ZoneGraph.NodeType.SETPIECE_ROOM:
+			chance = 62
+		ZoneGraph.NodeType.BRANCH_ROOM:
+			chance = 34
+		_:
+			chance = 42
+	match ArcadeState.difficulty:
+		ArcadeState.Difficulty.EASY:
+			chance = maxi(chance - 18, 8)
+		ArcadeState.Difficulty.HARDCORE:
+			chance = mini(chance + 18, 90)
+	if rng.randi() % 100 >= chance:
+		return
+	var count := 1
+	if ArcadeState.difficulty == ArcadeState.Difficulty.HARDCORE and node.type != ZoneGraph.NodeType.BRANCH_ROOM and rng.randi() % 100 < 35:
+		count = 2
+	var candidates := _wall_sensor_candidates(rect, node, doorways, blocked_positions)
+	if candidates.is_empty():
+		return
+	for _i in range(count):
+		if candidates.is_empty():
+			break
+		var pick_index: int = rng.randi() % candidates.size()
+		var data: Dictionary = candidates[pick_index]
+		candidates.remove_at(pick_index)
+		_spawn_wall_sensor(world, data["position"], data["rotation"])
+
+
 func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2, node, doorways: Array) -> void:
 	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-72.0), pos, doorways, node.type)
 	var patrol_points: Array = patrol_layout.get("points", [])
@@ -532,6 +574,50 @@ func _build_sweeper_room_layout(inner: Rect2, center: Vector2, doorways: Array) 
 	if choke_indices.is_empty():
 		choke_indices = [0, 4]
 	return _finalize_wisp_layout(points, choke_indices, int(choke_indices[0]), posmod(int(choke_indices[0]) + 4, points.size()))
+
+
+func _wall_sensor_candidates(rect: Rect2, node, doorways: Array, blocked_positions: Array) -> Array:
+	var inner := rect.grow(-26.0)
+	var candidates: Array = []
+	var fractions: Array = [0.34, 0.66]
+	var horizontal_corridor: bool = node.type == ZoneGraph.NodeType.CORRIDOR and _corridor_is_horizontal(doorways, inner)
+	var allowed_sides: Array = []
+	if node.type == ZoneGraph.NodeType.CORRIDOR:
+		allowed_sides = ["top", "bottom"] if horizontal_corridor else ["left", "right"]
+	else:
+		allowed_sides = ["left", "top", "right", "bottom"]
+	for side in allowed_sides:
+		for fraction in fractions:
+			var candidate := _wall_sensor_candidate_for_side(inner, side, float(fraction))
+			if not _wall_sensor_candidate_clear(candidate["position"], side, rect, doorways, blocked_positions):
+				continue
+			candidates.append(candidate)
+	return candidates
+
+
+func _wall_sensor_candidate_for_side(inner: Rect2, side: String, fraction: float) -> Dictionary:
+	match side:
+		"left":
+			return {"position": Vector2(inner.position.x + 10.0, lerpf(inner.position.y + 32.0, inner.end.y - 32.0, fraction)), "rotation": 0.0}
+		"right":
+			return {"position": Vector2(inner.end.x - 10.0, lerpf(inner.position.y + 32.0, inner.end.y - 32.0, fraction)), "rotation": PI}
+		"top":
+			return {"position": Vector2(lerpf(inner.position.x + 32.0, inner.end.x - 32.0, fraction), inner.position.y + 10.0), "rotation": PI * 0.5}
+		_:
+			return {"position": Vector2(lerpf(inner.position.x + 32.0, inner.end.x - 32.0, fraction), inner.end.y - 10.0), "rotation": -PI * 0.5}
+
+
+func _wall_sensor_candidate_clear(pos: Vector2, side: String, rect: Rect2, doorways: Array, blocked_positions: Array) -> bool:
+	for doorway in doorways:
+		var point: Vector2 = doorway
+		if _nearest_rect_side(point, rect) != side:
+			continue
+		if pos.distance_to(point) < DOORWAY_CLEAR * 0.78:
+			return false
+	for blocked in blocked_positions:
+		if pos.distance_to(blocked) < POCKET_ENEMY_CLEAR:
+			return false
+	return true
 
 func _build_wisp_patrol_layout(inner: Rect2, center: Vector2, doorways: Array, node_type: int) -> Dictionary:
 	match node_type:

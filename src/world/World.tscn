@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
@@ -18,6 +18,7 @@
 [ext_resource type="AudioStreamWAV" path="res://audio/download_search_red_file_sprint_alt.wav" id="16"]
 [ext_resource type="AudioStreamWAV" path="res://audio/download_search_red_file_sprint_alt.wav" id="17"]
 [ext_resource type="AudioStreamWAV" path="res://audio/download_combat_red_wire_chase.wav" id="18"]
+[ext_resource type="PackedScene" path="res://src/enemies/WallSensor.tscn" id="19"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1")
@@ -431,3 +432,11 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("15")
+
+[node name="WallSensorA" parent="." instance=ExtResource("19")]
+position = Vector2(800, 1074)
+rotation = 1.5708
+
+[node name="WallSensorB" parent="." instance=ExtResource("19")]
+position = Vector2(1200, 1772)
+rotation = -1.5708
