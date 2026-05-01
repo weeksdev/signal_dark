@@ -38,11 +38,11 @@ func background_color() -> Color:
 
 
 func grid_color() -> Color:
-	return Color("0b1324") if in_combat else Color("15311d")
+	return Color("0f1a31") if in_combat else Color("2a663d")
 
 
 func haze_color() -> Color:
-	return Color("0d2112") if not in_combat else Color("030b16")
+	return Color("1b4126") if not in_combat else Color("030b16")
 
 
 func shadow_color() -> Color:

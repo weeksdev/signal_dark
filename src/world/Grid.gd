@@ -95,9 +95,9 @@ func _draw_grid_nodes(view_rect: Rect2) -> void:
 		var yi := int(y_start / spacing)
 		while y <= y_end:
 			if (xi + yi) % 3 == 0:
-				var flicker := 0.012 + 0.012 * (0.5 + 0.5 * sin(pulse * 1.3 + xi * 0.4 + yi * 0.7))
+				var flicker := 0.028 + 0.024 * (0.5 + 0.5 * sin(pulse * 1.3 + xi * 0.4 + yi * 0.7))
 				var node_color := ColorSystem.haze_color()
-				draw_circle(_warp_point(Vector2(x, y)), 1.3, Color(node_color.r * 1.4, node_color.g * 1.7, node_color.b * 1.2, flicker))
+				draw_circle(_warp_point(Vector2(x, y)), 1.7, Color(node_color.r * 1.7, node_color.g * 2.05, node_color.b * 1.34, flicker))
 			y += spacing * 2.0
 			yi += 2
 		x += spacing * 2.0
@@ -121,6 +121,8 @@ func _draw_corner_marks(view_rect: Rect2) -> void:
 
 func _draw_warped_grid(view_rect: Rect2) -> void:
 	var line_color := ColorSystem.grid_color()
+	var base_alpha := 0.42 if not ColorSystem.in_combat else 0.22
+	var major_alpha_boost := 0.085 if not ColorSystem.in_combat else 0.025
 	var attractors := _get_attractors()
 	var x_start: float = floor(view_rect.position.x / spacing) * spacing - spacing * 3.0
 	var x_end: float = ceil(view_rect.end.x / spacing) * spacing + spacing * 3.0
@@ -129,25 +131,25 @@ func _draw_warped_grid(view_rect: Rect2) -> void:
 	var x: float = x_start
 	var col := 0
 	while x <= x_end:
-		var alpha_boost := 0.025 if col % 5 == 0 else 0.0
+		var alpha_boost := major_alpha_boost if col % 5 == 0 else 0.0
 		var points := PackedVector2Array()
 		var y: float = y_start
 		while y <= y_end:
 			points.append(_warp_point(Vector2(x, y), attractors))
 			y += 24.0
-		draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, 0.22 + alpha_boost), 0.7)
+		draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost), 0.9)
 		x += spacing * 1.5
 		col += 1
 	var row := 0
 	var y2: float = y_start
 	while y2 <= y_end:
-		var alpha_boost_h := 0.025 if row % 5 == 0 else 0.0
+		var alpha_boost_h := major_alpha_boost if row % 5 == 0 else 0.0
 		var h_points := PackedVector2Array()
 		var x2: float = x_start
 		while x2 <= x_end:
 			h_points.append(_warp_point(Vector2(x2, y2), attractors))
 			x2 += 24.0
-		draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, 0.22 + alpha_boost_h), 0.7)
+		draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost_h), 0.9)
 		y2 += spacing * 1.5
 		row += 1
 
