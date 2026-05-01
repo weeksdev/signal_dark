@@ -6,3 +6,4 @@ export/
 *.tmp
 *.swp
 .debug/
+agent-tooling/output/
