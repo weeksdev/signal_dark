@@ -139,3 +139,7 @@ godot --headless --path . --quit
 ```
 
 There is also a test docs stub in [tests/README.md](/Users/andrewweeks/repos/signal_dark/tests/README.md).
+
+## Asset Tooling
+
+For AI-generated image cleanup and slicing, see [tools/README_asset_prep.md](/Users/andrewweeks/repos/signal_dark/tools/README_asset_prep.md).

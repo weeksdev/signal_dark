@@ -1,0 +1,54 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_vertical_left_end.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_vertical_middle.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_vertical_plain_a.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_vertical_right_end.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_vertical_plain_b.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_vertical_bottom_end.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_corner_left_end.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_corner_right_end.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_corner_bottom_end.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/derived/walls_curated_lineart/wall_corner_bottom_end_tall.png" id="10"]
+
+[node name="WallAssetShowcase" type="Node2D"]
+
+[node name="VerticalLeftEnd" type="Sprite2D" parent="."]
+position = Vector2(100, 180)
+texture = ExtResource("1")
+
+[node name="VerticalMiddle" type="Sprite2D" parent="."]
+position = Vector2(260, 180)
+texture = ExtResource("2")
+
+[node name="VerticalPlainA" type="Sprite2D" parent="."]
+position = Vector2(420, 180)
+texture = ExtResource("3")
+
+[node name="VerticalRightEnd" type="Sprite2D" parent="."]
+position = Vector2(580, 180)
+texture = ExtResource("4")
+
+[node name="VerticalPlainB" type="Sprite2D" parent="."]
+position = Vector2(740, 180)
+texture = ExtResource("5")
+
+[node name="VerticalBottomEnd" type="Sprite2D" parent="."]
+position = Vector2(900, 180)
+texture = ExtResource("6")
+
+[node name="CornerLeftEnd" type="Sprite2D" parent="."]
+position = Vector2(120, 760)
+texture = ExtResource("7")
+
+[node name="CornerRightEnd" type="Sprite2D" parent="."]
+position = Vector2(360, 760)
+texture = ExtResource("8")
+
+[node name="CornerBottomEnd" type="Sprite2D" parent="."]
+position = Vector2(620, 760)
+texture = ExtResource("9")
+
+[node name="CornerBottomEndTall" type="Sprite2D" parent="."]
+position = Vector2(900, 760)
+texture = ExtResource("10")
