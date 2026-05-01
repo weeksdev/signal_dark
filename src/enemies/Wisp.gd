@@ -282,7 +282,7 @@ func _preferred_patrol_step(index: int, route_size: int) -> int:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.05 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.1
+	outline.width = 1.05
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -299,10 +299,10 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, alert_radius + 18.0, Color(tint.r, tint.g, tint.b, 0.06))
 		draw_circle(Vector2.ZERO, alert_radius + 8.0, Color(tint.r, tint.g, tint.b, 0.08))
 		draw_circle(Vector2.ZERO, alert_radius, Color(tint.r, tint.g, tint.b, 0.10))
-		draw_arc(Vector2.ZERO, alert_radius, 0.0, TAU, 40, Color(tint.r, tint.g, tint.b, 0.52), 2.2)
-		draw_arc(Vector2.ZERO, alert_radius * 0.7, 0.0, TAU, 28, Color(tint.r, tint.g, tint.b, 0.28), 1.4)
+		draw_arc(Vector2.ZERO, alert_radius, 0.0, TAU, 40, Color(tint.r, tint.g, tint.b, 0.52), 1.1)
+		draw_arc(Vector2.ZERO, alert_radius * 0.7, 0.0, TAU, 28, Color(tint.r, tint.g, tint.b, 0.28), 0.7)
 	var whisker := Vector2(0.0, -20.0).rotated(phase * 2.0)
-	draw_line(Vector2.ZERO, whisker, Color(tint.r, tint.g, tint.b, 0.28), 1.5)
+	draw_line(Vector2.ZERO, whisker, Color(tint.r, tint.g, tint.b, 0.28), 0.75)
 	draw_polyline(PackedVector2Array([
 		Vector2(0.0, -8.0),
 		Vector2(6.0, 0.0),
@@ -313,7 +313,7 @@ func _draw() -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
-		draw_arc(Vector2.ZERO, 17.0, 0.0, TAU, 24, marker, 1.1)
+		draw_arc(Vector2.ZERO, 17.0, 0.0, TAU, 24, marker, 0.55)
 	draw_alert_marker()
 	draw_emp_disabled_effect(34.0)
 

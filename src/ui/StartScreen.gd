@@ -307,17 +307,17 @@ func _draw() -> void:
 	var sp := 28.0
 	var gx := 0.0
 	while gx <= vp.x:
-		draw_line(Vector2(gx, 0.0), Vector2(gx, vp.y), gc, 1.0)
+		draw_line(Vector2(gx, 0.0), Vector2(gx, vp.y), gc, 0.5)
 		gx += sp
 	var gy := 0.0
 	while gy <= vp.y:
-		draw_line(Vector2(0.0, gy), Vector2(vp.x, gy), gc, 1.0)
+		draw_line(Vector2(0.0, gy), Vector2(vp.x, gy), gc, 0.5)
 		gy += sp
 
 	# Animated scan line
 	var scan_y := fmod(t * 180.0, vp.y + 60.0) - 30.0
 	draw_line(Vector2(0.0, scan_y), Vector2(vp.x, scan_y),
-			Color(0.3, 0.9, 0.45, 0.06), 2.0)
+			Color(0.3, 0.9, 0.45, 0.06), 1.0)
 
 	# Title glow (layered for phosphor bloom)
 	var cx  := vp.x * 0.5

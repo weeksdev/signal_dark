@@ -353,7 +353,7 @@ func _proximity_risk(distance: float, emission: float, speed_ratio: float, dark_
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.08 if not AlertSystem.combat_mode else 0.14)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.4
+	outline.width = 1.2
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -373,7 +373,7 @@ func _draw() -> void:
 	for pulse_r: float in _pulses:
 		var fade := 1.0 - (pulse_r / detection_range)
 		var arc_col := Color(cone_color.r, cone_color.g, cone_color.b, 0.70 * fade)
-		draw_arc(Vector2.ZERO, pulse_r, start_angle, end_angle, 32, arc_col, 2.4)
+		draw_arc(Vector2.ZERO, pulse_r, start_angle, end_angle, 32, arc_col, 1.2)
 		# Soft echo trail behind the arc
 		if pulse_r > 10.0:
 			draw_arc(Vector2.ZERO, pulse_r - 7.0, start_angle, end_angle, 24,
@@ -383,11 +383,11 @@ func _draw() -> void:
 	var arm := 9.0
 	var gap := 2.5
 	var mc := Color(cone_color.r, cone_color.g, cone_color.b, 0.78)
-	draw_line(Vector2(0.0, -arm), Vector2(0.0, -gap), mc, 2.2)
-	draw_line(Vector2(0.0,  gap), Vector2(0.0,  arm), mc, 2.2)
-	draw_line(Vector2(-arm, 0.0), Vector2(-gap, 0.0), mc, 2.2)
-	draw_line(Vector2( gap, 0.0), Vector2( arm, 0.0), mc, 2.2)
-	draw_arc(Vector2.ZERO, gap, 0.0, TAU, 16, Color(mc.r, mc.g, mc.b, 0.5), 1.2)
+	draw_line(Vector2(0.0, -arm), Vector2(0.0, -gap), mc, 1.1)
+	draw_line(Vector2(0.0,  gap), Vector2(0.0,  arm), mc, 1.1)
+	draw_line(Vector2(-arm, 0.0), Vector2(-gap, 0.0), mc, 1.1)
+	draw_line(Vector2( gap, 0.0), Vector2( arm, 0.0), mc, 1.1)
+	draw_arc(Vector2.ZERO, gap, 0.0, TAU, 16, Color(mc.r, mc.g, mc.b, 0.5), 0.6)
 
 	# MGS-style "!" alert marker
 	draw_alert_marker()
@@ -396,11 +396,11 @@ func _draw() -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
-		draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, marker, 1.2)
-		draw_line(Vector2(-14.0, -14.0), Vector2(-6.0, -14.0), marker, 1.8)
-		draw_line(Vector2(-14.0, -14.0), Vector2(-14.0, -6.0), marker, 1.8)
-		draw_line(Vector2(14.0, 14.0), Vector2(6.0, 14.0), marker, 1.8)
-		draw_line(Vector2(14.0, 14.0), Vector2(14.0, 6.0), marker, 1.8)
+		draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, marker, 0.6)
+		draw_line(Vector2(-14.0, -14.0), Vector2(-6.0, -14.0), marker, 0.9)
+		draw_line(Vector2(-14.0, -14.0), Vector2(-14.0, -6.0), marker, 0.9)
+		draw_line(Vector2(14.0, 14.0), Vector2(6.0, 14.0), marker, 0.9)
+		draw_line(Vector2(14.0, 14.0), Vector2(14.0, 6.0), marker, 0.9)
 	draw_suspicion_arc(28.0)
 	draw_emp_disabled_effect(30.0)
 

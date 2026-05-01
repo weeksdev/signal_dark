@@ -23,7 +23,7 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	draw_circle(Vector2.ZERO, 7.0, Color("5cf2ff"))
-	draw_arc(Vector2.ZERO, 16.0, 0.0, TAU, 32, Color("5cf2ff"), 2.0)
+	draw_arc(Vector2.ZERO, 16.0, 0.0, TAU, 32, Color("5cf2ff"), 1.0)
 
 
 func _on_body_entered(_body: Node) -> void:

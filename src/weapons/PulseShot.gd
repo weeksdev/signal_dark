@@ -16,7 +16,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_line(Vector2(-10.0, 0.0), Vector2(10.0, 0.0), Color("8af7ff"), 3.0)
+	draw_line(Vector2(-10.0, 0.0), Vector2(10.0, 0.0), Color("8af7ff"), 1.5)
 
 
 func _on_body_entered(body: Node) -> void:

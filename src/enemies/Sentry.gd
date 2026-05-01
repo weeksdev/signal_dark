@@ -124,7 +124,7 @@ func _begin_alert() -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.2
+	outline.width = 1.1
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -133,20 +133,20 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 func _draw() -> void:
 	draw_circle(Vector2.ZERO, 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.04))
-	draw_line(Vector2.ZERO, facing_vector * 26.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 2.0)
-	draw_arc(Vector2.ZERO, 8.0, 0.0, TAU, 24, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.7), 1.2)
-	draw_line(Vector2(-6.0, 0.0), Vector2(6.0, 0.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 1.0)
-	draw_line(Vector2(0.0, -6.0), Vector2(0.0, 6.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 1.0)
+	draw_line(Vector2.ZERO, facing_vector * 26.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 1.0)
+	draw_arc(Vector2.ZERO, 8.0, 0.0, TAU, 24, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.7), 0.6)
+	draw_line(Vector2(-6.0, 0.0), Vector2(6.0, 0.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 0.5)
+	draw_line(Vector2(0.0, -6.0), Vector2(0.0, 6.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 0.5)
 	draw_alert_marker()
 	draw_suspicion_arc(24.0)
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
-		draw_arc(Vector2.ZERO, 19.0, 0.0, TAU, 24, marker, 1.1)
+		draw_arc(Vector2.ZERO, 19.0, 0.0, TAU, 24, marker, 0.55)
 	draw_emp_disabled_effect(28.0)
 	if not combat_active:
 		return
-	draw_arc(Vector2.ZERO, attack_range, facing_vector.angle() - 0.28, facing_vector.angle() + 0.28, 18, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.08), 1.0)
+	draw_arc(Vector2.ZERO, attack_range, facing_vector.angle() - 0.28, facing_vector.angle() + 0.28, 18, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.08), 0.5)
 
 
 func _spawn_burst(silent: bool) -> void:

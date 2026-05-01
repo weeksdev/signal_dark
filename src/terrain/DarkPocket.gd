@@ -38,20 +38,20 @@ func _draw() -> void:
 
 	draw_polygon(outer, [Color(0.0, 0.0, 0.0, 0.22)])
 	draw_polygon(inner, [Color("081109")])
-	draw_polyline(outer, Color(ui.r, ui.g, ui.b, 0.62), 2.2)
-	draw_polyline(inner, Color(ui.r, ui.g, ui.b, 0.24), 1.2)
+	draw_polyline(outer, Color(ui.r, ui.g, ui.b, 0.62), 1.1)
+	draw_polyline(inner, Color(ui.r, ui.g, ui.b, 0.24), 0.6)
 
-	draw_line(Vector2(-22.0, -22.0), Vector2(22.0, -22.0), Color(ui.r, ui.g, ui.b, 0.16), 1.0)
-	draw_line(Vector2(-22.0, 0.0), Vector2(22.0, 0.0), Color(ui.r, ui.g, ui.b, 0.2), 1.0)
-	draw_line(Vector2(-22.0, 22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.16), 1.0)
-	draw_line(Vector2(-22.0, -22.0), Vector2(-22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 1.0)
-	draw_line(Vector2(0.0, -22.0), Vector2(0.0, 22.0), Color(ui.r, ui.g, ui.b, 0.2), 1.0)
-	draw_line(Vector2(22.0, -22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 1.0)
+	draw_line(Vector2(-22.0, -22.0), Vector2(22.0, -22.0), Color(ui.r, ui.g, ui.b, 0.16), 0.5)
+	draw_line(Vector2(-22.0, 0.0), Vector2(22.0, 0.0), Color(ui.r, ui.g, ui.b, 0.2), 0.5)
+	draw_line(Vector2(-22.0, 22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.16), 0.5)
+	draw_line(Vector2(-22.0, -22.0), Vector2(-22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 0.5)
+	draw_line(Vector2(0.0, -22.0), Vector2(0.0, 22.0), Color(ui.r, ui.g, ui.b, 0.2), 0.5)
+	draw_line(Vector2(22.0, -22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 0.5)
 
-	draw_line(Vector2(-54.0, -8.0), Vector2(-38.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
-	draw_line(Vector2(38.0, -8.0), Vector2(54.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
-	draw_line(Vector2(-54.0, 8.0), Vector2(-38.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
-	draw_line(Vector2(38.0, 8.0), Vector2(54.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 2.0)
+	draw_line(Vector2(-54.0, -8.0), Vector2(-38.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
+	draw_line(Vector2(38.0, -8.0), Vector2(54.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
+	draw_line(Vector2(-54.0, 8.0), Vector2(-38.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
+	draw_line(Vector2(38.0, 8.0), Vector2(54.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
 
 
 func _on_body_entered(body: Node) -> void:

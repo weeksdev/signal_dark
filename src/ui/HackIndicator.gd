@@ -57,7 +57,7 @@ func _draw() -> void:
 
 		draw_circle(center, 18.0, Color(0.0, 0.0, 0.0, 0.16))
 		draw_circle(center, 15.0, bg)
-		draw_arc(center, 15.0, 0.0, TAU, 32, ring, 3.6)
+		draw_arc(center, 15.0, 0.0, TAU, 32, ring, 1.8)
 		draw_circle(center, 10.0, Color(0.08, 0.11, 0.09, 0.96))
 		var label := InputManager.get_hack_button_display(str(_sequence[i]))
 		draw_string(font, center + Vector2(-5.5, 5.5), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, text_col)

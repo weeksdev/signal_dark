@@ -109,8 +109,8 @@ func _draw() -> void:
 		return
 	if collision_shape.disabled:
 		var c := ColorSystem.ui_color()
-		draw_arc(Vector2.ZERO, 32.0, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.28), 1.3)
-		draw_line(Vector2(-28.0, 0.0), Vector2(28.0, 0.0), Color(c.r, c.g, c.b, 0.22), 1.2)
+		draw_arc(Vector2.ZERO, 32.0, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.28), 0.65)
+		draw_line(Vector2(-28.0, 0.0), Vector2(28.0, 0.0), Color(c.r, c.g, c.b, 0.22), 0.6)
 		return
 	_draw_hack_preview()
 
@@ -145,7 +145,7 @@ func _draw_hack_preview() -> void:
 			fill = fill.lerp(Color(0.42, 0.08, 0.06, 0.94), wrong_mix * 0.7)
 		draw_circle(center, radius + 3.0, Color(ui.r, ui.g, ui.b, 0.06))
 		draw_circle(center, radius, fill)
-		draw_arc(center, radius, 0.0, TAU, 20, ring, 1.6)
+		draw_arc(center, radius, 0.0, TAU, 20, ring, 0.8)
 		var label := InputManager.get_hack_button_display(str(_hack_preview_sequence[i]))
 		draw_string(font, center + Vector2(-4.5, 4.5), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 11, text)
 

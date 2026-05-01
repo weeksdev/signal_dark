@@ -213,7 +213,7 @@ func _update_palette() -> void:
 			var pulse_color := _combat_pulse_color()
 			body_polygon.color = Color(pulse_color.r * 0.55, pulse_color.g * 0.34, pulse_color.b * 0.08, 0.2)
 			outline.default_color = Color(pulse_color.r, pulse_color.g, pulse_color.b, 0.98)
-	outline.width = 2.1
+	outline.width = 1.05
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -223,18 +223,18 @@ func _on_mode_changed(_in_combat: bool) -> void:
 func _draw() -> void:
 	var c := outline.default_color
 	draw_circle(Vector2.ZERO, 16.0, Color(c.r, c.g, c.b, 0.06))
-	draw_arc(Vector2.ZERO, trigger_radius, 0.0, TAU, 42, Color(c.r, c.g, c.b, 0.08), 1.0)
+	draw_arc(Vector2.ZERO, trigger_radius, 0.0, TAU, 42, Color(c.r, c.g, c.b, 0.08), 0.5)
 
 	if _arming:
 		var progress := 1.0 - (_armed_time / arm_time)
 		var flash := 0.35 + 0.65 * absf(sin(Time.get_ticks_msec() / 70.0))
-		draw_arc(Vector2.ZERO, 18.0 + progress * 20.0, 0.0, TAU, 28, Color(1.0, 0.45, 0.2, flash), 2.2)
+		draw_arc(Vector2.ZERO, 18.0 + progress * 20.0, 0.0, TAU, 28, Color(1.0, 0.45, 0.2, flash), 1.1)
 		draw_circle(Vector2.ZERO, 8.0, Color(1.0, 0.6, 0.3, 0.65))
 	if _emp_disabled_timer > 0.0:
 		var pulse := 0.55 + 0.45 * sin(Time.get_ticks_msec() / 58.0)
 		var emp := Color(0.55, 0.95, 1.0, 0.5 + pulse * 0.25)
-		draw_arc(Vector2.ZERO, 28.0, 0.15, TAU * 0.62, 22, emp, 2.0)
-		draw_line(Vector2(-12.0, -7.0), Vector2(12.0, 8.0), emp, 1.4)
+		draw_arc(Vector2.ZERO, 28.0, 0.15, TAU * 0.62, 22, emp, 1.0)
+		draw_line(Vector2(-12.0, -7.0), Vector2(12.0, 8.0), emp, 0.7)
 
 	draw_polyline(PackedVector2Array([
 		Vector2(0.0, -11.0),
@@ -242,12 +242,12 @@ func _draw() -> void:
 		Vector2(0.0, 11.0),
 		Vector2(-10.0, 0.0),
 		Vector2(0.0, -11.0)
-	]), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.76), 1.2)
+	]), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.76), 0.6)
 
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
-		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, marker, 1.1)
+		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, marker, 0.55)
 
 
 func _combat_pulse_color() -> Color:

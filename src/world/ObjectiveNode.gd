@@ -54,19 +54,19 @@ func _draw() -> void:
 	if completed:
 		draw_circle(Vector2.ZERO, radius * 1.3, Color(c.r, c.g, c.b, 0.04))
 		draw_circle(Vector2.ZERO, radius, Color(c.r, c.g, c.b, 0.08))
-		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.55), 2.2)
-		draw_arc(Vector2.ZERO, radius * 0.58, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.28), 1.2)
+		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.55), 1.1)
+		draw_arc(Vector2.ZERO, radius * 0.58, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.28), 0.6)
 		return
 
 	draw_circle(Vector2.ZERO, radius * 2.2, Color(c.r, c.g, c.b, 0.03 * breathe))
 	draw_circle(Vector2.ZERO, radius * 1.55, Color(c.r, c.g, c.b, 0.055 * breathe))
 	draw_circle(Vector2.ZERO, radius * 1.05, Color(c.r, c.g, c.b, 0.08 * breathe))
 	draw_circle(Vector2.ZERO, radius * 0.72, Color(c.r, c.g, c.b, 0.11 * breathe))
-	draw_arc(Vector2.ZERO, radius * 1.45, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.22 * breathe), 1.4)
-	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.78 * breathe), 2.4)
-	draw_arc(Vector2.ZERO, radius * 0.52, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.32 * breathe), 1.4)
-	draw_line(Vector2(-14.0, 0.0), Vector2(14.0, 0.0), Color(c.r, c.g, c.b, 0.55), 1.8)
-	draw_line(Vector2(0.0, -14.0), Vector2(0.0, 14.0), Color(c.r, c.g, c.b, 0.55), 1.8)
+	draw_arc(Vector2.ZERO, radius * 1.45, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.22 * breathe), 0.7)
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(c.r, c.g, c.b, 0.78 * breathe), 1.2)
+	draw_arc(Vector2.ZERO, radius * 0.52, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.32 * breathe), 0.7)
+	draw_line(Vector2(-14.0, 0.0), Vector2(14.0, 0.0), Color(c.r, c.g, c.b, 0.55), 0.9)
+	draw_line(Vector2(0.0, -14.0), Vector2(0.0, 14.0), Color(c.r, c.g, c.b, 0.55), 0.9)
 	var font := ThemeDB.fallback_font
 	draw_string(font, Vector2(-26.0, -(radius + 18.0)), objective_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(c.r, c.g, c.b, 0.88))
 	draw_string(font, Vector2(-30.0, radius + 16.0), "COLLECT", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(c.r, c.g, c.b, 0.72))

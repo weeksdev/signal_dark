@@ -132,7 +132,7 @@ func _emit_contact_hit() -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.4
+	outline.width = 1.2
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -142,7 +142,7 @@ func _on_mode_changed(_in_combat: bool) -> void:
 func _draw() -> void:
 	var halo := outline.default_color
 	draw_circle(Vector2.ZERO, 16.0, Color(halo.r, halo.g, halo.b, 0.08))
-	draw_line(Vector2.ZERO, facing_vector * 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 2.0)
+	draw_line(Vector2.ZERO, facing_vector * 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 1.0)
 	draw_polyline(PackedVector2Array([
 		Vector2(0.0, -9.0),
 		Vector2(5.0, 0.0),

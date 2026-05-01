@@ -17,7 +17,7 @@ shape = SubResource("1")
 polygon = PackedVector2Array(0, -15, 13, -6, 13, 6, 0, 15, -13, 6, -13, -6)
 
 [node name="Outline" type="Line2D" parent="."]
-width = 2.0
+width = 1.0
 closed = true
 points = PackedVector2Array(0, -15, 13, -6, 13, 6, 0, 15, -13, 6, -13, -6)
 

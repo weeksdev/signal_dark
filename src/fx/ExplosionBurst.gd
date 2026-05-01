@@ -133,7 +133,7 @@ func _draw_combat(t: float) -> void:
 		var half: float = seg_len * 0.5
 		var sd: Vector2 = Vector2(cos(seg_angle), sin(seg_angle)) * half
 		var alpha: float = (1.0 - pt) * 0.95
-		draw_line(pos - sd, pos + sd, _fire_color(color_index, alpha), 2.2)
+		draw_line(pos - sd, pos + sd, _fire_color(color_index, alpha), 1.1)
 
 	# Secondary cluster bursts
 	for cl in _clusters:
@@ -165,7 +165,7 @@ func _draw_combat(t: float) -> void:
 			var sv_len: float = 5.0 + maxf(0.0, sin(fj * 3.1)) * 9.0
 			var sv: Vector2 = Vector2(cos(sa), sin(sa)) * sv_len * 0.5
 			var col: Color = _fire_color(int(hue_off) + j, cfade * 0.8)
-			draw_line(cpos - sv, cpos + sv, col, 1.6)
+			draw_line(cpos - sv, cpos + sv, col, 0.8)
 
 		# Rolling heat bloom
 		draw_circle(Vector2.ZERO, lerpf(60.0, 340.0, pow(t, 0.45)),
@@ -214,6 +214,6 @@ func _draw_stealth(t: float) -> void:
 		var pos: Vector2 = Vector2(cos(travel_angle), sin(travel_angle)) * dist
 		var sa: float = travel_angle + spin * pt * _duration
 		var sv: Vector2 = Vector2(cos(sa), sin(sa)) * (seg_len * 0.5)
-		draw_line(pos - sv, pos + sv, Color(c.r, c.g, c.b, (1.0 - pt) * 0.85), 1.8)
+		draw_line(pos - sv, pos + sv, Color(c.r, c.g, c.b, (1.0 - pt) * 0.85), 0.9)
 
 	draw_circle(Vector2.ZERO, lerpf(18.0, 3.0, t), Color(c.r, c.g, c.b, 0.32 * fade))

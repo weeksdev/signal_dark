@@ -69,8 +69,8 @@ func _draw() -> void:
 	var ui_color := ColorSystem.ui_color()
 	draw_rect(panel, Color(0.0, 0.0, 0.0, 0.3), true)
 	draw_rect(inner, Color(0.01, 0.04, 0.03, 0.74), true)
-	draw_rect(inner.grow(1.0), Color(0.0, 0.2, 0.1, 0.12), false, 1.0)
-	draw_line(Vector2(inner.position.x, inner.position.y + 20.0), Vector2(inner.end.x, inner.position.y + 20.0), Color(ui_color.r, ui_color.g, ui_color.b, 0.14), 1.0)
+	draw_rect(inner.grow(1.0), Color(0.0, 0.2, 0.1, 0.12), false, 0.5)
+	draw_line(Vector2(inner.position.x, inner.position.y + 20.0), Vector2(inner.end.x, inner.position.y + 20.0), Color(ui_color.r, ui_color.g, ui_color.b, 0.14), 0.5)
 
 	var font := ThemeDB.fallback_font
 	var font_size := 11
@@ -115,5 +115,5 @@ func _draw_bar(rect: Rect2, ratio: float, tint: Color, segmented: bool) -> void:
 	if segmented:
 		var x := rect.position.x + 6.0
 		while x < rect.end.x:
-			draw_line(Vector2(x, rect.position.y + 1.0), Vector2(x, rect.end.y - 1.0), Color(0.0, 0.0, 0.0, 0.28), 1.0)
+			draw_line(Vector2(x, rect.position.y + 1.0), Vector2(x, rect.end.y - 1.0), Color(0.0, 0.0, 0.0, 0.28), 0.5)
 			x += 18.0

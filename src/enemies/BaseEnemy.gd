@@ -385,9 +385,9 @@ func draw_suspicion_arc(radius: float, min_threshold: float = 0.06) -> void:
 	if _alerting or combat_active or _suspicion <= min_threshold:
 		return
 	var warning := Color(1.0, 0.86, 0.18, 0.42 + _suspicion * 0.4)
-	draw_arc(Vector2.ZERO, radius, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 2.2)
+	draw_arc(Vector2.ZERO, radius, -PI * 0.5, -PI * 0.5 + TAU * _suspicion, 28, warning, 1.1)
 	if _suspicion > 0.28:
-		draw_arc(Vector2.ZERO, radius + 5.0, 0.0, TAU, 32, Color(1.0, 0.52, 0.08, 0.2 + _suspicion * 0.18), 1.2)
+		draw_arc(Vector2.ZERO, radius + 5.0, 0.0, TAU, 32, Color(1.0, 0.52, 0.08, 0.2 + _suspicion * 0.18), 0.6)
 
 
 func draw_emp_disabled_effect(radius: float = 30.0) -> void:
@@ -396,10 +396,10 @@ func draw_emp_disabled_effect(radius: float = 30.0) -> void:
 	var pulse := 0.55 + 0.45 * sin(Time.get_ticks_msec() / 58.0)
 	var c := Color(0.55, 0.95, 1.0, 0.52 + pulse * 0.25)
 	draw_circle(Vector2.ZERO, radius * 0.7, Color(c.r, c.g, c.b, 0.08))
-	draw_arc(Vector2.ZERO, radius, 0.15, TAU * 0.62, 22, c, 2.0)
-	draw_arc(Vector2.ZERO, radius * 0.58, PI, TAU * 1.42, 18, Color(c.r, c.g, c.b, 0.34), 1.4)
-	draw_line(Vector2(-radius * 0.45, -radius * 0.2), Vector2(radius * 0.36, radius * 0.22), c, 1.4)
-	draw_line(Vector2(radius * 0.12, -radius * 0.38), Vector2(-radius * 0.24, radius * 0.34), Color(c.r, c.g, c.b, 0.42), 1.0)
+	draw_arc(Vector2.ZERO, radius, 0.15, TAU * 0.62, 22, c, 1.0)
+	draw_arc(Vector2.ZERO, radius * 0.58, PI, TAU * 1.42, 18, Color(c.r, c.g, c.b, 0.34), 0.7)
+	draw_line(Vector2(-radius * 0.45, -radius * 0.2), Vector2(radius * 0.36, radius * 0.22), c, 0.7)
+	draw_line(Vector2(radius * 0.12, -radius * 0.38), Vector2(-radius * 0.24, radius * 0.34), Color(c.r, c.g, c.b, 0.42), 0.5)
 
 
 func _update_palette() -> void:

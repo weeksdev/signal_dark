@@ -66,13 +66,13 @@ func _draw_machine_mass(view_rect: Rect2) -> void:
 			continue
 		draw_rect(slab, fill, true)
 		draw_rect(slab.grow(2.0), Color(0.0, 0.0, 0.0, 0.16), false, 2.0)
-		draw_line(slab.position + Vector2(18.0, 0.0), slab.position + Vector2(slab.size.x, slab.size.y - 18.0), edge, 1.0)
-		draw_line(slab.position + Vector2(0.0, slab.size.y * 0.4), slab.position + Vector2(slab.size.x * 0.65, slab.size.y), Color(edge.r, edge.g, edge.b, 0.08), 1.0)
+		draw_line(slab.position + Vector2(18.0, 0.0), slab.position + Vector2(slab.size.x, slab.size.y - 18.0), edge, 0.5)
+		draw_line(slab.position + Vector2(0.0, slab.size.y * 0.4), slab.position + Vector2(slab.size.x * 0.65, slab.size.y), Color(edge.r, edge.g, edge.b, 0.08), 0.5)
 	var trench := Rect2(Vector2(1940.0, -96.0), Vector2(92.0, 3008.0))
 	if view_rect.grow(120.0).intersects(trench):
 		draw_rect(trench, Color(0.0, 0.0, 0.0, 0.2), true)
-		draw_line(trench.position, trench.position + Vector2(0.0, trench.size.y), Color(0.05, 0.2, 0.12, 0.2), 2.0)
-		draw_line(trench.position + Vector2(trench.size.x, 0.0), trench.position + trench.size, Color(0.05, 0.2, 0.12, 0.12), 1.0)
+		draw_line(trench.position, trench.position + Vector2(0.0, trench.size.y), Color(0.05, 0.2, 0.12, 0.2), 0.5)
+		draw_line(trench.position + Vector2(trench.size.x, 0.0), trench.position + trench.size, Color(0.05, 0.2, 0.12, 0.12), 0.5)
 
 
 func _draw_combat_haze(view_rect: Rect2) -> void:
@@ -115,8 +115,8 @@ func _draw_corner_marks(view_rect: Rect2) -> void:
 		if not view_rect.grow(120.0).has_point(mark):
 			continue
 		var tint := Color(0.22, 0.9, 0.48, 0.18 + 0.04 * sin(pulse * 1.4 + mark.x))
-		draw_line(mark, mark + Vector2(18.0, 0.0), tint, 2.0)
-		draw_line(mark, mark + Vector2(0.0, 18.0), tint, 2.0)
+		draw_line(mark, mark + Vector2(18.0, 0.0), tint, 0.5)
+		draw_line(mark, mark + Vector2(0.0, 18.0), tint, 0.5)
 
 
 func _draw_warped_grid(view_rect: Rect2) -> void:
@@ -135,7 +135,7 @@ func _draw_warped_grid(view_rect: Rect2) -> void:
 		while y <= y_end:
 			points.append(_warp_point(Vector2(x, y), attractors))
 			y += 24.0
-		draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, 0.22 + alpha_boost), 1.4)
+		draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, 0.22 + alpha_boost), 0.7)
 		x += spacing * 1.5
 		col += 1
 	var row := 0
@@ -147,7 +147,7 @@ func _draw_warped_grid(view_rect: Rect2) -> void:
 		while x2 <= x_end:
 			h_points.append(_warp_point(Vector2(x2, y2), attractors))
 			x2 += 24.0
-		draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, 0.22 + alpha_boost_h), 1.4)
+		draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, 0.22 + alpha_boost_h), 0.7)
 		y2 += spacing * 1.5
 		row += 1
 
@@ -163,7 +163,7 @@ func _draw_star_dust(view_rect: Rect2) -> void:
 		var warped := _warp_point(point + drift)
 		var streak := Vector2(2.0 + 3.0 * sin(seed), 0.8).rotated(0.45)
 		var tint := Color(0.72, 0.82, 0.74, 0.08 if not ColorSystem.in_combat else 0.14)
-		draw_line(warped - streak, warped + streak, tint, 1.0)
+		draw_line(warped - streak, warped + streak, tint, 0.5)
 
 
 func _get_attractors() -> Array:

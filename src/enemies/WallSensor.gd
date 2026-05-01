@@ -103,7 +103,7 @@ func _begin_alert() -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.1
+	outline.width = 1.05
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -114,9 +114,9 @@ func _draw() -> void:
 	var c := outline.default_color
 	var field_alpha := 0.04 if not combat_active else 0.08
 	draw_rect(Rect2(0.0, -sensor_width * 0.5, sensor_depth, sensor_width), Color(c.r, c.g, c.b, field_alpha), true)
-	draw_line(Vector2.ZERO, Vector2(sensor_depth, 0.0), Color(c.r, c.g, c.b, 0.22), 1.6)
-	draw_line(Vector2(0.0, -sensor_width * 0.5), Vector2(sensor_depth, -sensor_width * 0.5), Color(c.r, c.g, c.b, 0.12), 1.0)
-	draw_line(Vector2(0.0, sensor_width * 0.5), Vector2(sensor_depth, sensor_width * 0.5), Color(c.r, c.g, c.b, 0.12), 1.0)
+	draw_line(Vector2.ZERO, Vector2(sensor_depth, 0.0), Color(c.r, c.g, c.b, 0.22), 0.8)
+	draw_line(Vector2(0.0, -sensor_width * 0.5), Vector2(sensor_depth, -sensor_width * 0.5), Color(c.r, c.g, c.b, 0.12), 0.5)
+	draw_line(Vector2(0.0, sensor_width * 0.5), Vector2(sensor_depth, sensor_width * 0.5), Color(c.r, c.g, c.b, 0.12), 0.5)
 	draw_circle(Vector2.ZERO, 18.0, Color(c.r, c.g, c.b, 0.05))
 	draw_alert_marker()
 	draw_suspicion_arc(24.0)

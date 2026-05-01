@@ -290,7 +290,7 @@ func _update_hack_prompt(delta: float) -> void:
 func _update_palette() -> void:
 	body_polygon.color = ColorSystem.player_fill(dark_mode)
 	outline.default_color = ColorSystem.player_outline(dark_mode)
-	outline.width = 3.0 if not dark_mode else 1.8
+	outline.width = 1.5 if not dark_mode else 0.9
 	body_polygon.scale = Vector2.ONE * (1.08 if not dark_mode else 0.98)
 	body_polygon.color.a = 0.18 if not dark_mode else 0.08
 	suppress_label.modulate = ColorSystem.ui_color()
@@ -340,7 +340,7 @@ func _draw_thruster() -> void:
 			Vector2(x, 9.0),
 			Vector2(x * 0.4, 9.0 + strand_len),
 			Color(col.r, col.g, col.b, alpha),
-			1.4
+			0.7
 		)
 
 
@@ -360,9 +360,9 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, emission_radius + 16.0, Color(0.3, 0.8, 1.0, 0.12))
 	if _emp_slow_timer > 0.0:
 		var emp := Color(0.55, 0.95, 1.0, 0.18 + 0.16 * sin(Time.get_ticks_msec() / 48.0))
-		draw_arc(Vector2.ZERO, 28.0, 0.0, TAU * 0.78, 36, emp, 2.0)
-		draw_line(Vector2(-14.0, -4.0), Vector2(12.0, 8.0), emp, 1.3)
+		draw_arc(Vector2.ZERO, 28.0, 0.0, TAU * 0.78, 36, emp, 1.0)
+		draw_line(Vector2(-14.0, -4.0), Vector2(12.0, 8.0), emp, 0.65)
 	if _emp_flash > 0.0:
 		var flash := Color(0.55, 0.95, 1.0, 0.24 * _emp_flash)
 		draw_circle(Vector2.ZERO, emp_radius * (1.0 - _emp_flash * 0.18), flash)
-		draw_arc(Vector2.ZERO, emp_radius * (1.0 - _emp_flash * 0.18), 0.0, TAU, 80, Color(flash.r, flash.g, flash.b, 0.55 * _emp_flash), 3.0)
+		draw_arc(Vector2.ZERO, emp_radius * (1.0 - _emp_flash * 0.18), 0.0, TAU, 80, Color(flash.r, flash.g, flash.b, 0.55 * _emp_flash), 1.5)

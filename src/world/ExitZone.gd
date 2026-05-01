@@ -58,9 +58,9 @@ func _draw() -> void:
 
 	# Arrow pointing right — direction of progression
 	var arr_color := Color(color.r, color.g, color.b, breathe * (0.45 if _locked else 0.9))
-	draw_line(Vector2(-18.0, 0.0), Vector2(18.0, 0.0), arr_color, 2.5)
-	draw_line(Vector2(8.0, -11.0), Vector2(18.0, 0.0), arr_color, 2.5)
-	draw_line(Vector2(8.0, 11.0), Vector2(18.0, 0.0), arr_color, 2.5)
+	draw_line(Vector2(-18.0, 0.0), Vector2(18.0, 0.0), arr_color, 1.25)
+	draw_line(Vector2(8.0, -11.0), Vector2(18.0, 0.0), arr_color, 1.25)
+	draw_line(Vector2(8.0, 11.0), Vector2(18.0, 0.0), arr_color, 1.25)
 
 	# "EXIT" label
 	var font := ThemeDB.fallback_font

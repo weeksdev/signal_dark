@@ -138,7 +138,7 @@ func _start_pulse() -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.08 if not AlertSystem.combat_mode else 0.14)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.2
+	outline.width = 1.1
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -159,14 +159,14 @@ func _draw() -> void:
 	var range_frac: float = cur_range / pulse_range
 	var indicator_color := outline.default_color
 	draw_arc(Vector2.ZERO, cur_range, 0.0, TAU, 48,
-			Color(indicator_color.r, indicator_color.g, indicator_color.b, 0.10 + 0.12 * range_frac), 1.2)
+			Color(indicator_color.r, indicator_color.g, indicator_color.b, 0.10 + 0.12 * range_frac), 0.6)
 
 	if not ring_visible:
 		return
 	var ring_color := outline.default_color
 	ring_color.a = 0.42 if not AlertSystem.combat_mode else 0.7
-	draw_arc(Vector2.ZERO, cur_range * pulse_progress, 0.0, TAU, 64, ring_color, 3.0)
-	draw_arc(Vector2.ZERO, cur_range * pulse_progress * 0.82, 0.0, TAU, 64, Color(ring_color.r, ring_color.g, ring_color.b, 0.1), 1.0)
+	draw_arc(Vector2.ZERO, cur_range * pulse_progress, 0.0, TAU, 64, ring_color, 1.5)
+	draw_arc(Vector2.ZERO, cur_range * pulse_progress * 0.82, 0.0, TAU, 64, Color(ring_color.r, ring_color.g, ring_color.b, 0.1), 0.5)
 	var star := PackedVector2Array([
 		Vector2(0.0, -10.0),
 		Vector2(3.0, -3.0),
@@ -178,11 +178,11 @@ func _draw() -> void:
 		Vector2(-3.0, -3.0),
 		Vector2(0.0, -10.0)
 	])
-	draw_polyline(star, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.68), 1.2)
+	draw_polyline(star, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.68), 0.6)
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
-		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, marker, 1.2)
+		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, marker, 0.6)
 	draw_emp_disabled_effect(32.0)
 
 

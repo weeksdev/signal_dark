@@ -46,15 +46,15 @@ func _draw() -> void:
 		line_color.a = 0.38
 	var x := rect.position.x - 12.0
 	while x < rect.end.x + 18.0:
-		draw_line(Vector2(x, rect.position.y), Vector2(x + 36.0, rect.end.y), line_color, 1.0)
+		draw_line(Vector2(x, rect.position.y), Vector2(x + 36.0, rect.end.y), line_color, 0.5)
 		x += 18.0
 	var y := rect.position.y + 6.0
 	while y < rect.end.y:
 		var horizontal_alpha := 0.12 if not ColorSystem.in_combat else lerpf(0.08, 0.2, combat_pulse)
-		draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), Color(line_color.r, line_color.g, line_color.b, horizontal_alpha), 1.0)
+		draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), Color(line_color.r, line_color.g, line_color.b, horizontal_alpha), 0.5)
 		y += 12.0
 	# Only the two long face edges — no end caps so adjacent walls merge cleanly
-	var ow := 2.6 if not ColorSystem.in_combat else lerpf(2.0, 2.8, combat_pulse)
+	var ow := 1.3 if not ColorSystem.in_combat else lerpf(1.0, 1.4, combat_pulse)
 	var oc := ColorSystem.terrain_outline()
 	if ColorSystem.in_combat:
 		oc = oc.lerp(Color("ff6230"), 0.62 + combat_pulse * 0.22)

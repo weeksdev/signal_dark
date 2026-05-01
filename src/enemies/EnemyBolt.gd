@@ -18,7 +18,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_line(Vector2(-7.0, 0.0), Vector2(7.0, 0.0), tint, 2.0)
+	draw_line(Vector2(-7.0, 0.0), Vector2(7.0, 0.0), tint, 1.0)
 	draw_circle(Vector2.ZERO, 2.5, Color(tint.r, tint.g, tint.b, 0.6))
 
 

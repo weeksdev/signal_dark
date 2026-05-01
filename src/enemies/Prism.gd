@@ -140,7 +140,7 @@ func _begin_alert() -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.07 if not AlertSystem.combat_mode else 0.13)
 	outline.default_color = enemy_state_outline()
-	outline.width = 2.2
+	outline.width = 1.1
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -155,7 +155,7 @@ func _draw() -> void:
 	for beam_dir in _beam_directions():
 		var end := beam_dir * beam_range
 		var alpha := 0.24 if not combat_active else 0.42
-		draw_line(Vector2.ZERO, end, Color(beam_color.r, beam_color.g, beam_color.b, alpha), 2.2)
+		draw_line(Vector2.ZERO, end, Color(beam_color.r, beam_color.g, beam_color.b, alpha), 1.1)
 		draw_line(Vector2.ZERO, end * 0.85, Color(beam_color.r, beam_color.g, beam_color.b, alpha * 0.18), beam_width)
 
 	draw_polyline(PackedVector2Array([
@@ -164,7 +164,7 @@ func _draw() -> void:
 		Vector2(0.0, 12.0),
 		Vector2(-8.0, 0.0),
 		Vector2(0.0, -12.0)
-	]), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.76), 1.4)
+	]), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.76), 0.7)
 
 	draw_alert_marker()
 	draw_suspicion_arc(25.0)
@@ -172,7 +172,7 @@ func _draw() -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null and can_be_suppressed_by(player):
 		var marker := Color(0.82, 1.0, 0.88, 0.45 + 0.15 * sin(Time.get_ticks_msec() / 120.0))
-		draw_arc(Vector2.ZERO, 21.0, 0.0, TAU, 24, marker, 1.2)
+		draw_arc(Vector2.ZERO, 21.0, 0.0, TAU, 24, marker, 0.6)
 	draw_emp_disabled_effect(32.0)
 
 
