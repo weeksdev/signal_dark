@@ -118,6 +118,7 @@ const COMBAT_REINFORCEMENT_BLOCKED_BONUS := 240.0
 const COMBAT_REINFORCEMENT_RETRY_TIME := 1.1
 const COMBAT_REINFORCEMENT_INTERVAL_HIGH := 2.6
 const COMBAT_REINFORCEMENT_INTERVAL_LOW := 1.45
+const WORLD_CAMERA_ZOOM := Vector2(1.6, 1.6)
 const COMBAT_REINFORCEMENT_IMMEDIATE_KILL_DELAY := 0.35
 const COMBAT_REINFORCEMENT_RECOVERY_DELAY := 0.16
 const COMBAT_REINFORCEMENT_MIN_ACTIVE := 4
@@ -1044,8 +1045,8 @@ func _configure_camera() -> void:
 	camera.limit_top = int(rect.position.y)
 	camera.limit_right = int(rect.end.x)
 	camera.limit_bottom = int(rect.end.y)
+	camera.zoom = WORLD_CAMERA_ZOOM
 	if not OS.has_feature("web") and not OS.has_feature("mobile"):
-		camera.zoom = Vector2.ONE
 		camera.position_smoothing_speed = 9.0
 
 

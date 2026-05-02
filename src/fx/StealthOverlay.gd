@@ -124,6 +124,7 @@ void fragment() {
 var _shader_material: ShaderMaterial
 var _last_viewport_size := Vector2.ZERO
 var _last_mode_in_combat := false
+const ENEMY_REVEAL_WINDOW_RADIUS_PX := 248.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -190,6 +191,7 @@ func _stealth_reveal_data(rect: Rect2) -> Dictionary:
 		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 	]
 	var count: int = 0
+	var signal_center := _signal_center(rect)
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy == null:
 			continue
@@ -198,11 +200,11 @@ func _stealth_reveal_data(rect: Rect2) -> Dictionary:
 		var center: Vector2 = _screen_from_world(enemy.global_position, rect)
 		if not Rect2(Vector2.ZERO, rect.size).grow(96.0).has_point(center):
 			continue
+		if center.distance_to(signal_center) > ENEMY_REVEAL_WINDOW_RADIUS_PX:
+			continue
 		var reveal_level := 0.0
 		if enemy.has_method("stealth_reveal_level"):
 			reveal_level = float(enemy.stealth_reveal_level())
-		if enemy.scene_file_path.ends_with("Wisp.tscn"):
-			reveal_level = maxf(reveal_level, 0.34)
 		if reveal_level <= 0.05:
 			continue
 		centers[count] = center
@@ -253,9 +255,9 @@ func _apply_static_shader_params() -> void:
 	if _shader_material == null:
 		return
 	var in_combat := ColorSystem.in_combat
-	_shader_material.set_shader_parameter("inner_radius_px", 72.0)
-	_shader_material.set_shader_parameter("blur_start_px", 88.0)
-	_shader_material.set_shader_parameter("outer_radius_px", 196.0)
+	_shader_material.set_shader_parameter("inner_radius_px", 92.0)
+	_shader_material.set_shader_parameter("blur_start_px", 112.0)
+	_shader_material.set_shader_parameter("outer_radius_px", 248.0)
 	_shader_material.set_shader_parameter("max_darkness", 0.965)
 	_shader_material.set_shader_parameter("ambient_floor", 0.075)
 	_shader_material.set_shader_parameter("reveal_strength", 0.82)
@@ -268,8 +270,8 @@ func _apply_static_shader_params() -> void:
 	_shader_material.set_shader_parameter("vignette_strength", 0.2)
 	_shader_material.set_shader_parameter("grille_strength", 0.06)
 	_shader_material.set_shader_parameter("warp_strength", 0.012)
-	_shader_material.set_shader_parameter("wash_radius_px", 170.0)
-	_shader_material.set_shader_parameter("wash_softness_px", 72.0)
-	_shader_material.set_shader_parameter("wash_strength", 0.045 if not in_combat else 0.0)
+	_shader_material.set_shader_parameter("wash_radius_px", 214.0)
+	_shader_material.set_shader_parameter("wash_softness_px", 92.0)
+	_shader_material.set_shader_parameter("wash_strength", 0.04 if not in_combat else 0.0)
 	_shader_material.set_shader_parameter("wash_tint", Vector3(0.12, 0.52, 0.24))
 	_shader_material.set_shader_parameter("sharpen_strength", 0.24 if not in_combat else 0.12)
