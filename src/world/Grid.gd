@@ -3,14 +3,22 @@ extends Node2D
 @export var world_rect := Rect2(-96.0, -96.0, 4096.0, 2816.0)
 @export var spacing: float = 28.0
 
+const AMBIENT_ANOMALIES := [
+	{"position": Vector2(760.0, 440.0), "radius": 230.0, "strength": 0.42},
+	{"position": Vector2(1540.0, 980.0), "radius": 270.0, "strength": 0.34},
+	{"position": Vector2(2470.0, 680.0), "radius": 210.0, "strength": 0.28},
+	{"position": Vector2(3260.0, 1820.0), "radius": 320.0, "strength": 0.4},
+]
+
 var pulse: float = 0.0
 var redraw_accumulator: float = 0.0
+const REDRAW_INTERVAL := 0.05
 
 
 func _process(delta: float) -> void:
 	pulse += delta
 	redraw_accumulator += delta
-	if redraw_accumulator >= 0.05:
+	if redraw_accumulator >= REDRAW_INTERVAL:
 		redraw_accumulator = 0.0
 		queue_redraw()
 
@@ -26,14 +34,16 @@ func _on_mode_changed(_in_combat: bool) -> void:
 func _draw() -> void:
 	draw_rect(world_rect, ColorSystem.background_color(), true)
 	var view_rect := _get_visible_world_rect().grow(160.0)
+	var attractors := _get_attractors()
 	if not ColorSystem.in_combat:
 		_draw_stealth_haze(view_rect)
 		_draw_machine_mass(view_rect)
 	else:
 		_draw_combat_haze(view_rect)
-	_draw_warped_grid(view_rect)
-	_draw_star_dust(view_rect)
-	_draw_grid_nodes(view_rect)
+	_draw_warped_grid(view_rect, attractors)
+	_draw_star_dust(view_rect, attractors)
+	_draw_grid_nodes(view_rect, attractors)
+	_draw_signal_artifacts(view_rect, attractors)
 	if not ColorSystem.in_combat:
 		_draw_corner_marks(view_rect)
 
@@ -83,7 +93,7 @@ func _draw_combat_haze(view_rect: Rect2) -> void:
 		draw_circle(center, radius, Color(0.08, 0.1, 0.32, maxf(alpha, 0.004)))
 
 
-func _draw_grid_nodes(view_rect: Rect2) -> void:
+func _draw_grid_nodes(view_rect: Rect2, attractors: Array) -> void:
 	var x_start: float = floor(view_rect.position.x / spacing) * spacing - spacing * 2.0
 	var x_end: float = ceil(view_rect.end.x / spacing) * spacing + spacing * 2.0
 	var y_start: float = floor(view_rect.position.y / spacing) * spacing - spacing * 2.0
@@ -95,9 +105,19 @@ func _draw_grid_nodes(view_rect: Rect2) -> void:
 		var yi := int(y_start / spacing)
 		while y <= y_end:
 			if (xi + yi) % 3 == 0:
+				if _broken_sector_factor(Vector2(x, y)) < 0.28:
+					y += spacing * 2.0
+					yi += 2
+					continue
 				var flicker := 0.028 + 0.024 * (0.5 + 0.5 * sin(pulse * 1.3 + xi * 0.4 + yi * 0.7))
 				var node_color := ColorSystem.haze_color()
-				draw_circle(_warp_point(Vector2(x, y)), 1.7, Color(node_color.r * 1.7, node_color.g * 2.05, node_color.b * 1.34, flicker))
+				var warped := _warp_point(Vector2(x, y), attractors)
+				draw_circle(warped, 1.7, Color(node_color.r * 1.7, node_color.g * 2.05, node_color.b * 1.34, flicker))
+				if (xi + yi) % 9 == 0:
+					var hub_alpha := flicker * 1.6
+					draw_circle(warped, 5.0, Color(node_color.r * 1.2, node_color.g * 1.6, node_color.b, hub_alpha * 0.28))
+					draw_line(warped + Vector2(-5.0, 0.0), warped + Vector2(5.0, 0.0), Color(node_color.r, node_color.g * 1.2, node_color.b, hub_alpha), 0.7)
+					draw_line(warped + Vector2(0.0, -5.0), warped + Vector2(0.0, 5.0), Color(node_color.r, node_color.g * 1.2, node_color.b, hub_alpha), 0.7)
 			y += spacing * 2.0
 			yi += 2
 		x += spacing * 2.0
@@ -119,11 +139,10 @@ func _draw_corner_marks(view_rect: Rect2) -> void:
 		draw_line(mark, mark + Vector2(0.0, 18.0), tint, 0.5)
 
 
-func _draw_warped_grid(view_rect: Rect2) -> void:
+func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 	var line_color := ColorSystem.grid_color()
 	var base_alpha := 0.42 if not ColorSystem.in_combat else 0.22
 	var major_alpha_boost := 0.085 if not ColorSystem.in_combat else 0.025
-	var attractors := _get_attractors()
 	var x_start: float = floor(view_rect.position.x / spacing) * spacing - spacing * 3.0
 	var x_end: float = ceil(view_rect.end.x / spacing) * spacing + spacing * 3.0
 	var y_start: float = floor(view_rect.position.y / spacing) * spacing - spacing * 3.0
@@ -135,9 +154,11 @@ func _draw_warped_grid(view_rect: Rect2) -> void:
 		var points := PackedVector2Array()
 		var y: float = y_start
 		while y <= y_end:
-			points.append(_warp_point(Vector2(x, y), attractors))
+			var raw_point := Vector2(x, y)
+			points.append(_warp_point(raw_point, attractors))
 			y += 24.0
-		draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost), 0.9)
+		if points.size() > 1:
+			draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, (base_alpha + alpha_boost) * 0.92), 0.9)
 		x += spacing * 1.5
 		col += 1
 	var row := 0
@@ -147,14 +168,39 @@ func _draw_warped_grid(view_rect: Rect2) -> void:
 		var h_points := PackedVector2Array()
 		var x2: float = x_start
 		while x2 <= x_end:
-			h_points.append(_warp_point(Vector2(x2, y2), attractors))
+			var raw_point_h := Vector2(x2, y2)
+			h_points.append(_warp_point(raw_point_h, attractors))
 			x2 += 24.0
-		draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost_h), 0.9)
+		if h_points.size() > 1:
+			draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, (base_alpha + alpha_boost_h) * 0.92), 0.9)
 		y2 += spacing * 1.5
 		row += 1
 
 
-func _draw_star_dust(view_rect: Rect2) -> void:
+func _draw_signal_artifacts(view_rect: Rect2, attractors: Array) -> void:
+	var tint := ColorSystem.haze_color()
+	for anomaly in AMBIENT_ANOMALIES:
+		var center: Vector2 = anomaly["position"]
+		if not view_rect.grow(260.0).has_point(center):
+			continue
+		var radius: float = anomaly["radius"]
+		var strength: float = anomaly["strength"]
+		var warped_center := _warp_point(center, attractors)
+		draw_arc(warped_center, radius, -0.9 + sin(pulse * 0.17 + radius) * 0.2, 1.2 + cos(pulse * 0.11 + radius) * 0.18, 32, Color(tint.r, tint.g * 1.08, tint.b, 0.07 * strength), 1.0)
+		draw_arc(warped_center, radius * 0.62, 2.5, 4.6, 18, Color(tint.r, tint.g * 1.18, tint.b, 0.09 * strength), 0.8)
+		var bracket_offset := Vector2(radius * 0.42, 0.0).rotated(pulse * 0.025 + radius * 0.001)
+		_draw_bracket(warped_center + bracket_offset, 16.0, Color(tint.r, tint.g * 1.25, tint.b, 0.12 * strength))
+		_draw_bracket(warped_center - bracket_offset, 13.0, Color(tint.r, tint.g * 1.1, tint.b, 0.08 * strength))
+
+
+func _draw_bracket(center: Vector2, size: float, color: Color) -> void:
+	draw_line(center + Vector2(-size, -size), center + Vector2(-size * 0.25, -size), color, 0.7)
+	draw_line(center + Vector2(-size, -size), center + Vector2(-size, -size * 0.25), color, 0.7)
+	draw_line(center + Vector2(size, size), center + Vector2(size * 0.25, size), color, 0.7)
+	draw_line(center + Vector2(size, size), center + Vector2(size, size * 0.25), color, 0.7)
+
+
+func _draw_star_dust(view_rect: Rect2, attractors: Array) -> void:
 	for i in range(24):
 		var seed := float(i) * 17.137
 		var point := Vector2(
@@ -162,7 +208,7 @@ func _draw_star_dust(view_rect: Rect2) -> void:
 			view_rect.position.y + fposmod(seed * 53.0 + 170.0 + pulse * 11.0, view_rect.size.y)
 		)
 		var drift := Vector2(sin(pulse * 0.2 + i), cos(pulse * 0.17 + i * 0.7)) * 8.0
-		var warped := _warp_point(point + drift)
+		var warped := _warp_point(point + drift, attractors)
 		var streak := Vector2(2.0 + 3.0 * sin(seed), 0.8).rotated(0.45)
 		var tint := Color(0.72, 0.82, 0.74, 0.08 if not ColorSystem.in_combat else 0.14)
 		draw_line(warped - streak, warped + streak, tint, 0.5)
@@ -170,33 +216,31 @@ func _draw_star_dust(view_rect: Rect2) -> void:
 
 func _get_attractors() -> Array:
 	var attractors := []
+	for anomaly in AMBIENT_ANOMALIES:
+		attractors.append({
+			"position": anomaly["position"],
+			"strength": 12000.0 * anomaly["strength"],
+			"twist": 0.08 + anomaly["strength"] * 0.08,
+			"radius": anomaly["radius"]
+		})
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player != null:
 		attractors.append({
 			"position": player.global_position,
-			"strength": 22000.0 if not ColorSystem.in_combat else 32000.0,
-			"twist": 0.28 if not ColorSystem.in_combat else 0.45,
-			"radius": 320.0
-		})
-	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
-		if enemy == null:
-			continue
-		if attractors.size() >= 5:
-			break
-		var strength := 9000.0 if not ColorSystem.in_combat else 14000.0
-		var twist := 0.12 if not ColorSystem.in_combat else 0.22
-		var radius := 210.0
-		if enemy.scene_file_path.ends_with("Wisp.tscn"):
-			strength = 18000.0 if not ColorSystem.in_combat else 24000.0
-			twist = 0.18 if not ColorSystem.in_combat else 0.28
-			radius = 320.0
-		attractors.append({
-			"position": enemy.global_position,
-			"strength": strength,
-			"twist": twist,
-			"radius": radius
+			"strength": 8500.0 if not ColorSystem.in_combat else 11000.0,
+			"twist": 0.1 if not ColorSystem.in_combat else 0.16,
+			"radius": 220.0
 		})
 	return attractors
+
+
+func _broken_sector_factor(point: Vector2) -> float:
+	var coarse_x: float = floor(point.x / 220.0)
+	var coarse_y: float = floor(point.y / 220.0)
+	var sector_seed: float = sin(coarse_x * 12.9898 + coarse_y * 78.233) * 43758.5453
+	var sector_noise: float = absf(fmod(sector_seed, 1.0))
+	var drift: float = 0.03 * (0.5 + 0.5 * sin(pulse * 0.06 + coarse_x * 0.7 + coarse_y * 0.4))
+	return clampf(0.14 + sector_noise * 0.82 + drift, 0.0, 1.0)
 
 
 func _warp_point(point: Vector2, attractors := []) -> Vector2:

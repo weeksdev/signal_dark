@@ -1486,7 +1486,11 @@ func _refresh_progress_lock_state() -> void:
 
 
 func _build_search_points(position: Vector2) -> Array[Vector2]:
-	var rect: Rect2 = grid.get("world_rect")
+	var rect := Rect2(-96.0, -96.0, 4096.0, 2816.0)
+	if grid != null:
+		var candidate = grid.get("world_rect")
+		if candidate is Rect2:
+			rect = candidate
 	var radius_x := 118.0
 	var radius_y := 92.0
 	var points: Array[Vector2] = [
