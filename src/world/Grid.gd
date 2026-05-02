@@ -141,8 +141,8 @@ func _draw_corner_marks(view_rect: Rect2) -> void:
 
 func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 	var line_color := ColorSystem.grid_color()
-	var base_alpha := 0.42 if not ColorSystem.in_combat else 0.22
-	var major_alpha_boost := 0.085 if not ColorSystem.in_combat else 0.025
+	var base_alpha := 0.48 if not ColorSystem.in_combat else 0.24
+	var major_alpha_boost := 0.11 if not ColorSystem.in_combat else 0.03
 	var x_start: float = floor(view_rect.position.x / spacing) * spacing - spacing * 3.0
 	var x_end: float = ceil(view_rect.end.x / spacing) * spacing + spacing * 3.0
 	var y_start: float = floor(view_rect.position.y / spacing) * spacing - spacing * 3.0
@@ -158,7 +158,7 @@ func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 			points.append(_warp_point(raw_point, attractors))
 			y += 24.0
 		if points.size() > 1:
-			draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, (base_alpha + alpha_boost) * 0.92), 0.9)
+			draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost), 1.0)
 		x += spacing * 1.5
 		col += 1
 	var row := 0
@@ -172,7 +172,7 @@ func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 			h_points.append(_warp_point(raw_point_h, attractors))
 			x2 += 24.0
 		if h_points.size() > 1:
-			draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, (base_alpha + alpha_boost_h) * 0.92), 0.9)
+			draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost_h), 1.0)
 		y2 += spacing * 1.5
 		row += 1
 

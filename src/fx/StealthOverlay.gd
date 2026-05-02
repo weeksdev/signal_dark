@@ -3,7 +3,7 @@ extends Control
 const OVERLAY_SHADER_CODE := """
 shader_type canvas_item;
 
-uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 uniform vec2 light_center = vec2(800.0, 450.0);
 uniform vec2 viewport_size = vec2(1600.0, 900.0);
 uniform float inner_radius_px = 96.0;
@@ -30,6 +30,7 @@ uniform float wash_radius_px = 320.0;
 uniform float wash_softness_px = 140.0;
 uniform float wash_strength = 0.18;
 uniform vec3 wash_tint = vec3(0.2, 0.9, 0.42);
+uniform float sharpen_strength = 0.18;
 
 vec4 blur3(vec2 uv, float blur_px) {
 	vec2 px = vec2(1.0) / viewport_size;
@@ -55,9 +56,11 @@ void fragment() {
 		float dist_px = distance(screen_pos, light_center);
 		float blur_band = smoothstep(blur_start_px, outer_radius_px, dist_px);
 		float darkness_band = smoothstep(inner_radius_px, outer_radius_px, dist_px);
-		float blur_amount = mix(0.0, 8.0, blur_band);
+		float blur_amount = mix(0.0, 5.0, blur_band);
 		vec4 blurred = blur3(clamped_uv, blur_amount);
-		vec4 mixed_col = mix(base, blurred, blur_band);
+		vec4 mixed_col = mix(base, blurred, blur_band * 0.62);
+		vec3 sharpened = clamp(base.rgb + (base.rgb - blurred.rgb) * sharpen_strength, vec3(0.0), vec3(1.0));
+		mixed_col.rgb = mix(mixed_col.rgb, sharpened, 0.42);
 
 		float darkness = mix(0.0, max_darkness, darkness_band);
 		float visibility = max(ambient_floor, 1.0 - darkness);
@@ -100,9 +103,9 @@ void fragment() {
 	float dither = noise * dither_strength * 0.55;
 	out_col.rgb = clamp(out_col.rgb + grain + dither, vec3(0.0), vec3(1.0));
 	float luminance = dot(out_col.rgb, vec3(0.299, 0.587, 0.114));
-	vec3 phosphor_mono = crt_tint * (0.32 + luminance * 1.05);
+	vec3 phosphor_mono = crt_tint * (0.26 + luminance * 1.02);
 	out_col.rgb = mix(out_col.rgb, phosphor_mono, crt_tint_strength);
-	out_col.rgb += crt_tint * 0.06;
+	out_col.rgb += crt_tint * 0.04;
 	float scan_phase = 0.5 + 0.5 * cos(frag_px.y * 3.14159265);
 	float scanline = 1.0 - scan_phase * scanline_strength;
 	float triad = 0.94 + 0.06 * sin(frag_px.x * 2.4);
@@ -250,22 +253,23 @@ func _apply_static_shader_params() -> void:
 	if _shader_material == null:
 		return
 	var in_combat := ColorSystem.in_combat
-	_shader_material.set_shader_parameter("inner_radius_px", 132.0)
-	_shader_material.set_shader_parameter("blur_start_px", 153.0)
-	_shader_material.set_shader_parameter("outer_radius_px", 382.0)
-	_shader_material.set_shader_parameter("max_darkness", 0.92)
-	_shader_material.set_shader_parameter("ambient_floor", 0.16)
+	_shader_material.set_shader_parameter("inner_radius_px", 72.0)
+	_shader_material.set_shader_parameter("blur_start_px", 88.0)
+	_shader_material.set_shader_parameter("outer_radius_px", 196.0)
+	_shader_material.set_shader_parameter("max_darkness", 0.965)
+	_shader_material.set_shader_parameter("ambient_floor", 0.075)
 	_shader_material.set_shader_parameter("reveal_strength", 0.82)
-	_shader_material.set_shader_parameter("pixel_size", 2.0)
-	_shader_material.set_shader_parameter("grain_strength", 0.05 if not in_combat else 0.035)
-	_shader_material.set_shader_parameter("dither_strength", 0.025 if not in_combat else 0.015)
-	_shader_material.set_shader_parameter("crt_tint_strength", 0.28 if not in_combat else 0.1)
+	_shader_material.set_shader_parameter("pixel_size", 1.35)
+	_shader_material.set_shader_parameter("grain_strength", 0.028 if not in_combat else 0.02)
+	_shader_material.set_shader_parameter("dither_strength", 0.012 if not in_combat else 0.008)
+	_shader_material.set_shader_parameter("crt_tint_strength", 0.2 if not in_combat else 0.08)
 	_shader_material.set_shader_parameter("crt_tint", Vector3(0.32, 0.95, 0.48))
-	_shader_material.set_shader_parameter("scanline_strength", 0.22)
-	_shader_material.set_shader_parameter("vignette_strength", 0.24)
-	_shader_material.set_shader_parameter("grille_strength", 0.08)
+	_shader_material.set_shader_parameter("scanline_strength", 0.18)
+	_shader_material.set_shader_parameter("vignette_strength", 0.2)
+	_shader_material.set_shader_parameter("grille_strength", 0.06)
 	_shader_material.set_shader_parameter("warp_strength", 0.012)
-	_shader_material.set_shader_parameter("wash_radius_px", 382.0)
-	_shader_material.set_shader_parameter("wash_softness_px", 176.0)
-	_shader_material.set_shader_parameter("wash_strength", 0.16 if not in_combat else 0.0)
-	_shader_material.set_shader_parameter("wash_tint", Vector3(0.17, 0.78, 0.36))
+	_shader_material.set_shader_parameter("wash_radius_px", 170.0)
+	_shader_material.set_shader_parameter("wash_softness_px", 72.0)
+	_shader_material.set_shader_parameter("wash_strength", 0.045 if not in_combat else 0.0)
+	_shader_material.set_shader_parameter("wash_tint", Vector3(0.12, 0.52, 0.24))
+	_shader_material.set_shader_parameter("sharpen_strength", 0.24 if not in_combat else 0.12)
