@@ -283,14 +283,25 @@ func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.05 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
 	outline.width = 1.05
+	_sync_visual_overlays()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
 	_update_palette()
 
 
+func _wisp_draw_tint() -> Color:
+	if is_emp_disabled():
+		return Color(0.82, 0.96, 1.0, 0.96)
+	if combat_active:
+		return Color(1.0, 0.96, 0.9, 0.98)
+	if is_alerting_state():
+		return Color(1.0, 0.46, 0.22, 0.96)
+	return Color(0.92, 0.94, 0.96, 0.92)
+
+
 func _draw() -> void:
-	var tint := outline.default_color
+	var tint := _wisp_draw_tint()
 	draw_circle(Vector2.ZERO, 58.0, Color(tint.r, tint.g, tint.b, 0.045))
 	draw_circle(Vector2.ZERO, 42.0, Color(tint.r, tint.g, tint.b, 0.075))
 	draw_circle(Vector2.ZERO, 29.0, Color(tint.r, tint.g, tint.b, 0.11))

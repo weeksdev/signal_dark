@@ -1,16 +1,17 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3 uid="uid://7dbkk0awbhah"]
 
-[ext_resource type="Script" path="res://src/player/Ship.gd" id="1"]
-[ext_resource type="Script" path="res://src/player/WeaponSystem.gd" id="2"]
+[ext_resource type="Script" uid="uid://diomcignwgmnf" path="res://src/player/Ship.gd" id="1"]
+[ext_resource type="Script" uid="uid://650kvx3xekew" path="res://src/player/WeaponSystem.gd" id="2"]
 [ext_resource type="PackedScene" path="res://src/player/SignalProbe.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://src/weapons/PulseShot.tscn" id="4"]
-[ext_resource type="Script" path="res://src/ui/HackIndicator.gd" id="5"]
+[ext_resource type="Script" uid="uid://dafhpv0kqtjj3" path="res://src/ui/HackIndicator.gd" id="5"]
+[ext_resource type="PackedScene" path="res://src/visual/HoverGlow.tscn" id="6"]
+[ext_resource type="PackedScene" uid="uid://dee3f0c4yyljd" path="res://src/visual/PlayerShipVisual.tscn" id="7"]
 
 [sub_resource type="CircleShape2D" id="1"]
 radius = 11.0
 
 [node name="Ship" type="CharacterBody2D"]
-collision_layer = 1
 collision_mask = 4
 script = ExtResource("1")
 signal_probe_scene = ExtResource("3")
@@ -19,30 +20,37 @@ signal_probe_scene = ExtResource("3")
 shape = SubResource("1")
 
 [node name="Body" type="Polygon2D" parent="."]
+visible = false
 polygon = PackedVector2Array(0, -16, 6, -6, 12, 0, 6, 4, 2, 12, 0, 8, -2, 12, -6, 4, -12, 0, -6, -6)
 
 [node name="Outline" type="Line2D" parent="."]
-width = 1.0
-closed = true
+visible = false
 points = PackedVector2Array(0, -16, 6, -6, 12, 0, 6, 4, 2, 12, 0, 8, -2, 12, -6, 4, -12, 0, -6, -6)
+closed = true
+width = 1.0
+
+[node name="HoverGlow" parent="." instance=ExtResource("6")]
+
+[node name="ShipVisual" parent="." instance=ExtResource("7")]
+position = Vector2(0, -8)
+scale = Vector2(0.0516667, 0.0516667)
 
 [node name="WeaponSystem" type="Node" parent="."]
 script = ExtResource("2")
 pulse_shot_scene = ExtResource("4")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-enabled = true
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
 
 [node name="SuppressLabel" type="Label" parent="."]
+visible = false
 offset_left = -44.0
 offset_top = -42.0
 offset_right = 42.0
 offset_bottom = -12.0
-horizontal_alignment = 1
 text = "E EXECUTE"
-visible = false
+horizontal_alignment = 1
 
 [node name="HackIndicator" type="Node2D" parent="."]
 script = ExtResource("5")

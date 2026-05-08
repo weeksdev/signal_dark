@@ -42,6 +42,8 @@ var _hack_prompt_active: bool = false
 @onready var outline = $Outline
 @onready var suppress_label = $SuppressLabel
 @onready var hack_indicator = $HackIndicator
+@onready var hover_glow = get_node_or_null("HoverGlow")
+@onready var ship_visual = get_node_or_null("ShipVisual")
 
 
 func _ready() -> void:
@@ -108,6 +110,8 @@ func _physics_process(delta: float) -> void:
 	_check_enemy_contact()
 	_update_suppress_prompt()
 	_update_palette()
+	if ship_visual != null and ship_visual.has_method("set_thruster_strength"):
+		ship_visual.set_thruster_strength(velocity.length() / maxf(max_speed, 0.01), _boost_flash, dark_mode)
 	queue_redraw()
 
 
@@ -288,12 +292,18 @@ func _update_hack_prompt(delta: float) -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = ColorSystem.player_fill(dark_mode)
-	outline.default_color = ColorSystem.player_outline(dark_mode)
+	var fill_color := ColorSystem.player_fill(dark_mode)
+	var outline_color := ColorSystem.player_outline(dark_mode)
+	body_polygon.color = fill_color
+	outline.default_color = outline_color
 	outline.width = 1.5 if not dark_mode else 0.9
 	body_polygon.scale = Vector2.ONE * (1.08 if not dark_mode else 0.98)
 	body_polygon.color.a = 0.18 if not dark_mode else 0.08
 	suppress_label.modulate = ColorSystem.ui_color()
+	if hover_glow != null and hover_glow.has_method("set_glow_color"):
+		hover_glow.set_glow_color(outline_color, 0.9 if not dark_mode else 0.35)
+	if ship_visual != null and ship_visual.has_method("apply_palette"):
+		ship_visual.apply_palette(fill_color, outline_color, dark_mode)
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -323,6 +333,8 @@ func _check_enemy_contact() -> void:
 
 
 func _draw_thruster() -> void:
+	if ship_visual != null:
+		return
 	var speed_frac := velocity.length() / max_speed
 	if speed_frac < 0.02 and _boost_flash < 0.01:
 		return

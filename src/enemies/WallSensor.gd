@@ -104,6 +104,7 @@ func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
 	outline.width = 1.05
+	_sync_visual_overlays()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:

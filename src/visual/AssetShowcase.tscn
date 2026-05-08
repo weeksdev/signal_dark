@@ -1,0 +1,47 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="PackedScene" path="res://src/visual/PlayerShipVisual.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://src/visual/Enemy1Visual.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://src/visual/HoverGlow.tscn" id="3"]
+
+[sub_resource type="LabelSettings" id="1"]
+font_size = 20
+font_color = Color(0.72, 1, 0.84, 1)
+
+[sub_resource type="LabelSettings" id="2"]
+font_size = 20
+font_color = Color(0.92, 1, 0.95, 1)
+
+[node name="AssetShowcase" type="Node2D"]
+
+[node name="Backdrop" type="Polygon2D" parent="."]
+color = Color(0.0352941, 0.0666667, 0.0509804, 1)
+polygon = PackedVector2Array(-640, -360, 640, -360, 640, 360, -640, 360)
+
+[node name="PlayerGlow" parent="." instance=ExtResource("3")]
+position = Vector2(-180, 10)
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector2(-180, 10)
+
+[node name="EnemyGlow" parent="." instance=ExtResource("3")]
+position = Vector2(180, 4)
+
+[node name="Enemy" parent="." instance=ExtResource("2")]
+position = Vector2(180, 4)
+
+[node name="PlayerLabel" type="Label" parent="."]
+offset_left = -258.0
+offset_top = 92.0
+offset_right = -100.0
+offset_bottom = 122.0
+text = "Player Ship"
+label_settings = SubResource("1")
+
+[node name="EnemyLabel" type="Label" parent="."]
+offset_left = 111.0
+offset_top = 92.0
+offset_right = 252.0
+offset_bottom = 122.0
+text = "Wisp / enemy_1"
+label_settings = SubResource("2")

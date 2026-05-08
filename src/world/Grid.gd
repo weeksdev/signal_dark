@@ -143,6 +143,7 @@ func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 	var line_color := ColorSystem.grid_color()
 	var base_alpha := 0.48 if not ColorSystem.in_combat else 0.24
 	var major_alpha_boost := 0.11 if not ColorSystem.in_combat else 0.03
+	var sample_step := 20.0
 	var x_start: float = floor(view_rect.position.x / spacing) * spacing - spacing * 3.0
 	var x_end: float = ceil(view_rect.end.x / spacing) * spacing + spacing * 3.0
 	var y_start: float = floor(view_rect.position.y / spacing) * spacing - spacing * 3.0
@@ -156,7 +157,7 @@ func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 		while y <= y_end:
 			var raw_point := Vector2(x, y)
 			points.append(_warp_point(raw_point, attractors))
-			y += 24.0
+			y += sample_step
 		if points.size() > 1:
 			draw_polyline(points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost), 1.0)
 		x += spacing * 1.5
@@ -170,7 +171,7 @@ func _draw_warped_grid(view_rect: Rect2, attractors: Array) -> void:
 		while x2 <= x_end:
 			var raw_point_h := Vector2(x2, y2)
 			h_points.append(_warp_point(raw_point_h, attractors))
-			x2 += 24.0
+			x2 += sample_step
 		if h_points.size() > 1:
 			draw_polyline(h_points, Color(line_color.r, line_color.g, line_color.b, base_alpha + alpha_boost_h), 1.0)
 		y2 += spacing * 1.5
@@ -253,12 +254,14 @@ func _warp_point(point: Vector2, attractors := []) -> Vector2:
 		var radius: float = attractor["radius"]
 		if distance > radius:
 			continue
-		var influence: float = 1.0 - (distance / radius)
-		var pull: Vector2 = to_target.normalized() * float(attractor["strength"]) * pow(influence, 2.4) / 1000.0
-		var tangent: Vector2 = Vector2(-to_target.y, to_target.x).normalized() * float(attractor["strength"]) * float(attractor["twist"]) * pow(influence, 1.9) / 1000.0
+		var normalized_distance := clampf(distance / radius, 0.0, 1.0)
+		var influence: float = 1.0 - smoothstep(0.0, 1.0, normalized_distance)
+		var influence_sq := influence * influence
+		var pull: Vector2 = to_target.normalized() * float(attractor["strength"]) * influence_sq * influence / 1000.0
+		var tangent: Vector2 = Vector2(-to_target.y, to_target.x).normalized() * float(attractor["strength"]) * float(attractor["twist"]) * influence_sq / 1000.0
 		var displacement: Vector2 = pull + tangent
-		if displacement.length() > 48.0:
-			displacement = displacement.normalized() * 48.0
+		if displacement.length() > 40.0:
+			displacement = displacement.normalized() * 40.0
 		warped += displacement
 	return warped
 

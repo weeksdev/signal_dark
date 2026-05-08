@@ -32,6 +32,8 @@ const SUSPICION_SOURCE_DURATION := 0.7
 
 @onready var body_polygon: Polygon2D = $Body
 @onready var outline: Line2D = $Outline
+@onready var hover_glow = get_node_or_null("HoverGlow")
+@onready var asset_visual = get_node_or_null("Enemy1Visual")
 
 
 func _ready() -> void:
@@ -405,6 +407,7 @@ func draw_emp_disabled_effect(radius: float = 30.0) -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(_signature_color_value(), 0.08 if not AlertSystem.combat_mode else 0.14)
 	outline.default_color = enemy_state_outline()
+	_sync_visual_overlays()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
@@ -490,6 +493,20 @@ func _refresh_visual_state(force: bool = false) -> void:
 	_visual_state_key = next_key
 	_update_palette()
 	queue_redraw()
+
+
+func _sync_visual_overlays() -> void:
+	if hover_glow != null and hover_glow.has_method("set_glow_color"):
+		var glow_strength := 0.55
+		if combat_active:
+			glow_strength = 0.92
+		elif _alerting:
+			glow_strength = 0.78
+		elif _suspicion > 0.06:
+			glow_strength = 0.66
+		hover_glow.set_glow_color(outline.default_color, glow_strength)
+	if asset_visual != null and asset_visual.has_method("apply_palette"):
+		asset_visual.apply_palette(body_polygon.color, outline.default_color, combat_active, _alerting, is_emp_disabled())
 
 
 func _search_visual_strength() -> float:

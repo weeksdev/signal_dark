@@ -214,6 +214,7 @@ func _update_palette() -> void:
 			body_polygon.color = Color(pulse_color.r * 0.55, pulse_color.g * 0.34, pulse_color.b * 0.08, 0.2)
 			outline.default_color = Color(pulse_color.r, pulse_color.g, pulse_color.b, 0.98)
 	outline.width = 1.05
+	_sync_visual_overlays()
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
