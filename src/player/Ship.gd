@@ -295,13 +295,13 @@ func _update_palette() -> void:
 	var fill_color := ColorSystem.player_fill(dark_mode)
 	var outline_color := ColorSystem.player_outline(dark_mode)
 	body_polygon.color = fill_color
-	outline.default_color = outline_color
-	outline.width = 1.5 if not dark_mode else 0.9
-	body_polygon.scale = Vector2.ONE * (1.08 if not dark_mode else 0.98)
-	body_polygon.color.a = 0.18 if not dark_mode else 0.08
+	body_polygon.color.a = 0.0
+	outline.default_color = Color(outline_color.r, outline_color.g, outline_color.b, 0.26 if not dark_mode else 0.14)
+	outline.width = 1.1 if not dark_mode else 0.7
+	body_polygon.scale = Vector2.ONE * (1.02 if not dark_mode else 0.96)
 	suppress_label.modulate = ColorSystem.ui_color()
 	if hover_glow != null and hover_glow.has_method("set_glow_color"):
-		hover_glow.set_glow_color(outline_color, 0.9 if not dark_mode else 0.35)
+		hover_glow.set_glow_color(outline_color, 0.72 if not dark_mode else 0.28)
 	if ship_visual != null and ship_visual.has_method("apply_palette"):
 		ship_visual.apply_palette(fill_color, outline_color, dark_mode)
 

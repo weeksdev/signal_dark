@@ -55,14 +55,14 @@ func glow_color() -> Color:
 
 func player_fill(dark_mode: bool) -> Color:
 	if dark_mode:
-		return Color("07110a")
-	return PLAYER_COMBAT if in_combat else PHOSPHOR_SHADOW
+		return Color("030403")
+	return Color("090b09") if not in_combat else Color("16181c")
 
 
 func player_outline(dark_mode: bool) -> Color:
 	if dark_mode:
-		return Color("2e5a3b")
-	return Color.WHITE if in_combat else PHOSPHOR_MID
+		return Color("1a221c")
+	return Color("6d7f73") if not in_combat else Color("d7e8ef")
 
 
 func enemy_fill(signature_color: Color) -> Color:
