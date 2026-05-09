@@ -112,6 +112,8 @@ func _physics_process(delta: float) -> void:
 	_update_palette()
 	if ship_visual != null and ship_visual.has_method("set_thruster_strength"):
 		ship_visual.set_thruster_strength(velocity.length() / maxf(max_speed, 0.01), _boost_flash, dark_mode)
+	if ship_visual != null and ship_visual.has_method("set_motion_deform"):
+		ship_visual.set_motion_deform(velocity, max_speed, delta)
 	queue_redraw()
 
 

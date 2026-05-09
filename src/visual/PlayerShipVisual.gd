@@ -21,6 +21,20 @@ void fragment() {
 }
 """
 
+const _WARP_SHADER := """
+shader_type canvas_item;
+uniform float pitch = 0.0;
+uniform float roll = 0.0;
+void fragment() {
+	vec2 uv = UV;
+	float taper = max(1.0 + pitch * (uv.y - 0.5) * 0.45, 0.1);
+	float lean = roll * (uv.y - 0.5) * 0.12;
+	uv.x = (uv.x - 0.5) * taper + 0.5 + lean;
+	float in_bounds = step(0.0, uv.x) * step(uv.x, 1.0);
+	COLOR = texture(TEXTURE, clamp(uv, vec2(0.0), vec2(1.0))) * in_bounds;
+}
+"""
+
 @onready var hull: Sprite2D = find_child("Hull", true, false) as Sprite2D
 @onready var hull_backing: Sprite2D = find_child("HullBacking", true, false) as Sprite2D
 @onready var left_wing: Sprite2D = find_child("LeftWing", true, false) as Sprite2D
@@ -35,6 +49,9 @@ var exhaust_base_position: Vector2 = Vector2.ZERO
 var exhaust_base_scale: Vector2 = Vector2.ONE
 var _exhaust_base_alpha: float = 1.0
 var _shadow: Sprite2D = null
+var _hull_shader_mat: ShaderMaterial = null
+var _pitch: float = 0.0
+var _roll: float = 0.0
 
 
 func _ready() -> void:
@@ -55,6 +72,14 @@ func _ready() -> void:
 		_shadow.material = mat
 		add_child(_shadow)
 		move_child(_shadow, 2)
+		var warp_mat := ShaderMaterial.new()
+		var warp_shdr := Shader.new()
+		warp_shdr.code = _WARP_SHADER
+		warp_mat.shader = warp_shdr
+		hull.material = warp_mat
+		if hull_backing != null:
+			hull_backing.material = warp_mat
+		_hull_shader_mat = warp_mat
 	_sync_glow_from_parts()
 	_sync_exhaust_plume(0.0, false)
 
@@ -99,6 +124,24 @@ func set_thruster_strength(speed_frac: float, boost_flash: float, dark_mode: boo
 	exhaust.modulate.a = _exhaust_base_alpha
 	_sync_glow_from_parts()
 	_sync_exhaust_plume(strength, dark_mode)
+
+
+func set_motion_deform(velocity: Vector2, max_speed: float, delta: float) -> void:
+	if hull == null:
+		return
+	var local_vel := velocity.rotated(-global_rotation)
+	var forward_t := clampf(-local_vel.y / maxf(max_speed, 1.0), -1.0, 1.0)
+	var strafe_t  := clampf( local_vel.x / maxf(max_speed, 1.0), -1.0, 1.0)
+	var alpha := minf(delta * 10.0, 1.0)
+	_pitch = lerpf(_pitch, forward_t, alpha)
+	_roll  = lerpf(_roll,  strafe_t,  alpha)
+	if _hull_shader_mat != null:
+		_hull_shader_mat.set_shader_parameter("pitch", _pitch)
+		_hull_shader_mat.set_shader_parameter("roll", _roll)
+	var sy := 1.0 + _pitch * 0.28
+	hull.transform = Transform2D(Vector2(1.0, 0.0), Vector2(0.0, sy), Vector2.ZERO)
+	if hull_backing != null:
+		hull_backing.transform = hull.transform
 
 
 func _sync_glow_from_parts() -> void:
