@@ -261,7 +261,7 @@ func _apply_static_shader_params() -> void:
 	_shader_material.set_shader_parameter("max_darkness", 0.965)
 	_shader_material.set_shader_parameter("ambient_floor", 0.075)
 	_shader_material.set_shader_parameter("reveal_strength", 0.82)
-	_shader_material.set_shader_parameter("pixel_size", 1.35)
+	_shader_material.set_shader_parameter("pixel_size", 1.0)
 	_shader_material.set_shader_parameter("grain_strength", 0.028 if not in_combat else 0.02)
 	_shader_material.set_shader_parameter("dither_strength", 0.012 if not in_combat else 0.008)
 	_shader_material.set_shader_parameter("crt_tint_strength", 0.2 if not in_combat else 0.08)

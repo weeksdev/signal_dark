@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
@@ -20,11 +20,6 @@
 [ext_resource type="PackedScene" path="res://src/enemies/WallSensor.tscn" id="17"]
 [ext_resource type="Texture2D" path="res://assets/floor.png" id="19"]
 [ext_resource type="Texture2D" path="res://assets/floor_2.png" id="20"]
-[ext_resource type="Shader" path="res://src/fx/CRTOverlay.gdshader" id="21"]
-[ext_resource type="Script" path="res://src/fx/CRTController.gd" id="22"]
-
-[sub_resource type="ShaderMaterial" id="21"]
-shader = ExtResource("21")
 
 [node name="World03" type="Node2D"]
 script = ExtResource("1")
@@ -482,17 +477,3 @@ rotation = 1.5708
 [node name="WallSensorB" parent="." instance=ExtResource("17")]
 position = Vector2(1600, 1698)
 rotation = -1.5708
-
-[node name="CRTLayer" type="CanvasLayer" parent="."]
-layer = 2
-script = ExtResource("22")
-
-[node name="CRTOverlay" type="ColorRect" parent="CRTLayer"]
-material = SubResource("21")
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
