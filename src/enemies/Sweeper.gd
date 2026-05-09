@@ -94,6 +94,10 @@ func _physics_process(delta: float) -> void:
 		_run_patrol(delta)
 		_check_detection()
 
+	if asset_visual != null:
+		var target_angle := facing_vector.angle() - PI * 0.5
+		asset_visual.rotation = lerp_angle(asset_visual.rotation, target_angle, minf(delta * 10.0, 1.0))
+
 	queue_redraw()
 
 

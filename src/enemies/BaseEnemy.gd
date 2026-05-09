@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
+const ElectricSparks = preload("res://src/fx/ElectricSparks.gd")
 
 signal detected(enemy: Node)
 signal killed(enemy: Node, silent: bool)
@@ -23,6 +24,7 @@ var _suspicion_source_timer: float = 0.0
 var _reentry_suspended: bool = false
 var _saved_collision_layer: int = 0
 var _saved_collision_mask: int = 0
+var _sparks: Node2D = null
 
 const DARK_POCKET_AVOID_RADIUS := 82.0
 const DARK_POCKET_TARGET_RADIUS := 112.0
@@ -41,6 +43,10 @@ func _ready() -> void:
 	_saved_collision_layer = collision_layer
 	_saved_collision_mask = collision_mask
 	ColorSystem.mode_changed.connect(_on_mode_changed)
+	_sparks = ElectricSparks.new()
+	_sparks.radius = 22.0
+	_sparks.z_index = 12
+	add_child(_sparks)
 	_refresh_visual_state(true)
 
 
@@ -507,6 +513,15 @@ func _sync_visual_overlays() -> void:
 		hover_glow.set_glow_color(outline.default_color, glow_strength)
 	if asset_visual != null and asset_visual.has_method("apply_palette"):
 		asset_visual.apply_palette(body_polygon.color, outline.default_color, combat_active, _alerting, is_emp_disabled())
+	if _sparks != null:
+		var spark_intensity := 0.18
+		if is_emp_disabled():
+			spark_intensity = 0.85
+		elif combat_active:
+			spark_intensity = 0.55
+		elif _alerting:
+			spark_intensity = 0.38
+		_sparks.intensity = spark_intensity
 
 
 func _search_visual_strength() -> float:

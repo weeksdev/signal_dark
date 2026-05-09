@@ -3,6 +3,7 @@ extends CharacterBody2D
 signal destroyed
 
 const EMP_SHOCKWAVE_SCENE := preload("res://src/fx/EmpShockwave.tscn")
+const ElectricSparks = preload("res://src/fx/ElectricSparks.gd")
 const AUTO_FIRE_RANGE := 320.0
 
 @export var acceleration: float = 2400.0
@@ -44,12 +45,17 @@ var _hack_prompt_active: bool = false
 @onready var hack_indicator = $HackIndicator
 @onready var hover_glow = get_node_or_null("HoverGlow")
 @onready var ship_visual = get_node_or_null("ShipVisual")
+var _sparks: Node2D = null
 
 
 func _ready() -> void:
 	add_to_group("player_ship")
 	emp_charges = 1 if ArcadeState.is_active else 0
 	ColorSystem.mode_changed.connect(_on_mode_changed)
+	_sparks = ElectricSparks.new()
+	_sparks.radius = 30.0
+	_sparks.z_index = 12
+	add_child(_sparks)
 	_update_palette()
 
 
@@ -306,6 +312,8 @@ func _update_palette() -> void:
 		hover_glow.set_glow_color(outline_color, 0.72 if not dark_mode else 0.28)
 	if ship_visual != null and ship_visual.has_method("apply_palette"):
 		ship_visual.apply_palette(fill_color, outline_color, dark_mode)
+	if _sparks != null:
+		_sparks.intensity = 0.35 if ColorSystem.in_combat else 0.15
 
 
 func _on_mode_changed(_in_combat: bool) -> void:
