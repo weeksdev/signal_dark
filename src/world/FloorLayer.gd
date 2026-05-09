@@ -39,7 +39,7 @@ func _draw() -> void:
 		if tile_size.x <= 0.0 or tile_size.y <= 0.0:
 			continue
 		var center := _tile_centers[i]
-		draw_texture_rect(texture, Rect2(center - tile_size * 0.5, tile_size), false, Color(0.25, 0.25, 0.25, 1.0))
+		draw_texture_rect(texture, Rect2(center - tile_size * 0.5, tile_size), false, Color(0.25, 0.34, 0.25, 1.0))
 
 
 func _world_ready_for_build() -> bool:
