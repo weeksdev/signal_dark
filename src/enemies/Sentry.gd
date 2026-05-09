@@ -145,6 +145,9 @@ func _draw() -> void:
 	draw_arc(Vector2.ZERO, 13.0, 0.0, TAU, 28, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.8), 0.73)
 	draw_line(Vector2(-10.0, 0.0), Vector2(10.0, 0.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.6), 0.6)
 	draw_line(Vector2(0.0, -10.0), Vector2(0.0, 10.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.6), 0.6)
+	if not combat_active:
+		var pulse := 0.10 + 0.04 * sin(Time.get_ticks_msec() * 0.0022)
+		draw_arc(Vector2.ZERO, 220.0, 0.0, TAU, 64, Color(1.0, 0.72, 0.08, pulse), 0.55)
 	draw_alert_marker()
 	draw_suspicion_arc(24.0)
 	var player = get_tree().get_first_node_in_group("player_ship")

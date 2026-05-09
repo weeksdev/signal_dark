@@ -124,7 +124,7 @@ void fragment() {
 var _shader_material: ShaderMaterial
 var _last_viewport_size := Vector2.ZERO
 var _last_mode_in_combat := false
-const ENEMY_REVEAL_WINDOW_RADIUS_PX := 248.0
+const ENEMY_REVEAL_WINDOW_RADIUS_PX := 380.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -255,9 +255,9 @@ func _apply_static_shader_params() -> void:
 	if _shader_material == null:
 		return
 	var in_combat := ColorSystem.in_combat
-	_shader_material.set_shader_parameter("inner_radius_px", 115.0)
-	_shader_material.set_shader_parameter("blur_start_px", 140.0)
-	_shader_material.set_shader_parameter("outer_radius_px", 310.0)
+	_shader_material.set_shader_parameter("inner_radius_px", 138.0)
+	_shader_material.set_shader_parameter("blur_start_px", 168.0)
+	_shader_material.set_shader_parameter("outer_radius_px", 372.0)
 	_shader_material.set_shader_parameter("max_darkness", 0.965)
 	_shader_material.set_shader_parameter("ambient_floor", 0.075)
 	_shader_material.set_shader_parameter("reveal_strength", 0.82)
@@ -270,7 +270,7 @@ func _apply_static_shader_params() -> void:
 	_shader_material.set_shader_parameter("vignette_strength", 0.2)
 	_shader_material.set_shader_parameter("grille_strength", 0.06)
 	_shader_material.set_shader_parameter("warp_strength", 0.012)
-	_shader_material.set_shader_parameter("wash_radius_px", 268.0)
+	_shader_material.set_shader_parameter("wash_radius_px", 322.0)
 	_shader_material.set_shader_parameter("wash_softness_px", 92.0)
 	_shader_material.set_shader_parameter("wash_strength", 0.04 if not in_combat else 0.0)
 	_shader_material.set_shader_parameter("wash_tint", Vector3(0.12, 0.52, 0.24))
