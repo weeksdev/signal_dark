@@ -297,7 +297,8 @@ func _wisp_draw_tint() -> Color:
 		return Color(1.0, 0.96, 0.9, 0.98)
 	if is_alerting_state():
 		return Color(1.0, 0.46, 0.22, 0.96)
-	return Color(0.92, 0.94, 0.96, 0.92)
+	var c := outline.default_color
+	return Color(c.r, c.g, c.b, 0.92)
 
 
 func _draw() -> void:

@@ -1,5 +1,26 @@
 extends Node2D
 
+const _SHADOW_SHADER := """
+shader_type canvas_item;
+uniform vec4 shadow_color : source_color = vec4(0.0, 0.0, 0.0, 0.55);
+uniform float blur_size = 2.0;
+void fragment() {
+	vec2 px = TEXTURE_PIXEL_SIZE * blur_size;
+	float a = 0.0;
+	a += texture(TEXTURE, UV + vec2(-px.x, -px.y)).a;
+	a += texture(TEXTURE, UV + vec2( 0.0,  -px.y)).a;
+	a += texture(TEXTURE, UV + vec2( px.x, -px.y)).a;
+	a += texture(TEXTURE, UV + vec2(-px.x,  0.0)).a;
+	a += texture(TEXTURE, UV).a;
+	a += texture(TEXTURE, UV + vec2( px.x,  0.0)).a;
+	a += texture(TEXTURE, UV + vec2(-px.x,  px.y)).a;
+	a += texture(TEXTURE, UV + vec2( 0.0,   px.y)).a;
+	a += texture(TEXTURE, UV + vec2( px.x,  px.y)).a;
+	a /= 9.0;
+	COLOR = vec4(shadow_color.rgb, a * shadow_color.a);
+}
+"""
+
 @onready var hull: Sprite2D = find_child("Hull", true, false) as Sprite2D
 @onready var hull_backing: Sprite2D = find_child("HullBacking", true, false) as Sprite2D
 @onready var left_wing: Sprite2D = find_child("LeftWing", true, false) as Sprite2D
@@ -13,6 +34,7 @@ extends Node2D
 var exhaust_base_position: Vector2 = Vector2.ZERO
 var exhaust_base_scale: Vector2 = Vector2.ONE
 var _exhaust_base_alpha: float = 1.0
+var _shadow: Sprite2D = null
 
 
 func _ready() -> void:
@@ -20,6 +42,19 @@ func _ready() -> void:
 		exhaust_base_position = exhaust.position
 		exhaust_base_scale = exhaust.scale
 		_exhaust_base_alpha = exhaust.modulate.a
+	if hull != null:
+		_shadow = Sprite2D.new()
+		_shadow.texture = hull.texture
+		_shadow.position = Vector2(200.0, 310.0)
+		_shadow.scale = Vector2(hull.scale.x * 1.15, hull.scale.y * 0.55)
+		_shadow.z_index = 6
+		var mat := ShaderMaterial.new()
+		var shdr := Shader.new()
+		shdr.code = _SHADOW_SHADER
+		mat.shader = shdr
+		_shadow.material = mat
+		add_child(_shadow)
+		move_child(_shadow, 2)
 	_sync_glow_from_parts()
 	_sync_exhaust_plume(0.0, false)
 
