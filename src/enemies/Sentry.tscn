@@ -1,10 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://dcs1agqbn5x8s"]
 
-[ext_resource type="Script" path="res://src/enemies/Sentry.gd" id="1"]
+[ext_resource type="Script" uid="uid://bgkusnrbvipol" path="res://src/enemies/Sentry.gd" id="1"]
 [ext_resource type="PackedScene" path="res://src/enemies/EnemyBolt.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://src/visual/HoverGlow.tscn" id="3"]
 
-[sub_resource type="CircleShape2D" id="1"]
+[sub_resource type="CircleShape2D" id="5"]
 radius = 14.0
 
 [node name="Sentry" type="CharacterBody2D"]
@@ -14,14 +14,17 @@ script = ExtResource("1")
 bolt_scene = ExtResource("2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("1")
+rotation = 1.1899706
+shape = SubResource("5")
 
 [node name="Body" type="Polygon2D" parent="."]
+visible = false
 polygon = PackedVector2Array(0, -16, 10, -6, 16, 0, 10, 6, 0, 16, -10, 6, -16, 0, -10, -6)
 
 [node name="Outline" type="Line2D" parent="."]
-width = 1.0
-closed = true
+visible = false
 points = PackedVector2Array(0, -16, 10, -6, 16, 0, 10, 6, 0, 16, -10, 6, -16, 0, -10, -6)
+closed = true
+width = 1.0
 
 [node name="HoverGlow" parent="." instance=ExtResource("3")]

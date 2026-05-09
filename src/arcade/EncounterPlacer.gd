@@ -311,6 +311,8 @@ func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, template: St
 	_apply_encounter_template(world, rect, node, template, remaining_types, doorways, blocked_positions, placed, rng)
 	for t: String in remaining_types:
 		var pos := _valid_pos(rect, doorways, placed, blocked_positions, rng, ENEMY_MARGIN)
+		if pos == Vector2.ZERO:
+			continue
 		match t:
 			"sweeper":
 				placed.append(pos)
@@ -1069,8 +1071,10 @@ func _valid_pos(rect: Rect2, doorways: Array, placed: Array, blocked_positions: 
 	if _is_valid_placement(best_pos, doorways, placed, blocked_positions):
 		return best_pos
 
-	# If a cramped room cannot satisfy every spacing rule, still choose the safest
-	# sampled point rather than hiding something directly on a stealth pocket.
+	# If cramped, still accept best_pos unless it violates pocket clearance.
+	for blocked: Vector2 in blocked_positions:
+		if best_pos.distance_to(blocked) < POCKET_ENEMY_CLEAR:
+			return Vector2.ZERO
 	return best_pos
 
 

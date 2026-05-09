@@ -8,7 +8,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = ROOT / "tests" / "generated_transparent_assets"
-SOURCE_NAMES = ["floor.png", "floor_2.png", "hideout.png", "enemy_4.png", "debris_1.png"]
+SOURCE_NAMES = ["floor.png", "floor_2.png", "hideout.png", "enemy_4.png", "debris_1.png", "enemy_stationary_1.png"]
 
 LUMA_MIN = 232
 CHROMA_MAX = 18

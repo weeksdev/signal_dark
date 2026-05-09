@@ -10,10 +10,13 @@ const SEARCH_INTEREST_RADIUS := 255.0
 @export var bolt_scene: PackedScene
 
 var cooldown: float = 0.8
+var _base_texture: Texture2D = null
 
 
 func _ready() -> void:
 	super._ready()
+	_base_texture = load("res://assets/enemy_stationary_1.png")
+	rotation = randf() * TAU
 
 
 func _physics_process(delta: float) -> void:
@@ -124,7 +127,7 @@ func _begin_alert() -> void:
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.06 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
-	outline.width = 1.1
+	outline.width = 0.0
 	_sync_visual_overlays()
 
 
@@ -133,11 +136,15 @@ func _on_mode_changed(_in_combat: bool) -> void:
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.04))
-	draw_line(Vector2.ZERO, facing_vector * 26.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.35), 1.0)
-	draw_arc(Vector2.ZERO, 8.0, 0.0, TAU, 24, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.7), 0.6)
-	draw_line(Vector2(-6.0, 0.0), Vector2(6.0, 0.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 0.5)
-	draw_line(Vector2(0.0, -6.0), Vector2(0.0, 6.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.45), 0.5)
+	if _base_texture != null:
+		var ts := _base_texture.get_size() * 0.043
+		draw_texture_rect(_base_texture, Rect2(-ts * 0.5, ts), false, Color(1.0, 1.0, 1.0, 1.0))
+	var local_facing := facing_vector.rotated(-rotation)
+	draw_circle(Vector2.ZERO, 18.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.015))
+	draw_line(Vector2.ZERO, local_facing * 27.0, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.5), 1.0)
+	draw_arc(Vector2.ZERO, 13.0, 0.0, TAU, 28, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.8), 0.73)
+	draw_line(Vector2(-10.0, 0.0), Vector2(10.0, 0.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.6), 0.6)
+	draw_line(Vector2(0.0, -10.0), Vector2(0.0, 10.0), Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.6), 0.6)
 	draw_alert_marker()
 	draw_suspicion_arc(24.0)
 	var player = get_tree().get_first_node_in_group("player_ship")
@@ -147,7 +154,8 @@ func _draw() -> void:
 	draw_emp_disabled_effect(28.0)
 	if not combat_active:
 		return
-	draw_arc(Vector2.ZERO, attack_range, facing_vector.angle() - 0.28, facing_vector.angle() + 0.28, 18, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.08), 0.5)
+	var arc_angle := local_facing.angle()
+	draw_arc(Vector2.ZERO, attack_range, arc_angle - 0.28, arc_angle + 0.28, 18, Color(outline.default_color.r, outline.default_color.g, outline.default_color.b, 0.08), 0.5)
 
 
 func _spawn_burst(silent: bool) -> void:

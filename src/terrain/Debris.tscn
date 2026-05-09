@@ -7,7 +7,7 @@
 radius = 22.0
 
 [node name="Debris" type="StaticBody2D"]
-collision_layer = 4
+collision_layer = 8
 collision_mask = 0
 script = ExtResource("1")
 
@@ -15,5 +15,6 @@ script = ExtResource("1")
 shape = SubResource("3")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.044, 0.044)
+modulate = Color(1.35, 1.35, 1.35, 1)
+scale = Vector2(0.059, 0.059)
 texture = ExtResource("2")
