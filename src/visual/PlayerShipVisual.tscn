@@ -1,40 +1,24 @@
-[gd_scene load_steps=5 format=3 uid="uid://dee3f0c4yyljd"]
+[gd_scene load_steps=4 format=3 uid="uid://dee3f0c4yyljd"]
 
 [ext_resource type="Script" uid="uid://bbb83lbaff3m4" path="res://src/visual/PlayerShipVisual.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://bfdt1bueybcxc" path="res://assets/ship_hull.png" id="2"]
-[ext_resource type="Texture2D" uid="uid://dh1p2dv4icww2" path="res://assets/ship_wing.png" id="3"]
-[ext_resource type="Texture2D" uid="uid://ywlvhvkti3od" path="res://assets/ship_exhaust.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/hover.png" id="2"]
 
 [node name="PlayerShipVisual" type="Node2D"]
 script = ExtResource("1")
 
-[node name="ExhaustPlumeOuter" type="Polygon2D" parent="."]
-z_index = 1
-
-[node name="ExhaustPlumeInner" type="Polygon2D" parent="."]
-z_index = 2
-
-[node name="RightWing" type="Sprite2D" parent="."]
-position = Vector2(-264, 168)
-scale = Vector2(0.76156294, 0.7296651)
-texture = ExtResource("3")
-flip_h = true
-z_index = 4
-
-[node name="LeftWing" type="Sprite2D" parent="."]
-position = Vector2(352.00006, 224)
-scale = Vector2(0.6658693, 0.6722488)
-texture = ExtResource("3")
-z_index = 4
-
-[node name="Exhaust" type="Sprite2D" parent="."]
-position = Vector2(7.9999995, 448)
-scale = Vector2(0.75279105, 0.77312607)
-texture = ExtResource("4")
+[node name="HullBacking" type="Sprite2D" parent="."]
 z_index = 5
+modulate = Color(0.01, 0.01, 0.01, 1)
+scale = Vector2(1.01, 1.01)
+texture = ExtResource("2")
+
+[node name="GlowHull" type="Sprite2D" parent="."]
+z_index = 2
+visible = false
+position = Vector2(0, 66)
+scale = Vector2(1.06, 0.74)
+texture = ExtResource("2")
 
 [node name="Hull" type="Sprite2D" parent="."]
-position = Vector2(-0.0041822386, 0.99999124)
-rotation = -3.1374104
-texture = ExtResource("2")
 z_index = 6
+texture = ExtResource("2")

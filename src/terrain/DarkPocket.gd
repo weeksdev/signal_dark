@@ -3,56 +3,13 @@ extends Area2D
 @export var gate_unlock_radius: float = 220.0
 
 @onready var shape = $Shape
+@onready var hideout_visual: Sprite2D = $HideoutVisual
 
 
 func _ready() -> void:
 	add_to_group("dark_pocket")
 	ColorSystem.mode_changed.connect(_on_mode_changed)
 	_update_palette()
-
-
-func _draw() -> void:
-	var ui := ColorSystem.ui_color()
-	var outer := PackedVector2Array([
-		Vector2(0.0, -68.0),
-		Vector2(48.0, -48.0),
-		Vector2(68.0, 0.0),
-		Vector2(48.0, 48.0),
-		Vector2(0.0, 68.0),
-		Vector2(-48.0, 48.0),
-		Vector2(-68.0, 0.0),
-		Vector2(-48.0, -48.0),
-		Vector2(0.0, -68.0),
-	])
-	var inner := PackedVector2Array([
-		Vector2(0.0, -46.0),
-		Vector2(32.0, -32.0),
-		Vector2(46.0, 0.0),
-		Vector2(32.0, 32.0),
-		Vector2(0.0, 46.0),
-		Vector2(-32.0, 32.0),
-		Vector2(-46.0, 0.0),
-		Vector2(-32.0, -32.0),
-		Vector2(0.0, -46.0),
-	])
-
-	draw_polygon(outer, [Color(0.0, 0.0, 0.0, 0.22)])
-	draw_polygon(inner, [Color("081109")])
-	draw_polyline(outer, Color(ui.r, ui.g, ui.b, 0.62), 1.1)
-	draw_polyline(inner, Color(ui.r, ui.g, ui.b, 0.24), 0.6)
-
-	draw_line(Vector2(-22.0, -22.0), Vector2(22.0, -22.0), Color(ui.r, ui.g, ui.b, 0.16), 0.5)
-	draw_line(Vector2(-22.0, 0.0), Vector2(22.0, 0.0), Color(ui.r, ui.g, ui.b, 0.2), 0.5)
-	draw_line(Vector2(-22.0, 22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.16), 0.5)
-	draw_line(Vector2(-22.0, -22.0), Vector2(-22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 0.5)
-	draw_line(Vector2(0.0, -22.0), Vector2(0.0, 22.0), Color(ui.r, ui.g, ui.b, 0.2), 0.5)
-	draw_line(Vector2(22.0, -22.0), Vector2(22.0, 22.0), Color(ui.r, ui.g, ui.b, 0.14), 0.5)
-
-	draw_line(Vector2(-54.0, -8.0), Vector2(-38.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
-	draw_line(Vector2(38.0, -8.0), Vector2(54.0, -8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
-	draw_line(Vector2(-54.0, 8.0), Vector2(-38.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
-	draw_line(Vector2(38.0, 8.0), Vector2(54.0, 8.0), Color(ui.r, ui.g, ui.b, 0.55), 0.5)
-
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player_ship"):
@@ -71,7 +28,8 @@ func _on_body_exited(body: Node) -> void:
 
 
 func _update_palette() -> void:
-	queue_redraw()
+	if hideout_visual != null:
+		hideout_visual.modulate = Color(0.82, 0.84, 0.83, 1.0) if ColorSystem.in_combat else Color(0.74, 0.76, 0.78, 1.0)
 
 
 func _on_mode_changed(_in_combat: bool) -> void:

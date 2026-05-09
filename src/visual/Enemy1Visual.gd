@@ -5,8 +5,8 @@ extends Node2D
 
 
 func apply_palette(fill_color: Color, outline_color: Color, combat_active: bool, alerting: bool, emp_disabled: bool) -> void:
-	sprite.scale = Vector2.ONE * (0.0265 if not combat_active else 0.0275)
-	glow_sprite.scale = Vector2(0.031, 0.02) if not combat_active else Vector2(0.032, 0.021)
+	sprite.scale = Vector2.ONE * (0.034 if not combat_active else 0.035)
+	glow_sprite.scale = Vector2(0.040, 0.026) if not combat_active else Vector2(0.041, 0.027)
 	if emp_disabled:
 		sprite.modulate = Color(0.82, 0.96, 1.0, 1.0)
 		glow_sprite.modulate = Color(0.82, 0.96, 1.0, 0.7)

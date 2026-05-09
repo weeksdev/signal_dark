@@ -1,6 +1,7 @@
 extends Node2D
 
 @onready var hull: Sprite2D = find_child("Hull", true, false) as Sprite2D
+@onready var hull_backing: Sprite2D = find_child("HullBacking", true, false) as Sprite2D
 @onready var left_wing: Sprite2D = find_child("LeftWing", true, false) as Sprite2D
 @onready var right_wing: Sprite2D = find_child("RightWing", true, false) as Sprite2D
 @onready var exhaust: Sprite2D = find_child("Exhaust", true, false) as Sprite2D
@@ -26,15 +27,20 @@ func _ready() -> void:
 func apply_palette(fill_color: Color, outline_color: Color, dark_mode: bool) -> void:
 	var ship_tint := Color(0.44, 0.44, 0.46, 1.0)
 	if ColorSystem.in_combat:
-		ship_tint = Color(0.52, 0.5, 0.48, 1.0)
+		ship_tint = Color(0.88, 0.84, 0.80, 1.0)
 	if hull != null:
+		hull.visible = true
 		hull.modulate = ship_tint
+	if hull_backing != null:
+		hull_backing.visible = true
+		hull_backing.modulate = Color(0.01, 0.01, 0.01, 1.0)
 	if left_wing != null:
 		left_wing.modulate = ship_tint
 	if right_wing != null:
 		right_wing.modulate = ship_tint
 	var glow_tint := Color(outline_color.r, outline_color.g, outline_color.b, 0.72 if not dark_mode else 0.58)
 	if glow_hull != null:
+		glow_hull.visible = true
 		glow_hull.modulate = glow_tint
 	if glow_left_wing != null:
 		glow_left_wing.modulate = glow_tint

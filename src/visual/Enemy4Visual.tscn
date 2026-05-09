@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/visual/Enemy1Visual.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/enemy_4.png" id="2"]
+
+[node name="Enemy4Visual" type="Node2D"]
+position = Vector2(0, 1)
+script = ExtResource("1")
+
+[node name="GlowSprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 74)
+z_index = -2
+scale = Vector2(0.03, 0.019)
+texture = ExtResource("2")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.0255, 0.0255)
+texture = ExtResource("2")

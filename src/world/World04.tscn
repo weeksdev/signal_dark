@@ -1,7 +1,8 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
+[ext_resource type="Script" path="res://src/world/FloorLayer.gd" id="20"]
 [ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="5"]
@@ -19,6 +20,8 @@
 [ext_resource type="PackedScene" path="res://src/terrain/GateLock.tscn" id="17"]
 [ext_resource type="PackedScene" path="res://src/enemies/WarpMine.tscn" id="18"]
 [ext_resource type="PackedScene" path="res://src/enemies/WallSensor.tscn" id="19"]
+[ext_resource type="Texture2D" path="res://assets/floor.png" id="21"]
+[ext_resource type="Texture2D" path="res://assets/floor_2.png" id="22"]
 
 [node name="World04" type="Node2D"]
 script = ExtResource("1")
@@ -26,6 +29,11 @@ script = ExtResource("1")
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("2")
 world_rect = Rect2(-96, -96, 5632, 3456)
+
+[node name="FloorLayer" type="Node2D" parent="."]
+script = ExtResource("20")
+tile_texture = ExtResource("21")
+alternate_tile_texture = ExtResource("22")
 
 ; OUTER SHELL
 [node name="NorthA" parent="." instance=ExtResource("6")]

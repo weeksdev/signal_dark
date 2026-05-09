@@ -90,7 +90,7 @@ void fragment() {
 	vec3 combat_tint = vec3(0.01, 0.025, 0.06) * edge * 0.22;
 	vec3 red_edge = vec3(0.28, 0.015, 0.005) * edge * breach * 0.15;
 	vec3 red_lift = vec3(0.08, 0.012, 0.004) * (1.0 - edge) * breach * 0.04;
-	vec3 combat_rgb = base.rgb * 0.68 + combat_tint + red_edge + red_lift;
+	vec3 combat_rgb = base.rgb * 0.86 + combat_tint + red_edge + red_lift;
 	combat_rgb *= 1.0 - edge * 0.46;
 	combat_rgb += scan * vec3(0.018, 0.004, 0.001) * combat_mix;
 	out_col.rgb = mix(out_col.rgb, combat_rgb, combat_mix);

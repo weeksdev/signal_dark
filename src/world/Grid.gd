@@ -34,16 +34,11 @@ func _on_mode_changed(_in_combat: bool) -> void:
 func _draw() -> void:
 	draw_rect(world_rect, ColorSystem.background_color(), true)
 	var view_rect := _get_visible_world_rect().grow(160.0)
-	var attractors := _get_attractors()
 	if not ColorSystem.in_combat:
 		_draw_stealth_haze(view_rect)
 		_draw_machine_mass(view_rect)
 	else:
 		_draw_combat_haze(view_rect)
-	_draw_warped_grid(view_rect, attractors)
-	_draw_star_dust(view_rect, attractors)
-	_draw_grid_nodes(view_rect, attractors)
-	_draw_signal_artifacts(view_rect, attractors)
 	if not ColorSystem.in_combat:
 		_draw_corner_marks(view_rect)
 
