@@ -94,8 +94,8 @@ static func _pick_threat(rng, depth: int, path_len: int, floor_index: int) -> in
 		0:
 			return ZoneGraph.ThreatType.SCANNER if late else ZoneGraph.ThreatType.NONE
 		1:
-			if late: return ZoneGraph.ThreatType.SWEEPER
-			if mid:  return ZoneGraph.ThreatType.SCANNER
+			if late: return ZoneGraph.ThreatType.SWEEPER if rng.randi() % 2 == 0 else ZoneGraph.ThreatType.PULSAR
+			if mid:  return ZoneGraph.ThreatType.PULSAR if rng.randi() % 3 == 0 else ZoneGraph.ThreatType.SCANNER
 			return ZoneGraph.ThreatType.NONE
 
 	# floor 2+: pick from a pool that grows with depth

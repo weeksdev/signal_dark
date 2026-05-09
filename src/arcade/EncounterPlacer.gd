@@ -192,30 +192,35 @@ func _build_encounter_plan(node, budget: int, pool: Array, rng) -> Dictionary:
 	var template: String = TEMPLATE_DEFAULT
 	var reserved: Array = []
 	var remaining_budget: int = budget
+	var prefer_pulsar := node.preferred_threat == ZoneGraph.ThreatType.PULSAR
 
 	match node.type:
 		ZoneGraph.NodeType.CORRIDOR:
 			if node.depth > 1 and "sweeper" in pool and remaining_budget >= COSTS["sweeper"] * 2:
 				template = TEMPLATE_MOVING_GAP_CORRIDOR
 				reserved = ["sweeper", "sweeper"]
+			elif "pulsar" in pool and prefer_pulsar and remaining_budget >= COSTS["pulsar"]:
+				template = TEMPLATE_CROSSING_SCANNERS
+				reserved = ["pulsar"]
 			elif "wisp" in pool and remaining_budget >= COSTS["wisp"]:
 				template = TEMPLATE_CROSSING_SCANNERS
 				reserved = ["wisp"]
 		ZoneGraph.NodeType.BRANCH_ROOM:
 			if remaining_budget >= 5 and (("sentry" in pool) or ("pulsar" in pool)) and "wisp" in pool:
 				template = TEMPLATE_BRANCH_BAIT
-				reserved = ["wisp", _first_available(["sentry", "pulsar"], pool)]
+				var denial := _first_available(["pulsar", "sentry"] if prefer_pulsar else ["sentry", "pulsar"], pool)
+				reserved = ["wisp", denial]
 		ZoneGraph.NodeType.SETPIECE_ROOM:
 			if remaining_budget >= 5 and "wisp" in pool:
 				template = TEMPLATE_SETPIECE_CROSSFIRE
 				reserved = ["wisp"]
-				var denial_pick: String = _first_available(["prism", "sentry", "pulsar", "hunter"], pool)
+				var denial_pick: String = _first_available(["prism", "pulsar", "sentry", "hunter"] if prefer_pulsar else ["prism", "sentry", "pulsar", "hunter"], pool)
 				if denial_pick != "":
 					reserved.append(denial_pick)
 		_:
 			if remaining_budget >= 5 and "wisp" in pool and (("sentry" in pool) or ("prism" in pool) or ("pulsar" in pool)):
 				template = TEMPLATE_GUARD_SCANNER_OVERLAP
-				reserved = ["wisp", _first_available(["sentry", "prism", "pulsar"], pool)]
+				reserved = ["wisp", _first_available(["pulsar", "sentry", "prism"] if prefer_pulsar else ["sentry", "prism", "pulsar"], pool)]
 			elif remaining_budget >= COSTS["wisp"] and "wisp" in pool and rng.randi() % 100 < 55:
 				template = TEMPLATE_CROSSING_SCANNERS
 				reserved = ["wisp"]
