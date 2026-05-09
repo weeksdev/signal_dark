@@ -9,7 +9,7 @@ const AUTO_FIRE_RANGE := 320.0
 @export var acceleration: float = 2400.0
 @export var drag: float = 1650.0
 @export var max_speed: float = 460.0
-@export var dark_mode_speed_scale: float = 0.60
+@export var dark_mode_speed_scale: float = 0.50
 @export var dark_mode_acceleration_scale: float = 0.74
 @export var dark_mode_drag_scale: float = 0.86
 @export var boost_impulse: float = 560.0
@@ -67,7 +67,8 @@ func _physics_process(delta: float) -> void:
 	_emp_slow_timer = maxf(0.0, _emp_slow_timer - delta)
 	dark_mode = InputManager.is_dark_mode()
 	var move_input := InputManager.get_move_vector()
-	var speed_scale := dark_mode_speed_scale if dark_mode else 1.0
+	var in_stealth_phase := not AlertSystem.combat_mode
+	var speed_scale := dark_mode_speed_scale if in_stealth_phase else 1.0
 	var acceleration_scale := dark_mode_acceleration_scale if dark_mode else 1.0
 	var drag_scale := dark_mode_drag_scale if dark_mode else 1.0
 	if _emp_slow_timer > 0.0:
