@@ -1,0 +1,71 @@
+{
+  "scenario": "cover_blocks_enemy_overlap",
+  "scene": "res://src/world/AgentTestArena.tscn",
+  "seed": 2468,
+  "time_scale": 1.0,
+  "duration": 3.2,
+  "screenshots": {
+    "interval_seconds": 0.0,
+    "max": 8,
+    "capture_on_failure": true
+  },
+  "assertions": [
+    {
+      "condition": "cover_active == true",
+      "message": "Player cover should still be active during the patrol crossing"
+    },
+    {
+      "condition": "enemy_distance_to_player(enemy_1) >= 30",
+      "message": "Sweeper should not overlap the covered player"
+    },
+    {
+      "condition": "player_alive == true",
+      "message": "Player should survive while hiding in cover"
+    }
+  ],
+  "steps": [
+    {
+      "t": 0.0,
+      "action": "spawn_player",
+      "id": "player",
+      "at": [280, 210]
+    },
+    {
+      "t": 0.08,
+      "action": "tap_input",
+      "input": "cover",
+      "duration": 0.08
+    },
+    {
+      "t": 0.15,
+      "action": "assert",
+      "condition": "cover_active == true",
+      "message": "Cover should activate before the enemy patrol reaches the player"
+    },
+    {
+      "t": 0.2,
+      "action": "spawn_enemy",
+      "type": "Sweeper",
+      "id": "enemy_1",
+      "at": [160, 210],
+      "patrol_points": [[160, 210], [400, 210]],
+      "patrol_start_index": 1
+    },
+    {
+      "t": 0.35,
+      "action": "capture",
+      "name": "cover_before_crossing"
+    },
+    {
+      "t": 2.15,
+      "action": "capture",
+      "name": "cover_patrol_crossing"
+    },
+    {
+      "t": 2.18,
+      "action": "assert",
+      "condition": "enemy_distance_to_player(enemy_1) >= 30",
+      "message": "Enemy body should be blocked by the covered player instead of passing through"
+    }
+  ]
+}

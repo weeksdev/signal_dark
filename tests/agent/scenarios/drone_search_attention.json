@@ -1,0 +1,83 @@
+{
+  "scenario": "drone_search_attention",
+  "scene": "res://src/world/AgentTestArena.tscn",
+  "seed": 5678,
+  "time_scale": 1.0,
+  "duration": 3.5,
+  "screenshots": {
+    "interval_seconds": 0.0,
+    "max": 8,
+    "capture_on_failure": true
+  },
+  "assertions": [
+    {
+      "condition": "drone_count == 1",
+      "message": "Drone should remain active after launch"
+    },
+    {
+      "condition": "search_active == true",
+      "message": "Drone pulse should start world search"
+    },
+    {
+      "condition": "enemy_distance_to_search_target(enemy_1) < 90",
+      "message": "Hunter should move toward the drone search target"
+    },
+    {
+      "condition": "player_alive == true",
+      "message": "Player should survive while drone distracts the Hunter"
+    }
+  ],
+  "steps": [
+    {
+      "t": 0.0,
+      "action": "spawn_player",
+      "id": "player",
+      "at": [120, 120]
+    },
+    {
+      "t": 0.1,
+      "action": "spawn_enemy",
+      "type": "Hunter",
+      "id": "enemy_1",
+      "at": [500, 120]
+    },
+    {
+      "t": 0.2,
+      "action": "aim_at",
+      "target": [500, 120]
+    },
+    {
+      "t": 0.25,
+      "action": "capture",
+      "name": "before_drone"
+    },
+    {
+      "t": 0.3,
+      "action": "tap_input",
+      "input": "drone",
+      "duration": 0.08
+    },
+    {
+      "t": 0.55,
+      "action": "capture",
+      "name": "drone_launched"
+    },
+    {
+      "t": 1.2,
+      "action": "assert",
+      "condition": "search_active == true",
+      "message": "Drone should have pulsed search after reaching travel distance"
+    },
+    {
+      "t": 3.0,
+      "action": "capture",
+      "name": "hunter_tracking_drone"
+    },
+    {
+      "t": 3.05,
+      "action": "assert",
+      "condition": "enemy_distance_to_search_target(enemy_1) < 90",
+      "message": "Hunter should close distance to the drone search target"
+    }
+  ]
+}

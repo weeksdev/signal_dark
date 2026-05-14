@@ -15,3 +15,5 @@ build/ios/
 # Generated test artifacts
 tests/generated_transparent_assets/
 tests/__pycache__/
+tests/agent/artifacts/*
+!tests/agent/artifacts/.gitkeep

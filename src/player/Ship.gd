@@ -46,6 +46,7 @@ var _boost_flash: float = 0.0
 var _emp_slow_timer: float = 0.0
 var _emp_flash: float = 0.0
 var _hack_prompt_active: bool = false
+var _default_collision_layer: int = 0
 
 @onready var weapon_system = $WeaponSystem
 @onready var body_polygon = $Body
@@ -59,6 +60,7 @@ var _sparks: Node2D = null
 
 func _ready() -> void:
 	add_to_group("player_ship")
+	_default_collision_layer = collision_layer
 	emp_charges = 1 if ArcadeState.is_active else 0
 	ColorSystem.mode_changed.connect(_on_mode_changed)
 	_sparks = ElectricSparks.new()
@@ -78,9 +80,7 @@ func _physics_process(delta: float) -> void:
 	if cover_active:
 		_cover_timer -= delta
 		if _cover_timer <= 0.0:
-			cover_active = false
-			if ship_visual != null and ship_visual.has_method("set_cover"):
-				ship_visual.set_cover(false)
+			_set_cover_active(false)
 	dark_mode = InputManager.is_dark_mode()
 	var move_input := InputManager.get_move_vector()
 	var in_stealth_phase := not AlertSystem.combat_mode
@@ -276,14 +276,22 @@ func _try_signal_jammer() -> void:
 func _try_activate_cover() -> void:
 	if _cover_cooldown_remaining > 0.0 or cover_active:
 		return
-	cover_active = true
+	_set_cover_active(true)
 	_cover_timer = cover_duration
 	_cover_cooldown_remaining = cover_cooldown
-	if ship_visual != null and ship_visual.has_method("set_cover"):
-		ship_visual.set_cover(true)
 	var world := get_tree().current_scene
 	if world != null and world.has_method("notify_player_cover_activated"):
 		world.notify_player_cover_activated()
+
+
+func _set_cover_active(active: bool) -> void:
+	cover_active = active
+	if active:
+		collision_layer = _default_collision_layer | 4
+	else:
+		collision_layer = _default_collision_layer
+	if ship_visual != null and ship_visual.has_method("set_cover"):
+		ship_visual.set_cover(active)
 
 
 func _try_launch_drone() -> void:
@@ -364,10 +372,8 @@ func _update_palette() -> void:
 
 func _on_mode_changed(in_combat: bool) -> void:
 	if in_combat and cover_active:
-		cover_active = false
+		_set_cover_active(false)
 		_cover_timer = 0.0
-		if ship_visual != null and ship_visual.has_method("set_cover"):
-			ship_visual.set_cover(false)
 	_update_palette()
 
 

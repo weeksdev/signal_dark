@@ -1,0 +1,65 @@
+{
+  "scenario": "hunter_basic_attack",
+  "scene": "res://src/world/AgentTestArena.tscn",
+  "seed": 1234,
+  "time_scale": 1.0,
+  "duration": 3.8,
+  "screenshots": {
+    "interval_seconds": 0.0,
+    "max": 8,
+    "capture_on_failure": true
+  },
+  "assertions": [
+    {
+      "condition": "enemy_count == 0",
+      "message": "Hunter should be destroyed by aimed pulse fire"
+    },
+    {
+      "condition": "player_alive == true",
+      "message": "Player should survive the basic attack scenario"
+    }
+  ],
+  "steps": [
+    {
+      "t": 0.0,
+      "action": "spawn_player",
+      "id": "player",
+      "at": [120, 120]
+    },
+    {
+      "t": 0.1,
+      "action": "spawn_enemy",
+      "type": "Hunter",
+      "id": "enemy_1",
+      "at": [420, 120]
+    },
+    {
+      "t": 0.2,
+      "action": "capture",
+      "name": "initial_state"
+    },
+    {
+      "t": 0.3,
+      "action": "aim_at",
+      "target": "enemy_1"
+    },
+    {
+      "t": 0.4,
+      "action": "hold_input",
+      "input": "fire",
+      "duration": 0.8
+    },
+    {
+      "t": 1.4,
+      "action": "capture",
+      "name": "after_attack"
+    },
+    {
+      "t": 1.5,
+      "action": "assert",
+      "condition": "enemy_count == 0",
+      "message": "Enemy should be gone after pulse fire"
+    }
+  ]
+}
+
