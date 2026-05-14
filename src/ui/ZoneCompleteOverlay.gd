@@ -26,6 +26,15 @@ func _process(delta: float) -> void:
 		GameState.advance_zone()
 
 
+func _input(event: InputEvent) -> void:
+	if not _active or _elapsed < FADE_IN_DURATION:
+		return
+	if OS.has_feature("mobile") and event is InputEventScreenTouch and event.pressed:
+		_active = false
+		GameState.advance_zone()
+		get_viewport().set_input_as_handled()
+
+
 func _draw() -> void:
 	if not _active:
 		return

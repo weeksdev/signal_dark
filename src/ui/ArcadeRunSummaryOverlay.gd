@@ -60,6 +60,12 @@ func _input(event: InputEvent) -> void:
 					_reroll_seed()
 			JOY_BUTTON_B, JOY_BUTTON_BACK:
 				_return_to_title()
+	elif OS.has_feature("mobile") and event is InputEventScreenTouch and event.pressed:
+		get_viewport().set_input_as_handled()
+		if _mode == "floor_clear":
+			_continue_run()
+		else:
+			_restart_same_seed()
 
 
 func _continue_run() -> void:

@@ -136,6 +136,7 @@ func _ready() -> void:
 	_apply_static_shader_params()
 	_update_shader_params()
 	ColorSystem.mode_changed.connect(_on_mode_changed)
+	Settings.brightness_changed.connect(_apply_static_shader_params)
 
 
 func _process(delta: float) -> void:
@@ -255,11 +256,12 @@ func _apply_static_shader_params() -> void:
 	if _shader_material == null:
 		return
 	var in_combat := ColorSystem.in_combat
-	_shader_material.set_shader_parameter("inner_radius_px", 138.0)
-	_shader_material.set_shader_parameter("blur_start_px", 168.0)
-	_shader_material.set_shader_parameter("outer_radius_px", 372.0)
-	_shader_material.set_shader_parameter("max_darkness", 0.965)
-	_shader_material.set_shader_parameter("ambient_floor", 0.075)
+	var r := 1.25 if OS.has_feature("mobile") else 1.0
+	_shader_material.set_shader_parameter("inner_radius_px", 138.0 * r)
+	_shader_material.set_shader_parameter("blur_start_px", 168.0 * r)
+	_shader_material.set_shader_parameter("outer_radius_px", 372.0 * r)
+	_shader_material.set_shader_parameter("max_darkness", Settings.get_max_darkness(in_combat))
+	_shader_material.set_shader_parameter("ambient_floor", Settings.get_ambient_floor(in_combat))
 	_shader_material.set_shader_parameter("reveal_strength", 0.82)
 	_shader_material.set_shader_parameter("pixel_size", 1.0)
 	_shader_material.set_shader_parameter("grain_strength", 0.028 if not in_combat else 0.02)

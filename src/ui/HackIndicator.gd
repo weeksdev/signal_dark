@@ -63,6 +63,24 @@ func _draw() -> void:
 		draw_string(font, center + Vector2(-5.5, 5.5), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 15, text_col)
 
 
+func _input(event: InputEvent) -> void:
+	if not OS.has_feature("mobile"):
+		return
+	if not _visible_state or _sequence.is_empty():
+		return
+	if not (event is InputEventScreenTouch and event.pressed):
+		return
+	var spacing := 38.0
+	var start_x := -((_sequence.size() - 1) * spacing) * 0.5
+	var canvas_tf := get_global_transform_with_canvas()
+	for i in range(_sequence.size()):
+		var screen_pos := canvas_tf * Vector2(start_x + i * spacing, 0.0)
+		if event.position.distance_to(screen_pos) <= 36.0:
+			TouchControls.touch_hack_button = str(_sequence[i])
+			get_viewport().set_input_as_handled()
+			return
+
+
 func _on_controller_layout_changed(_using_controller: bool) -> void:
 	if _visible_state:
 		queue_redraw()

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://cygg84vkjhk1l" path="res://src/visual/Enemy1Visual.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/enemy_claw.png" id="2"]
+
+[node name="EnemyClawVisual" type="Node2D"]
+position = Vector2(0, 1)
+script = ExtResource("1")
+
+[node name="GlowSprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 72)
+z_index = -2
+scale = Vector2(0.031, 0.02)
+texture = ExtResource("2")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.0265, 0.0265)
+texture = ExtResource("2")

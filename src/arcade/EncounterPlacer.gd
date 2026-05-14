@@ -19,7 +19,7 @@ const COSTS := {
 	"pulsar":  2,
 	"wisp":    2,
 	"hunter":  3,
-	"sentry":  3,
+	"sentry":  2,
 	"prism":   4,
 	"warpmine": 4,
 }
@@ -62,6 +62,7 @@ func place(world: Node2D, graph,
 	var max_depth := _max_depth(graph)
 	var pool: Array = FLOOR_POOLS[mini(floor_index, FLOOR_POOLS.size() - 1)]
 	var first_combat_room := true
+	var all_pocket_positions: Array = []
 
 	for node in graph.nodes:
 		if node.type == ZoneGraph.NodeType.START:
@@ -79,21 +80,23 @@ func place(world: Node2D, graph,
 		var template: String = str(plan.get("template", TEMPLATE_DEFAULT))
 
 		var pocket_positions := _place_dark_pockets(world, rect, node, doorways, first_combat_room, floor_index, rng)
+		all_pocket_positions.append_array(pocket_positions)
 		_place_enemies(world, rect, node, types, template, doorways, pocket_positions, rng)
-		_place_wall_sensors(world, rect, node, doorways, pocket_positions, rng)
+		_place_wall_sensors(world, rect, node, doorways, pocket_positions, rng, first_combat_room and floor_index == 0)
 		first_combat_room = false
 
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
 	_place_lockdown_corridor_gates(world, graph, node_rects, node_cells)
-	_place_debris(world, graph, node_rects, rng)
+	_place_debris(world, graph, node_rects, all_pocket_positions, rng)
 
 
 # ── Debris placement ─────────────────────────────────────────────────────────
 
-const DEBRIS_MARGIN  := 52.0
-const DEBRIS_SPACING := 48.0
+const DEBRIS_MARGIN       := 52.0
+const DEBRIS_SPACING      := 48.0
+const DEBRIS_POCKET_CLEAR := 96.0
 
-func _place_debris(world: Node2D, graph, node_rects: Dictionary, rng) -> void:
+func _place_debris(world: Node2D, graph, node_rects: Dictionary, pocket_positions: Array, rng) -> void:
 	var debris_scene: PackedScene = load("res://src/terrain/Debris.tscn")
 	if debris_scene == null:
 		return
@@ -107,7 +110,7 @@ func _place_debris(world: Node2D, graph, node_rects: Dictionary, rng) -> void:
 		var count: int = rng.randi_range(0, 1) if is_corridor else rng.randi_range(1, 3)
 		var placed: Array = []
 		for _i in count:
-			var pos := _debris_pos(rect, placed, rng)
+			var pos := _debris_pos(rect, placed, pocket_positions, rng)
 			if pos == Vector2.ZERO:
 				continue
 			var piece: Node2D = debris_scene.instantiate()
@@ -116,11 +119,11 @@ func _place_debris(world: Node2D, graph, node_rects: Dictionary, rng) -> void:
 			placed.append(pos)
 
 
-func _debris_pos(rect: Rect2, placed: Array, rng) -> Vector2:
+func _debris_pos(rect: Rect2, placed: Array, pocket_positions: Array, rng) -> Vector2:
 	var inner := rect.grow(-DEBRIS_MARGIN)
 	if inner.size.x <= 0.0 or inner.size.y <= 0.0:
 		return Vector2.ZERO
-	for _attempt in 18:
+	for _attempt in 24:
 		var pos := Vector2(
 			rng.randf_range(inner.position.x, inner.end.x),
 			rng.randf_range(inner.position.y, inner.end.y)
@@ -130,6 +133,11 @@ func _debris_pos(rect: Rect2, placed: Array, rng) -> Vector2:
 			if (pos as Vector2).distance_to(other) < DEBRIS_SPACING:
 				clear = false
 				break
+		if clear:
+			for pocket in pocket_positions:
+				if (pos as Vector2).distance_to(pocket) < DEBRIS_POCKET_CLEAR:
+					clear = false
+					break
 		if clear:
 			return pos
 	return Vector2.ZERO
@@ -428,7 +436,7 @@ func _spawn_wall_sensor(world: Node2D, pos: Vector2, facing_rotation: float) -> 
 	world.register_spawned_enemy(sensor)
 
 
-func _place_wall_sensors(world: Node2D, rect: Rect2, node, doorways: Array, blocked_positions: Array, rng) -> void:
+func _place_wall_sensors(world: Node2D, rect: Rect2, node, doorways: Array, blocked_positions: Array, rng, force_one: bool = false) -> void:
 	var chance := 0
 	match node.type:
 		ZoneGraph.NodeType.CORRIDOR:
@@ -444,7 +452,7 @@ func _place_wall_sensors(world: Node2D, rect: Rect2, node, doorways: Array, bloc
 			chance = maxi(chance - 18, 8)
 		ArcadeState.Difficulty.HARDCORE:
 			chance = mini(chance + 18, 90)
-	if rng.randi() % 100 >= chance:
+	if not force_one and rng.randi() % 100 >= chance:
 		return
 	var count := 1
 	if ArcadeState.difficulty == ArcadeState.Difficulty.HARDCORE and node.type != ZoneGraph.NodeType.BRANCH_ROOM and rng.randi() % 100 < 35:
@@ -988,6 +996,11 @@ func _make_corridor_gatelock(rect_a: Rect2, rect_b: Rect2,
 
 func _place_dark_pockets(world: Node2D, rect: Rect2, node,
 		doorways: Array, force_one: bool, floor_index: int, rng) -> Array:
+	# Corridors are too narrow (140px) for POCKET_MARGIN (104px) — pocket would always
+	# land at center, directly on sweeper patrol lines. Skip them entirely.
+	if node.type == ZoneGraph.NodeType.CORRIDOR:
+		return []
+
 	var count := 0
 	if force_one:
 		count = 1
@@ -1003,8 +1016,6 @@ func _place_dark_pockets(world: Node2D, rect: Rect2, node,
 		count = 1
 	if ArcadeState.difficulty == ArcadeState.Difficulty.EASY and count == 0 and rng.randi() % 2 == 0:
 		count = 1
-	if ArcadeState.difficulty == ArcadeState.Difficulty.HARDCORE and node.type == ZoneGraph.NodeType.CORRIDOR:
-		count = maxi(0, count - 1)
 
 	var placed: Array = []
 	for _i in count:

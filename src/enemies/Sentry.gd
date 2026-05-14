@@ -69,10 +69,14 @@ func can_be_suppressed_by(ship_node: Node2D) -> bool:
 	return ship_node.global_position.distance_to(global_position) <= suppress_range
 
 
-func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
+func take_damage(silent: bool, hit_origin: Vector2 = Vector2.ZERO) -> void:
 	if not is_alive:
 		return
 	is_alive = false
+	if not silent and hit_origin != Vector2.ZERO:
+		var to_shooter := (hit_origin - global_position).normalized()
+		if to_shooter.dot(facing_vector) < 0.0:
+			silent = true
 	_spawn_burst(silent)
 	killed.emit(self, silent)
 	queue_free()

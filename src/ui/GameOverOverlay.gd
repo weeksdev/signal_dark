@@ -36,7 +36,10 @@ func _input(event: InputEvent) -> void:
 		pressed = true
 	elif event is InputEventJoypadButton and event.pressed:
 		pressed = true
+	elif OS.has_feature("mobile") and event is InputEventScreenTouch and event.pressed:
+		pressed = true
 	if pressed:
+		get_viewport().set_input_as_handled()
 		_restart()
 
 

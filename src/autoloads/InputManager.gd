@@ -22,20 +22,29 @@ func _process(_delta: float) -> void:
 
 
 func get_move_vector() -> Vector2:
-	var keyboard_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var joy_vector := _get_left_stick()
-	return joy_vector if joy_vector.length() > DEADZONE else keyboard_vector
+	if joy_vector.length() > DEADZONE:
+		return joy_vector
+	if OS.has_feature("mobile"):
+		return TouchControls.touch_move
+	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
 
 func is_dark_mode() -> bool:
+	if OS.has_feature("mobile") and TouchControls.touch_dark_mode:
+		return true
 	return Input.is_action_pressed("dark_mode") or _left_trigger_pressed()
 
 
 func is_boost_pressed() -> bool:
+	if OS.has_feature("mobile"):
+		return TouchControls.touch_boost
 	return Input.is_action_pressed("boost") or _right_trigger_pressed()
 
 
 func is_fire_pressed() -> bool:
+	if OS.has_feature("mobile"):
+		return TouchControls.touch_fire or _joy_button_pressed(JOY_BUTTON_RIGHT_SHOULDER) or _right_trigger_pressed()
 	return Input.is_action_pressed("fire") or _joy_button_pressed(JOY_BUTTON_RIGHT_SHOULDER)
 
 
@@ -48,18 +57,43 @@ func is_probe_pressed() -> bool:
 
 
 func is_hack_pressed() -> bool:
+	if OS.has_feature("mobile"):
+		return TouchControls.touch_hack
 	return Input.is_action_pressed("hack") or _joy_button_pressed(JOY_BUTTON_Y)
 
 
 func is_hack_just_pressed() -> bool:
+	if OS.has_feature("mobile"):
+		return TouchControls.is_hack_just_pressed_touch()
 	return Input.is_action_just_pressed("hack") or _joy_button_just_pressed(JOY_BUTTON_Y)
 
 
 func is_emp_just_pressed() -> bool:
+	if OS.has_feature("mobile") and TouchControls.is_emp_just_pressed_touch():
+		return true
 	return Input.is_action_just_pressed("emp")
 
 
+func is_right_stick_active() -> bool:
+	if OS.has_feature("mobile") and TouchControls.touch_aim.length() > AIM_DEADZONE:
+		return true
+	return _get_right_stick().length() > AIM_DEADZONE
+
+
+func get_aim_vector(fallback: Vector2) -> Vector2:
+	var joy_aim := _get_right_stick()
+	if joy_aim.length() > AIM_DEADZONE:
+		return joy_aim.normalized()
+	if OS.has_feature("mobile") and TouchControls.touch_aim.length() > AIM_DEADZONE:
+		return TouchControls.touch_aim.normalized()
+	return fallback
+
+
 func get_hack_button_just_pressed() -> String:
+	if OS.has_feature("mobile"):
+		var btn := TouchControls.touch_hack_button
+		TouchControls.touch_hack_button = ""
+		return btn
 	if Input.is_action_just_pressed("hack_a"):
 		return "A"
 	if Input.is_action_just_pressed("hack_b"):
@@ -93,17 +127,6 @@ func get_hack_button_display(token: String) -> String:
 
 func is_restart_just_pressed() -> bool:
 	return Input.is_action_just_pressed("restart")
-
-
-func is_right_stick_active() -> bool:
-	return _get_right_stick().length() > AIM_DEADZONE
-
-
-func get_aim_vector(fallback: Vector2) -> Vector2:
-	var joy_aim := _get_right_stick()
-	if joy_aim.length() > AIM_DEADZONE:
-		return joy_aim.normalized()
-	return fallback
 
 
 func _get_left_stick() -> Vector2:

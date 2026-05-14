@@ -53,6 +53,8 @@ func _physics_process(delta: float) -> void:
 		else:
 			_run_patrol(delta)
 	_emit_contact_hit()
+	if asset_visual != null:
+		asset_visual.rotation = facing_vector.angle()
 	queue_redraw()
 
 

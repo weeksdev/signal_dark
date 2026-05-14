@@ -5,16 +5,31 @@ const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
 @export var signature_color := Color("ffd95a")
 @export var sensor_depth: float = 86.0
 @export var sensor_width: float = 54.0
-@export var immediate_alert_depth: float = 16.0
+@export var immediate_alert_depth: float = 48.0
 @export var suppress_range: float = 0.0
 
-const SUSPICION_DECAY := 0.58
+const SUSPICION_DECAY  := 0.58
 const ALERT_HOLD_SECONDS := 2.35
+
+const EXTEND_DIST      := 48.0
+const EXTEND_DURATION  := 0.35
+const SPIN_DURATION    := 0.28
+const RETRACT_DURATION := 0.45
+
+enum SensorState { DOCKED, EXTENDING, SPINNING, RETRACTING }
+
+var _state            := SensorState.DOCKED
+var _state_t          := 0.0
+var _dock_global_pos  := Vector2.ZERO
+var _extended_global_pos := Vector2.ZERO
+var _dock_rotation    := 0.0
 
 
 func _ready() -> void:
 	super._ready()
 	facing_vector = Vector2.RIGHT.rotated(rotation).normalized()
+	_dock_global_pos = global_position
+	_dock_rotation   = rotation
 
 
 func _physics_process(delta: float) -> void:
@@ -27,11 +42,36 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	tick_alert_state(delta, SUSPICION_DECAY)
-	if combat_active:
-		queue_redraw()
-		return
-	_check_detection()
+	_update_sensor_state(delta)
+	if not combat_active and _state == SensorState.DOCKED:
+		_check_detection()
 	queue_redraw()
+
+
+func _update_sensor_state(delta: float) -> void:
+	match _state:
+		SensorState.DOCKED:
+			pass
+		SensorState.EXTENDING:
+			_state_t = minf(_state_t + delta / EXTEND_DURATION, 1.0)
+			global_position = _dock_global_pos.lerp(_extended_global_pos, ease(_state_t, -2.0))
+			if _state_t >= 1.0:
+				_state  = SensorState.SPINNING
+				_state_t = 0.0
+		SensorState.SPINNING:
+			_state_t = minf(_state_t + delta / SPIN_DURATION, 1.0)
+			rotation = _dock_rotation + TAU * _state_t
+			if _state_t >= 1.0:
+				rotation = _dock_rotation
+				_state  = SensorState.RETRACTING
+				_state_t = 0.0
+		SensorState.RETRACTING:
+			_state_t = minf(_state_t + delta / RETRACT_DURATION, 1.0)
+			global_position = _extended_global_pos.lerp(_dock_global_pos, ease(_state_t, -2.0))
+			if _state_t >= 1.0:
+				global_position = _dock_global_pos
+				_state  = SensorState.DOCKED
+				_state_t = 0.0
 
 
 func activate_for_combat(target_ship: Node2D) -> void:
@@ -77,13 +117,11 @@ func _check_detection() -> void:
 		return
 	if absf(local_player.y) > half_width:
 		return
-	if is_world_line_blocked(global_position, player.global_position, [get_rid()]):
-		return
-
-	var normalized_depth := 1.0 - (local_player.x / maxf(sensor_depth, 1.0))
+	# Risk is uniform across the full beam length — no depth dampening so the
+	# tip triggers just as reliably as the base.
 	var local_velocity: Vector2 = player.velocity.rotated(-rotation)
-	var parallel_speed := clampf(absf(local_velocity.y) / maxf(player.max_speed, 1.0), 0.0, 1.0)
-	var risk: float = normalized_depth * (0.18 + parallel_speed * 0.82 + player.get_effective_emission() * 2.0)
+	var crossing_speed := clampf(absf(local_velocity.y) / maxf(player.max_speed, 1.0), 0.0, 1.0)
+	var risk: float = 0.15 + crossing_speed * 0.85 + player.get_effective_emission() * 2.0
 	if player.dark_mode:
 		risk *= 0.7
 	if world_is_search_active():
@@ -92,12 +130,16 @@ func _check_detection() -> void:
 	if local_player.x <= immediate_alert_depth and risk > 0.18:
 		_begin_alert()
 		return
-	if add_suspicion(risk * 0.016):
+	if add_suspicion(risk * 0.045):
 		_begin_alert()
 
 
 func _begin_alert() -> void:
 	begin_alert_state(ALERT_HOLD_SECONDS)
+	if _state == SensorState.DOCKED:
+		_state   = SensorState.EXTENDING
+		_state_t = 0.0
+		_extended_global_pos = _dock_global_pos + facing_vector * EXTEND_DIST
 
 
 func _update_palette() -> void:

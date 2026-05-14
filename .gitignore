@@ -7,3 +7,11 @@ export/
 *.swp
 .debug/
 agent-tooling/output/
+
+# iOS build output
+build/ios_export/
+build/ios/
+
+# Generated test artifacts
+tests/generated_transparent_assets/
+tests/__pycache__/

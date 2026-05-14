@@ -13,6 +13,8 @@ const LEVEL_SELECT_COMBO := [
 	"y",
 ]
 
+const MOBILE_SCALE := 3.9
+
 var _elapsed: float = 0.0
 var _ready_to_start: bool = false
 var _level_select_unlocked: bool = false
@@ -48,6 +50,11 @@ func _exit_tree() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not _ready_to_start:
+		return
+
+	if OS.has_feature("mobile") and event is InputEventScreenTouch and event.pressed:
+		_handle_mobile_touch(event.position)
+		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -168,9 +175,9 @@ func _handle_settings_key(keycode: Key) -> void:
 		KEY_ESCAPE, KEY_BACKSPACE:
 			_settings_open = false
 		KEY_UP, KEY_W:
-			_settings_index = posmod(_settings_index - 1, 3)
+			_settings_index = posmod(_settings_index - 1, 5)
 		KEY_DOWN, KEY_S:
-			_settings_index = posmod(_settings_index + 1, 3)
+			_settings_index = posmod(_settings_index + 1, 5)
 		KEY_LEFT, KEY_A:
 			_adjust_setting(-1)
 		KEY_RIGHT, KEY_D:
@@ -184,9 +191,9 @@ func _handle_settings_joypad(button: JoyButton) -> void:
 		JOY_BUTTON_B, JOY_BUTTON_BACK:
 			_settings_open = false
 		JOY_BUTTON_DPAD_UP:
-			_settings_index = posmod(_settings_index - 1, 3)
+			_settings_index = posmod(_settings_index - 1, 5)
 		JOY_BUTTON_DPAD_DOWN:
-			_settings_index = posmod(_settings_index + 1, 3)
+			_settings_index = posmod(_settings_index + 1, 5)
 		JOY_BUTTON_DPAD_LEFT:
 			_adjust_setting(-1)
 		JOY_BUTTON_DPAD_RIGHT:
@@ -203,10 +210,71 @@ func _adjust_setting(direction: int) -> void:
 			Settings.adjust_music_volume(direction)
 		2:
 			Settings.adjust_fx_volume(direction)
+		3:
+			Settings.adjust_stealth_brightness(direction)
+		4:
+			Settings.adjust_combat_brightness(direction)
 
 
 func keycode_is_confirm(keycode: Key) -> bool:
 	return keycode == KEY_ENTER or keycode == KEY_KP_ENTER or keycode == KEY_SPACE
+
+
+func _touch_to_ref(screen_pos: Vector2) -> Vector2:
+	var vp := get_viewport_rect().size
+	var offset := Vector2(vp.x * (1.0 - MOBILE_SCALE) * 0.5, vp.y * (1.0 - MOBILE_SCALE) * 0.5)
+	return (screen_pos - offset) / MOBILE_SCALE
+
+
+func _handle_mobile_settings_touch(screen_pos: Vector2) -> void:
+	var vp := get_viewport_rect().size
+	var header_h := maxf(vp.y * 0.16, 52.0)
+	var footer_h := maxf(vp.y * 0.18, 60.0)
+	# Header or footer closes settings
+	if screen_pos.y < header_h or screen_pos.y >= vp.y - footer_h:
+		_settings_open = false
+		return
+	# Row taps: left half = decrease, right half = increase
+	var rows_area_h := vp.y - header_h - footer_h
+	var row_h := rows_area_h / 5.0
+	for row in 5:
+		var row_top := header_h + row * row_h
+		if screen_pos.y >= row_top and screen_pos.y < row_top + row_h:
+			_settings_index = row
+			_adjust_setting(-1 if screen_pos.x < vp.x * 0.5 else 1)
+			return
+
+
+func _handle_mobile_touch(screen_pos: Vector2) -> void:
+	if _settings_open:
+		_handle_mobile_settings_touch(screen_pos)
+		return
+
+	var ref := _touch_to_ref(screen_pos)
+	var vp := get_viewport_rect().size
+	var cx := vp.x * 0.5
+	var mode_y := vp.y * 0.52
+
+	if Rect2(cx - 140.0, mode_y - 22.0, 134.0, 34.0).has_point(ref):
+		_arcade_mode = false
+		_root_menu_index = 0
+		return
+
+	if Rect2(cx, mode_y - 22.0, 150.0, 34.0).has_point(ref):
+		_arcade_mode = true
+		_root_menu_index = 0
+		return
+
+	if Rect2(cx - 80.0, mode_y + 16.0, 160.0, 36.0).has_point(ref):
+		_settings_open = true
+		_root_menu_index = 1
+		return
+
+	if ref.y > mode_y + 52.0:
+		if _arcade_mode:
+			GameState.start_arcade_run(_arcade_seed, _arcade_difficulty)
+		else:
+			GameState.start_run()
 
 
 func _handle_level_select_key(keycode: Key) -> String:
@@ -319,6 +387,15 @@ func _draw() -> void:
 	draw_line(Vector2(0.0, scan_y), Vector2(vp.x, scan_y),
 			Color(0.3, 0.9, 0.45, 0.06), 1.0)
 
+	# Mobile settings: full-screen overlay at screen resolution, no zoom
+	if OS.has_feature("mobile") and _settings_open:
+		_draw_mobile_settings_fullscreen(vp, font)
+		return
+
+	if OS.has_feature("mobile"):
+		var mob_offset := Vector2(vp.x * (1.0 - MOBILE_SCALE) * 0.5, vp.y * (1.0 - MOBILE_SCALE) * 0.5)
+		draw_set_transform(mob_offset, 0.0, Vector2(MOBILE_SCALE, MOBILE_SCALE))
+
 	# Title glow (layered for phosphor bloom)
 	var cx  := vp.x * 0.5
 	var ty  := vp.y * 0.36
@@ -381,64 +458,74 @@ func _draw() -> void:
 			"▶ SETTINGS" if settings_selected else "  SETTINGS",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 13, settings_col)
 
-	draw_string(font, Vector2(cx - 130.0, mode_y + 14.0),
-			"TAB/BACK  or  UP/DOWN  to switch",
-			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
-			Color(0.28, 0.62, 0.36, 0.50))
-	draw_string(font, Vector2(cx - 130.0, mode_y + 28.0),
-			"I  /  Y  —  ENEMY INDEX",
-			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
-			Color(0.32, 0.70, 0.42, 0.54))
+	if OS.has_feature("mobile"):
+		draw_string(font, Vector2(cx - 130.0, mode_y + 14.0),
+				"TAP MODE TO SELECT  //  TAP BELOW TO START",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+				Color(0.28, 0.62, 0.36, 0.50))
+	else:
+		draw_string(font, Vector2(cx - 130.0, mode_y + 14.0),
+				"TAB/BACK  or  UP/DOWN  to switch",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+				Color(0.28, 0.62, 0.36, 0.50))
+		draw_string(font, Vector2(cx - 130.0, mode_y + 28.0),
+				"I  /  Y  —  ENEMY INDEX",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+				Color(0.32, 0.70, 0.42, 0.54))
 
 	# ── Mode-specific prompts ─────────────────────────────────────────────────
 	if _settings_open:
-		var panel := Rect2(Vector2(cx - 188.0, mode_y + 62.0), Vector2(376.0, 188.0))
+		var panel := Rect2(Vector2(cx - 188.0, mode_y + 62.0), Vector2(376.0, 242.0))
 		draw_rect(panel, Color(0.02, 0.05, 0.04, 0.9), true)
 		draw_rect(panel, Color(0.30, 0.82, 0.52, 0.22), false, 1.0)
 		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 22.0),
 				"SETTINGS", HORIZONTAL_ALIGNMENT_LEFT, -1, 14,
 				Color(0.66, 1.0, 0.78, 0.95))
-		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 40.0),
-				"LEFT/RIGHT or A/D  //  DPAD LEFT/RIGHT  to change",
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
-				Color(0.38, 0.74, 0.48, 0.62))
-		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 55.0),
-				"ESC / B  to close",
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
-				Color(0.38, 0.74, 0.48, 0.62))
+		if OS.has_feature("mobile"):
+			draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 40.0),
+					"TAP ROW TO CYCLE",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+					Color(0.38, 0.74, 0.48, 0.62))
+			draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 55.0),
+					"TAP OUTSIDE TO CLOSE",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+					Color(0.38, 0.74, 0.48, 0.62))
+		else:
+			draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 40.0),
+					"LEFT/RIGHT or A/D  //  DPAD LEFT/RIGHT  to change",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+					Color(0.38, 0.74, 0.48, 0.62))
+			draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 55.0),
+					"ESC / B  to close",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+					Color(0.38, 0.74, 0.48, 0.62))
 		var row_y := panel.position.y + 72.0
 		var row_height := 28.0
-		for row in 3:
+		for row in 5:
 			var selected_row := _settings_index == row
 			if selected_row:
 				draw_rect(Rect2(Vector2(panel.position.x + 10.0, row_y + row * row_height), Vector2(panel.size.x - 20.0, row_height)),
 						Color(0.16, 0.48, 0.24, 0.18), true)
-		draw_string(font, Vector2(panel.position.x + 18.0, row_y + 19.0),
-				("%s AUTO FIRE" % ("▶" if _settings_index == 0 else " ")),
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				Color(0.74, 1.0, 0.82, 0.96) if _settings_index == 0 else Color(0.46, 0.82, 0.56, 0.72))
-		draw_string(font, Vector2(panel.end.x - 136.0, row_y + 19.0),
-				Settings.get_auto_fire_summary(),
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				Color(0.84, 0.96, 0.90, 0.94))
-		draw_string(font, Vector2(panel.position.x + 18.0, row_y + 47.0),
-				("%s MUSIC" % ("▶" if _settings_index == 1 else " ")),
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				Color(0.74, 1.0, 0.82, 0.96) if _settings_index == 1 else Color(0.46, 0.82, 0.56, 0.72))
-		draw_string(font, Vector2(panel.end.x - 136.0, row_y + 47.0),
-				Settings.get_music_volume_summary(),
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				Color(0.84, 0.96, 0.90, 0.94))
-		draw_string(font, Vector2(panel.position.x + 18.0, row_y + 75.0),
-				("%s FX" % ("▶" if _settings_index == 2 else " ")),
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				Color(0.74, 1.0, 0.82, 0.96) if _settings_index == 2 else Color(0.46, 0.82, 0.56, 0.72))
-		draw_string(font, Vector2(panel.end.x - 136.0, row_y + 75.0),
-				Settings.get_fx_volume_summary(),
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
-				Color(0.84, 0.96, 0.90, 0.94))
-		draw_string(font, Vector2(panel.position.x + 18.0, panel.position.y + 160.0),
-				"AUTO uses controller detection. Music crossfades in combat.",
+		var _rows := [
+			["AUTO FIRE",       Settings.get_auto_fire_summary()],
+			["MUSIC",           Settings.get_music_volume_summary()],
+			["FX",              Settings.get_fx_volume_summary()],
+			["STEALTH BRIGHT",  Settings.get_stealth_brightness_summary()],
+			["COMBAT BRIGHT",   Settings.get_combat_brightness_summary()],
+		]
+		for i in _rows.size():
+			var label: String = _rows[i][0]
+			var value: String = _rows[i][1]
+			var sel := _settings_index == i
+			draw_string(font, Vector2(panel.position.x + 18.0, row_y + 19.0 + i * row_height),
+					("%s %s" % ["▶" if sel else " ", label]),
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+					Color(0.74, 1.0, 0.82, 0.96) if sel else Color(0.46, 0.82, 0.56, 0.72))
+			draw_string(font, Vector2(panel.end.x - 136.0, row_y + 19.0 + i * row_height),
+					value, HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+					Color(0.84, 0.96, 0.90, 0.94))
+		draw_string(font, Vector2(panel.position.x + 18.0, panel.position.y + 222.0),
+				"BRIGHT 0%=darkest  100%=most visible",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.42, 0.76, 0.52, 0.64))
 	elif _arcade_mode:
@@ -460,8 +547,9 @@ func _draw() -> void:
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.32, 0.72, 0.92, 0.58))
 		if fmod(t, 1.3) < 0.82 and _root_menu_index == 0:
+			var launch_label := "TAP TO LAUNCH" if OS.has_feature("mobile") else "PRESS ENTER TO LAUNCH RUN"
 			draw_string(font, Vector2(cx - 96.0, seed_y + 82.0),
-					"PRESS ENTER TO LAUNCH RUN",
+					launch_label,
 					HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
 					Color(0.40, 0.82, 1.0, 0.92))
 	else:
@@ -484,29 +572,117 @@ func _draw() -> void:
 					Color(0.28, 0.78, 0.42, 0.62))
 		else:
 			if fmod(t, 1.3) < 0.82 and _root_menu_index == 0:
+				var start_label := "TAP TO START" if OS.has_feature("mobile") else "PRESS ENTER TO START"
 				draw_string(font, Vector2(cx - 96.0, mode_y + 62.0),
-						"PRESS ENTER TO START",
+						start_label,
 						HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
 						Color(0.38, 1.0, 0.52, 0.90))
 
 	# Controls block
 	var hy    := vp.y * 0.76
 	var hc    := Color(0.18, 0.52, 0.27, 0.48)
-	var hints := [
-		"MOVE          WASD  /  LEFT STICK",
-		"DARK MODE     SHIFT  /  L2          (reduces emission)",
-		"FIRE          LMB  /  R1            (AUTO FIRE OPTIONAL IN COMBAT)",
-		"BOOST         SPACE  /  R2",
-		"PROBE         Q  /  X               (decoy beacon)",
-		"SUPPRESS      E  /  A               (silent kill from behind)",
-		"HACK          F or RMB  /  Y        (gate / objective interact)",
-	]
-	for i in hints.size():
-		draw_string(font, Vector2(cx - 130.0, hy + i * 15.0),
-				hints[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, hc)
+	if OS.has_feature("mobile"):
+		var hints := [
+			"MOVE          LEFT THUMB STICK",
+			"DARK MODE     STL               (stealth — reduces emission)",
+			"FIRE          RIGHT STICK PUSH",
+			"BOOST         BST",
+			"EMP PROBE     EMP",
+		]
+		for i in hints.size():
+			draw_string(font, Vector2(cx - 130.0, hy + i * 15.0),
+					hints[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, hc)
+	else:
+		var hints := [
+			"MOVE          WASD  /  LEFT STICK",
+			"DARK MODE     SHIFT  /  L2          (reduces emission)",
+			"FIRE          LMB  /  R1            (AUTO FIRE OPTIONAL IN COMBAT)",
+			"BOOST         SPACE  /  R2",
+			"PROBE         Q  /  X               (decoy beacon)",
+			"SUPPRESS      E  /  A               (silent kill from behind)",
+			"HACK          F or RMB  /  Y        (gate / objective interact)",
+		]
+		for i in hints.size():
+			draw_string(font, Vector2(cx - 130.0, hy + i * 15.0),
+					hints[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, hc)
 
 	# Version / build tag
 	draw_string(font, Vector2(16.0, vp.y - 16.0),
 			"SIGNAL DARK  //  PROTOTYPE",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
 			Color(0.15, 0.42, 0.22, 0.35))
+
+
+func _draw_mobile_settings_fullscreen(vp: Vector2, font: Font) -> void:
+	var cx := vp.x * 0.5
+	var header_h := maxf(vp.y * 0.16, 52.0)
+	var footer_h := maxf(vp.y * 0.18, 60.0)
+	var rows_area_y := header_h
+	var rows_area_h := vp.y - header_h - footer_h
+	var row_h := rows_area_h / 5.0
+
+	# Dark background
+	draw_rect(Rect2(Vector2.ZERO, vp), Color(0.01, 0.03, 0.02, 0.97), true)
+	draw_rect(Rect2(Vector2.ZERO, vp), Color(0.28, 0.72, 0.46, 0.14), false, 1.0)
+
+	# Header
+	draw_line(Vector2(0.0, header_h), Vector2(vp.x, header_h),
+			Color(0.28, 0.68, 0.42, 0.28), 1.0)
+	draw_string(font, Vector2(24.0, header_h * 0.66),
+			"SETTINGS", HORIZONTAL_ALIGNMENT_LEFT, -1, 22,
+			Color(0.66, 1.0, 0.78, 0.95))
+	draw_string(font, Vector2(24.0, header_h * 0.90),
+			"TAP LEFT SIDE  ◀  TO LOWER     ▶  RIGHT SIDE TO RAISE",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+			Color(0.36, 0.72, 0.46, 0.55))
+
+	# Rows
+	var rows_data: Array = [
+		["AUTO FIRE",      Settings.get_auto_fire_summary()],
+		["MUSIC",          Settings.get_music_volume_summary()],
+		["FX",             Settings.get_fx_volume_summary()],
+		["STEALTH BRIGHT", Settings.get_stealth_brightness_summary()],
+		["COMBAT BRIGHT",  Settings.get_combat_brightness_summary()],
+	]
+	for i in rows_data.size():
+		var label: String = rows_data[i][0]
+		var value: String = rows_data[i][1]
+		var sel := _settings_index == i
+		var row_top := rows_area_y + i * row_h
+		var text_y := row_top + row_h * 0.64
+
+		if sel:
+			draw_rect(Rect2(0.0, row_top + 2.0, vp.x, row_h - 4.0),
+					Color(0.14, 0.44, 0.22, 0.22), true)
+		draw_line(Vector2(0.0, row_top + row_h), Vector2(vp.x, row_top + row_h),
+				Color(0.18, 0.48, 0.28, 0.18), 1.0)
+
+		# Left arrow
+		draw_string(font, Vector2(18.0, text_y), "◀",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+				Color(0.44, 0.88, 0.56, 0.75))
+		# Label
+		draw_string(font, Vector2(48.0, text_y), label,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 17,
+				Color(0.74, 1.0, 0.82, 0.96) if sel else Color(0.44, 0.80, 0.54, 0.75))
+		# Value (centered)
+		draw_string(font, Vector2(cx - 30.0, text_y), value,
+				HORIZONTAL_ALIGNMENT_CENTER, 80, 20,
+				Color(0.90, 1.0, 0.94, 0.96))
+		# Right arrow
+		draw_string(font, Vector2(vp.x - 36.0, text_y), "▶",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+				Color(0.44, 0.88, 0.56, 0.75))
+
+	# Footer / Done button
+	draw_line(Vector2(0.0, vp.y - footer_h), Vector2(vp.x, vp.y - footer_h),
+			Color(0.28, 0.68, 0.42, 0.28), 1.0)
+	var done_w := 160.0
+	var done_h := 42.0
+	var done_rect := Rect2(cx - done_w * 0.5, vp.y - footer_h + (footer_h - done_h) * 0.5,
+			done_w, done_h)
+	draw_rect(done_rect, Color(0.14, 0.46, 0.22, 0.32), true)
+	draw_rect(done_rect, Color(0.34, 0.88, 0.46, 0.50), false, 1.5)
+	draw_string(font, Vector2(cx - 24.0, done_rect.position.y + done_h * 0.70),
+			"DONE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
+			Color(0.55, 1.0, 0.68, 0.96))
