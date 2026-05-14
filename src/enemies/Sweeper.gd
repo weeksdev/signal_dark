@@ -89,7 +89,8 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			_dwell = 0.2
 		if global_position.distance_to(ship.global_position) < 18.0:
-			ship.take_hit()
+			if not ship.get("cover_active"):
+				ship.take_hit()
 	else:
 		_run_patrol(delta)
 		_check_detection()

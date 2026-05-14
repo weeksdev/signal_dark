@@ -27,6 +27,12 @@ var _boost_id: int = -1
 var _emp_id: int = -1
 var _emp_just: bool = false
 var _emp_prev_active: bool = false
+var _cover_id: int = -1
+var _cover_just: bool = false
+var _cover_prev_active: bool = false
+var _drone_id: int = -1
+var _drone_just: bool = false
+var _drone_prev_active: bool = false
 
 
 func _ready() -> void:
@@ -48,11 +54,23 @@ func _process(_delta: float) -> void:
 		return
 	_emp_just = (_emp_id != -1) and not _emp_prev_active
 	_emp_prev_active = _emp_id != -1
+	_cover_just = (_cover_id != -1) and not _cover_prev_active
+	_cover_prev_active = _cover_id != -1
+	_drone_just = (_drone_id != -1) and not _drone_prev_active
+	_drone_prev_active = _drone_id != -1
 	_update_state()
 
 
 func is_emp_just_pressed_touch() -> bool:
 	return _emp_just
+
+
+func is_cover_just_pressed_touch() -> bool:
+	return _cover_just
+
+
+func is_drone_just_pressed_touch() -> bool:
+	return _drone_just
 
 
 func reset_all() -> void:
@@ -63,6 +81,12 @@ func reset_all() -> void:
 	_emp_id = -1
 	_emp_just = false
 	_emp_prev_active = false
+	_cover_id = -1
+	_cover_just = false
+	_cover_prev_active = false
+	_drone_id = -1
+	_drone_just = false
+	_drone_prev_active = false
 	touch_move = Vector2.ZERO
 	touch_aim = Vector2.ZERO
 	touch_fire = false
@@ -78,6 +102,8 @@ func button_defs(vp_size: Vector2) -> Array:
 		{"id": "dark",  "center": Vector2(w * 0.892, h * 0.800), "radius": 38.0},
 		{"id": "boost", "center": Vector2(w * 0.812, h * 0.800), "radius": 36.0},
 		{"id": "emp",   "center": Vector2(w * 0.892, h * 0.555), "radius": 30.0},
+		{"id": "cover", "center": Vector2(w * 0.732, h * 0.690), "radius": 28.0},
+		{"id": "drone", "center": Vector2(w * 0.732, h * 0.800), "radius": 28.0},
 	]
 
 
@@ -94,6 +120,8 @@ func handle_touch(event: InputEventScreenTouch) -> void:
 					"dark":  _dark_id = event.index
 					"boost": _boost_id = event.index
 					"emp":   _emp_id = event.index
+					"cover": _cover_id = event.index
+					"drone": _drone_id = event.index
 				return
 		if pos.x < half_x:
 			if _left_id == -1:
@@ -112,6 +140,8 @@ func handle_touch(event: InputEventScreenTouch) -> void:
 		elif idx == _dark_id:  _dark_id = -1
 		elif idx == _boost_id: _boost_id = -1
 		elif idx == _emp_id:   _emp_id = -1
+		elif idx == _cover_id: _cover_id = -1
+		elif idx == _drone_id: _drone_id = -1
 
 
 func handle_drag(event: InputEventScreenDrag) -> void:

@@ -69,7 +69,8 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		_push_out_of_dark_pockets(delta)
 		if global_position.distance_to(ship.global_position) < 18.0:
-			ship.take_hit()
+			if not ship.get("cover_active"):
+				ship.take_hit()
 
 
 func activate_for_combat(target_ship: Node2D) -> void:

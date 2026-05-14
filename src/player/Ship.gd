@@ -4,6 +4,7 @@ signal destroyed
 
 const EMP_SHOCKWAVE_SCENE := preload("res://src/fx/EmpShockwave.tscn")
 const ElectricSparks = preload("res://src/fx/ElectricSparks.gd")
+const DRONE_SCENE := preload("res://src/player/Drone.tscn")
 const AUTO_FIRE_RANGE := 320.0
 
 @export var acceleration: float = 2400.0
@@ -21,6 +22,9 @@ const AUTO_FIRE_RANGE := 320.0
 @export var emp_disable_duration: float = 5.0
 @export var emp_slow_duration: float = 3.0
 @export var emp_speed_scale: float = 0.6
+@export var cover_duration: float = 5.0
+@export var cover_cooldown: float = 8.0
+@export var drone_charges: int = 3
 
 var aim_direction: Vector2 = Vector2.UP
 var dark_mode: bool = false
@@ -28,10 +32,15 @@ var in_dark_pocket: bool = false
 var probe_charges: int = 3
 var jammer_charges: int = 2
 var emp_charges: int = 0
+var cover_active: bool = false
 var boost_cooldown_remaining: float = 0.0
 var dead: bool = false
+var _cover_timer: float = 0.0
+var _cover_cooldown_remaining: float = 0.0
 var _previous_suppress_pressed: bool = false
 var _previous_probe_pressed: bool = false
+var _previous_cover_pressed: bool = false
+var _previous_drone_pressed: bool = false
 var _thruster_t: float = 0.0
 var _boost_flash: float = 0.0
 var _emp_slow_timer: float = 0.0
@@ -65,6 +74,13 @@ func _physics_process(delta: float) -> void:
 
 	boost_cooldown_remaining = maxf(0.0, boost_cooldown_remaining - delta)
 	_emp_slow_timer = maxf(0.0, _emp_slow_timer - delta)
+	_cover_cooldown_remaining = maxf(0.0, _cover_cooldown_remaining - delta)
+	if cover_active:
+		_cover_timer -= delta
+		if _cover_timer <= 0.0:
+			cover_active = false
+			if ship_visual != null and ship_visual.has_method("set_cover"):
+				ship_visual.set_cover(false)
 	dark_mode = InputManager.is_dark_mode()
 	var move_input := InputManager.get_move_vector()
 	var in_stealth_phase := not AlertSystem.combat_mode
@@ -110,6 +126,10 @@ func _physics_process(delta: float) -> void:
 		if not _hack_prompt_active:
 			if not _try_suppressed_kill():
 				_try_signal_jammer()
+	if InputManager.is_cover_just_pressed() and not _hack_prompt_active:
+		_try_activate_cover()
+	if InputManager.is_drone_just_pressed() and not _hack_prompt_active:
+		_try_launch_drone()
 	_previous_probe_pressed = probe_pressed
 	_previous_suppress_pressed = suppress_pressed
 
@@ -210,6 +230,8 @@ func _update_emission(did_boost: bool) -> void:
 		emission = 0.02
 	if in_dark_pocket:
 		emission *= 0.35
+	if cover_active:
+		emission = 0.0
 	if did_boost:
 		emission = maxf(emission, 0.85)
 	AlertSystem.set_emission(emission)
@@ -249,6 +271,29 @@ func _try_signal_jammer() -> void:
 		return
 	jammer_charges -= 1
 	world.trigger_signal_jammer(global_position, jammer_radius, jammer_duration)
+
+
+func _try_activate_cover() -> void:
+	if _cover_cooldown_remaining > 0.0 or cover_active:
+		return
+	cover_active = true
+	_cover_timer = cover_duration
+	_cover_cooldown_remaining = cover_cooldown
+	if ship_visual != null and ship_visual.has_method("set_cover"):
+		ship_visual.set_cover(true)
+	var world := get_tree().current_scene
+	if world != null and world.has_method("notify_player_cover_activated"):
+		world.notify_player_cover_activated()
+
+
+func _try_launch_drone() -> void:
+	if drone_charges <= 0:
+		return
+	drone_charges -= 1
+	var drone = DRONE_SCENE.instantiate()
+	drone.global_position = global_position + aim_direction * 22.0
+	drone.direction = aim_direction
+	get_tree().current_scene.add_child(drone)
 
 
 func _try_emp_blast() -> void:
@@ -317,7 +362,12 @@ func _update_palette() -> void:
 		_sparks.intensity = 0.35 if ColorSystem.in_combat else 0.15
 
 
-func _on_mode_changed(_in_combat: bool) -> void:
+func _on_mode_changed(in_combat: bool) -> void:
+	if in_combat and cover_active:
+		cover_active = false
+		_cover_timer = 0.0
+		if ship_visual != null and ship_visual.has_method("set_cover"):
+			ship_visual.set_cover(false)
 	_update_palette()
 
 
@@ -335,6 +385,8 @@ func take_hit() -> void:
 
 
 func _check_enemy_contact() -> void:
+	if cover_active:
+		return
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy == null or not enemy.is_alive:
 			continue

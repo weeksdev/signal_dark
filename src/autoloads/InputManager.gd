@@ -74,6 +74,22 @@ func is_emp_just_pressed() -> bool:
 	return Input.is_action_just_pressed("emp")
 
 
+func is_cover_just_pressed() -> bool:
+	if OS.has_feature("mobile") and TouchControls.is_cover_just_pressed_touch():
+		return true
+	if InputMap.has_action("cover"):
+		return Input.is_action_just_pressed("cover")
+	return false
+
+
+func is_drone_just_pressed() -> bool:
+	if OS.has_feature("mobile") and TouchControls.is_drone_just_pressed_touch():
+		return true
+	if InputMap.has_action("drone"):
+		return Input.is_action_just_pressed("drone")
+	return false
+
+
 func is_right_stick_active() -> bool:
 	if OS.has_feature("mobile") and TouchControls.touch_aim.length() > AIM_DEADZONE:
 		return true

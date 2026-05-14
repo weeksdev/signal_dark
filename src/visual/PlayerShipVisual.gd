@@ -45,6 +45,7 @@ void fragment() {
 @onready var glow_hull: Sprite2D = find_child("GlowHull", true, false) as Sprite2D
 @onready var glow_left_wing: Sprite2D = find_child("GlowLeftWing", true, false) as Sprite2D
 @onready var glow_right_wing: Sprite2D = find_child("GlowRightWing", true, false) as Sprite2D
+@onready var cover_sprite: Sprite2D = find_child("CoverSprite", true, false) as Sprite2D
 var exhaust_base_position: Vector2 = Vector2.ZERO
 var exhaust_base_scale: Vector2 = Vector2.ONE
 var _exhaust_base_alpha: float = 1.0
@@ -115,6 +116,15 @@ func apply_palette(fill_color: Color, outline_color: Color, dark_mode: bool) -> 
 		exhaust_plume_outer.color = Color(exhaust_tint.r, exhaust_tint.g, exhaust_tint.b, 0.0)
 	if exhaust_plume_inner != null:
 		exhaust_plume_inner.color = Color(1.0, 1.0, 1.0, 0.0)
+
+
+func set_cover(active: bool) -> void:
+	if cover_sprite != null:
+		cover_sprite.visible = active
+	if hull != null:
+		hull.visible = not active
+	if hull_backing != null:
+		hull_backing.visible = not active
 
 
 func set_thruster_strength(speed_frac: float, boost_flash: float, dark_mode: bool) -> void:

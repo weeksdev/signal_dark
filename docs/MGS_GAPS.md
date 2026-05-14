@@ -1,6 +1,8 @@
 # MGS-Style Gameplay Gaps
 
-Status note:
+Status note (updated 2026-05-14):
+
+**Recently shipped:** debris cover disguise (F / touch button — hides under junk, breaks active pursuit, 5s duration), drone distraction (V / touch button — flies forward then pulses enemy attention for 8s, 3 charges).
 
 This document now describes remaining gaps, not a blank slate. Several items below are partially implemented and should be interpreted as “needs stronger or cleaner execution” rather than “missing entirely.”
 
@@ -37,30 +39,27 @@ Still weak or inconsistent:
 
 ## 1. Patrol Language
 
-Current gap:
-- Some enemies still feel like movers in a room instead of guards with authored routines.
-- The player cannot always read a room and say, "wait for that opening."
+Current state:
+- Sweeper and Wisp get explicit multi-waypoint routes from EncounterPlacer (9-point linear or 8-point octagonal for Sweeper; 10-point corridor or 8-point room layout for Wisp). Pairs get opposite step values so they cross at choke points.
+- Hunter builds its own 4-point ellipse from spawn position — no placer input needed.
+- Pulsar, Sentry, Prism, and WarpMine are stationary by design (turrets and mines).
+
+The patrol system itself is largely in place. The remaining gap is not route definition but **room geometry built around those routes**.
+
+Remaining gap:
+- Waypoints exist, but the space between them does not always give the player a legible gap to commit through.
+- The room generator places enemies with routes but does not yet guarantee that the geometry creates a readable timing window around those routes.
 
 Needed:
-- fixed patrol paths
-- clear turn points
-- dwell timing at patrol nodes
-- synchronized overlaps
-- predictable separation windows
-- room patterns built around those paths
+- room shapes that have a clear observation position, a danger zone, and a crossing window
+- choke geometry that aligns with patrol separation timing
+- rooms where the player can watch for a few seconds, identify the pattern, and commit
 
-Arcade target:
-- `Sweeper`: 2-point or 3-point patrol routes
-- `Wisp`: fixed orbit anchors, not loose drift
-- `Hunter`: short pressure loops or perch-to-perch routes
-- `Prism` / `Pulsar`: area-denial timing pieces rather than general roamers
-
-High-value room patterns:
-- crossing patrols
-- staggered parallel sweeps
-- alternating chokepoint coverage
-- guard + scanner overlap
-- branch bait route with one safe timing lane
+High-value room patterns still worth authoring:
+- crossing patrols with a safe lane at the crossover moment
+- staggered parallel sweeps with one open corridor
+- guard + scanner overlap that creates a brief double-blind window
+- branch bait room with one timing lane
 
 Success condition:
 - the player can watch for a few seconds, identify a pattern, and commit through a timing window
@@ -88,7 +87,7 @@ Success condition:
 ## 3. Stronger Stealth Verbs
 
 Current gap:
-- The game has dark mode, probe, suppress, jammer, hiding spots, and gate hacks.
+- The game has dark mode, probe, suppress, jammer, cover, drone, and gate hacks.
 - The verbs exist, but the toolset still needs to become more legible and more strategically distinct.
 
 Needed:
@@ -96,10 +95,14 @@ Needed:
 - tools should interact with patrol timing, not just create noise
 - the player should be able to shape the room before committing
 
-Recommended direction:
+Current tool roles (target):
+- `Dark mode`: low-emission movement, short-range suppressed kill
 - `Probe`: lure or redirect patrol attention
 - `Jammer`: break a local detection setup and create a recovery window
+- `Cover`: break an active pursuit, buy time while stationary or slow
+- `Drone`: send enemies to the wrong position, create a safe crossing window
 - `Suppress`: precision close-range removal tool
+- `EMP`: area denial, temporary enemy disable
 - `Hack`: controlled risk tradeoff, not just mandatory friction
 
 Possible future tools:

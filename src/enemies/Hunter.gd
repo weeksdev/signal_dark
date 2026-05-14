@@ -128,6 +128,8 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 func _emit_contact_hit() -> void:
 	var target = ship if ship != null else get_tree().get_first_node_in_group("player_ship")
 	if target != null and global_position.distance_to(target.global_position) <= 18.0:
+		if target.get("cover_active"):
+			return
 		target.take_hit()
 
 

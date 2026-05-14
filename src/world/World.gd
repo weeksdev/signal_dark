@@ -1159,6 +1159,10 @@ func _relax_enemies_for_hiding() -> void:
 	_log_system_state("relax_enemies_for_hiding")
 
 
+func notify_player_cover_activated() -> void:
+	_relax_enemies_for_hiding()
+
+
 func is_stealth_reentry_active() -> bool:
 	return _stealth_reentry_timer > 0.0 and not AlertSystem.combat_mode
 
@@ -1167,6 +1171,8 @@ func should_suppress_enemy_detection(enemy: Node2D, player: Node2D) -> bool:
 	if enemy == null or player == null:
 		return false
 	if player.in_dark_pocket:
+		return true
+	if player.get("cover_active") and enemy.global_position.distance_to(player.global_position) > 52.0:
 		return true
 	if not is_stealth_reentry_active():
 		return false
