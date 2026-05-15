@@ -7,13 +7,20 @@ export/
 *.swp
 .debug/
 agent-tooling/output/
+!agent-tooling/output/.gdignore
 
 # iOS build output
 build/ios_export/
 build/ios/
+
+# Audio source files (large WAVs stripped from history; stubs live locally only)
+audio/*.wav
+audio/*.ogg
+audio/*.mp3
 
 # Generated test artifacts
 tests/generated_transparent_assets/
 tests/__pycache__/
 tests/agent/artifacts/*
 !tests/agent/artifacts/.gitkeep
+!tests/agent/artifacts/.gdignore

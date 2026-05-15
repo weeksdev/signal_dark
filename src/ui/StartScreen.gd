@@ -13,7 +13,7 @@ const LEVEL_SELECT_COMBO := [
 	"y",
 ]
 
-const MOBILE_SCALE := 3.9
+const MOBILE_SCALE := 1.0
 
 var _elapsed: float = 0.0
 var _ready_to_start: bool = false
