@@ -245,32 +245,51 @@ func _handle_mobile_settings_touch(screen_pos: Vector2) -> void:
 			return
 
 
+func _mobile_button_rects(vp: Vector2) -> Dictionary:
+	var cx := vp.x * 0.5
+	var btn_w := 290.0
+	var btn_h := 120.0
+	var gap   := 24.0
+	var total := btn_w * 2.0 + gap
+	var btn_y := vp.y * 0.46 - btn_h * 0.5
+	var story_rect   := Rect2(cx - total * 0.5,            btn_y, btn_w, btn_h)
+	var arcade_rect  := Rect2(cx - total * 0.5 + btn_w + gap, btn_y, btn_w, btn_h)
+	var settings_w   := 600.0
+	var settings_h   := 70.0
+	var settings_rect := Rect2(cx - settings_w * 0.5, vp.y * 0.70 - settings_h * 0.5,
+			settings_w, settings_h)
+	return {
+		"story":    story_rect,
+		"arcade":   arcade_rect,
+		"settings": settings_rect,
+	}
+
+
 func _handle_mobile_touch(screen_pos: Vector2) -> void:
 	if _settings_open:
 		_handle_mobile_settings_touch(screen_pos)
 		return
 
 	var ref := _touch_to_ref(screen_pos)
-	var vp := get_viewport_rect().size
-	var cx := vp.x * 0.5
-	var mode_y := vp.y * 0.52
+	var vp  := get_viewport_rect().size
+	var rects := _mobile_button_rects(vp)
 
-	if Rect2(cx - 140.0, mode_y - 22.0, 134.0, 34.0).has_point(ref):
+	if rects["story"].has_point(ref):
 		_arcade_mode = false
 		_root_menu_index = 0
 		return
 
-	if Rect2(cx, mode_y - 22.0, 150.0, 34.0).has_point(ref):
+	if rects["arcade"].has_point(ref):
 		_arcade_mode = true
 		_root_menu_index = 0
 		return
 
-	if Rect2(cx - 80.0, mode_y + 16.0, 160.0, 36.0).has_point(ref):
+	if rects["settings"].has_point(ref):
 		_settings_open = true
 		_root_menu_index = 1
 		return
 
-	if ref.y > mode_y + 52.0:
+	if ref.y > vp.y * 0.75 and _root_menu_index == 0:
 		if _arcade_mode:
 			GameState.start_arcade_run(_arcade_seed, _arcade_difficulty)
 		else:
@@ -393,8 +412,8 @@ func _draw() -> void:
 		return
 
 	if OS.has_feature("mobile"):
-		var mob_offset := Vector2(vp.x * (1.0 - MOBILE_SCALE) * 0.5, vp.y * (1.0 - MOBILE_SCALE) * 0.5)
-		draw_set_transform(mob_offset, 0.0, Vector2(MOBILE_SCALE, MOBILE_SCALE))
+		_draw_mobile_start(vp, font, t)
+		return
 
 	# Title glow (layered for phosphor bloom)
 	var cx  := vp.x * 0.5
@@ -629,7 +648,7 @@ func _draw_mobile_settings_fullscreen(vp: Vector2, font: Font) -> void:
 	draw_line(Vector2(0.0, header_h), Vector2(vp.x, header_h),
 			Color(0.28, 0.68, 0.42, 0.28), 1.0)
 	draw_string(font, Vector2(24.0, header_h * 0.66),
-			"SETTINGS", HORIZONTAL_ALIGNMENT_LEFT, -1, 22,
+			"SETTINGS", HORIZONTAL_ALIGNMENT_LEFT, -1, 36,
 			Color(0.66, 1.0, 0.78, 0.95))
 	draw_string(font, Vector2(24.0, header_h * 0.90),
 			"TAP LEFT SIDE  ◀  TO LOWER     ▶  RIGHT SIDE TO RAISE",
@@ -659,19 +678,19 @@ func _draw_mobile_settings_fullscreen(vp: Vector2, font: Font) -> void:
 
 		# Left arrow
 		draw_string(font, Vector2(18.0, text_y), "◀",
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 30,
 				Color(0.44, 0.88, 0.56, 0.75))
 		# Label
-		draw_string(font, Vector2(48.0, text_y), label,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 17,
+		draw_string(font, Vector2(60.0, text_y), label,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 28,
 				Color(0.74, 1.0, 0.82, 0.96) if sel else Color(0.44, 0.80, 0.54, 0.75))
 		# Value (centered)
-		draw_string(font, Vector2(cx - 30.0, text_y), value,
-				HORIZONTAL_ALIGNMENT_CENTER, 80, 20,
+		draw_string(font, Vector2(cx - 40.0, text_y), value,
+				HORIZONTAL_ALIGNMENT_CENTER, 100, 30,
 				Color(0.90, 1.0, 0.94, 0.96))
 		# Right arrow
-		draw_string(font, Vector2(vp.x - 36.0, text_y), "▶",
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+		draw_string(font, Vector2(vp.x - 46.0, text_y), "▶",
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 30,
 				Color(0.44, 0.88, 0.56, 0.75))
 
 	# Footer / Done button
@@ -683,6 +702,122 @@ func _draw_mobile_settings_fullscreen(vp: Vector2, font: Font) -> void:
 			done_w, done_h)
 	draw_rect(done_rect, Color(0.14, 0.46, 0.22, 0.32), true)
 	draw_rect(done_rect, Color(0.34, 0.88, 0.46, 0.50), false, 1.5)
-	draw_string(font, Vector2(cx - 24.0, done_rect.position.y + done_h * 0.70),
-			"DONE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
+	draw_string(font, Vector2(cx - 30.0, done_rect.position.y + done_h * 0.70),
+			"DONE", HORIZONTAL_ALIGNMENT_LEFT, -1, 28,
 			Color(0.55, 1.0, 0.68, 0.96))
+
+
+func _draw_mobile_start(vp: Vector2, font: Font, t: float) -> void:
+	var cx := vp.x * 0.5
+
+	# ── Title ─────────────────────────────────────────────────────────────────
+	var title_y := vp.y * 0.22
+	var title := "SIGNAL DARK"
+	for i in 3:
+		var spread := (3 - i) * 4.0
+		draw_string(font, Vector2(cx + spread * 0.3, title_y + spread * 0.3),
+				title, HORIZONTAL_ALIGNMENT_CENTER, -1, 65,
+				Color(0.15, 0.7, 0.3, 0.12 - i * 0.03))
+	draw_string(font, Vector2(cx, title_y), title,
+			HORIZONTAL_ALIGNMENT_CENTER, -1, 65,
+			Color(0.42, 1.0, 0.56, 0.95))
+
+	# ── Tagline ────────────────────────────────────────────────────────────────
+	draw_string(font, Vector2(cx, vp.y * 0.30),
+			"STEALTH PROTOCOL  //  ZONES 01-04",
+			HORIZONTAL_ALIGNMENT_CENTER, -1, 22,
+			Color(0.22, 0.65, 0.33, 0.55))
+
+	# ── Divider ────────────────────────────────────────────────────────────────
+	var div_y := vp.y * 0.36
+	draw_line(Vector2(cx - 300.0, div_y), Vector2(cx + 300.0, div_y),
+			Color(0.22, 0.6, 0.32, 0.22), 1.0)
+
+	# ── Mode buttons ──────────────────────────────────────────────────────────
+	var rects := _mobile_button_rects(vp)
+	var story_rect  : Rect2 = rects["story"]
+	var arcade_rect : Rect2 = rects["arcade"]
+
+	var story_selected   := _root_menu_index == 0 and not _arcade_mode
+	var arcade_selected  := _root_menu_index == 0 and _arcade_mode
+	var settings_selected := _root_menu_index == 1
+
+	var story_col  := Color(0.55, 1.0, 0.65, 0.95)  if story_selected  else Color(0.22, 0.55, 0.30, 0.45)
+	var arcade_col := Color(0.45, 0.82, 1.0, 0.95) if arcade_selected else Color(0.18, 0.48, 0.72, 0.45)
+
+	# Story button background
+	draw_rect(story_rect,
+			Color(0.18, 0.55, 0.28, 0.25) if story_selected else Color(0.05, 0.12, 0.07, 0.25), true)
+	draw_rect(story_rect,
+			Color(0.35, 0.9, 0.48, 0.55) if story_selected else Color(0.22, 0.45, 0.28, 0.30), false, 1.5)
+	draw_string(font,
+			Vector2(story_rect.get_center().x, story_rect.get_center().y + 14.0),
+			"▶ STORY MODE" if story_selected else "STORY MODE",
+			HORIZONTAL_ALIGNMENT_CENTER, -1, 28, story_col)
+
+	# Arcade button background
+	draw_rect(arcade_rect,
+			Color(0.08, 0.25, 0.55, 0.25) if arcade_selected else Color(0.05, 0.08, 0.16, 0.25), true)
+	draw_rect(arcade_rect,
+			Color(0.30, 0.65, 1.0, 0.55) if arcade_selected else Color(0.18, 0.30, 0.55, 0.30), false, 1.5)
+	draw_string(font,
+			Vector2(arcade_rect.get_center().x, arcade_rect.get_center().y + 14.0),
+			"▶ ARCADE MODE" if arcade_selected else "ARCADE MODE",
+			HORIZONTAL_ALIGNMENT_CENTER, -1, 28, arcade_col)
+
+	# ── Arcade sub-row ────────────────────────────────────────────────────────
+	if arcade_selected:
+		var sub_y := arcade_rect.position.y + arcade_rect.size.y + 14.0
+		draw_string(font, Vector2(cx, sub_y),
+				"SEED  %d" % _arcade_seed,
+				HORIZONTAL_ALIGNMENT_CENTER, -1, 22,
+				Color(0.45, 0.82, 1.0, 0.90))
+		draw_string(font, Vector2(cx, sub_y + 28.0),
+				"DIFFICULTY  %s" % ArcadeState.DIFFICULTY_NAMES[_arcade_difficulty],
+				HORIZONTAL_ALIGNMENT_CENTER, -1, 22,
+				Color(0.62, 0.90, 1.0, 0.80))
+		draw_string(font, Vector2(cx, sub_y + 50.0),
+				"R  —  NEW SEED",
+				HORIZONTAL_ALIGNMENT_CENTER, -1, 16,
+				Color(0.28, 0.60, 0.88, 0.50))
+
+	# ── Level-select zone list ─────────────────────────────────────────────────
+	if _level_select_unlocked:
+		var zone_y := vp.y * 0.55
+		draw_string(font, Vector2(cx, zone_y - 26.0),
+				"LEVEL SELECT UNLOCKED",
+				HORIZONTAL_ALIGNMENT_CENTER, -1, 22,
+				Color(0.48, 1.0, 0.62, 0.92))
+		var slot_w := 120.0
+		var total_w := GameState.ZONE_SCENES.size() * slot_w
+		var zone_x := cx - total_w * 0.5
+		for i in GameState.ZONE_SCENES.size():
+			var sel := i == _selected_zone
+			var col := Color(0.60, 1.0, 0.70, 0.95) if sel else Color(0.24, 0.62, 0.34, 0.58)
+			draw_string(font, Vector2(zone_x + i * slot_w, zone_y),
+					"ZONE %02d" % (i + 1),
+					HORIZONTAL_ALIGNMENT_CENTER, -1, 22, col)
+
+	# ── SETTINGS strip ────────────────────────────────────────────────────────
+	var settings_rect : Rect2 = rects["settings"]
+	var settings_col := Color(0.92, 0.92, 0.62, 0.95) if settings_selected else Color(0.46, 0.48, 0.26, 0.55)
+	draw_rect(settings_rect,
+			Color(0.44, 0.44, 0.10, 0.20) if settings_selected else Color(0.10, 0.10, 0.04, 0.20), true)
+	draw_rect(settings_rect,
+			Color(0.86, 0.86, 0.34, 0.50) if settings_selected else Color(0.42, 0.44, 0.18, 0.28), false, 1.5)
+	draw_string(font, Vector2(settings_rect.get_center().x, settings_rect.get_center().y + 10.0),
+			"▶ SETTINGS" if settings_selected else "SETTINGS",
+			HORIZONTAL_ALIGNMENT_CENTER, -1, 24, settings_col)
+
+	# ── Tap-to-start / tap-to-launch ─────────────────────────────────────────
+	if fmod(t, 1.3) < 0.82 and _root_menu_index == 0:
+		var tap_label := "TAP TO LAUNCH RUN" if _arcade_mode else "TAP TO START"
+		draw_string(font, Vector2(cx, vp.y * 0.87),
+				tap_label, HORIZONTAL_ALIGNMENT_CENTER, -1, 26,
+				Color(0.45, 0.82, 1.0, 0.92) if _arcade_mode else Color(0.38, 1.0, 0.52, 0.90))
+
+	# ── Version tag ───────────────────────────────────────────────────────────
+	draw_string(font, Vector2(vp.x - 16.0, vp.y - 16.0),
+			"SIGNAL DARK  //  PROTOTYPE",
+			HORIZONTAL_ALIGNMENT_RIGHT, -1, 16,
+			Color(0.15, 0.42, 0.22, 0.40))
