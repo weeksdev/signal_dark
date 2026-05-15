@@ -1,16 +1,18 @@
 extends Node2D
 
 const ENEMIES := [
-	{"name": "SWEEPER", "role": "Patrol scanner", "detail": "Pulse-cone patrol. Builds warning, then alerts."},
-	{"name": "PULSAR", "role": "Ring detector", "detail": "Expanding pulse rings. Direct exposed hits alert immediately."},
-	{"name": "PRISM", "role": "Beam scanner", "detail": "Rotating beam tripwire. Beam contact alerts immediately."},
-	{"name": "SENTRY", "role": "Turret watcher", "detail": "Pressure detector. Warns on exposed fast movement, fires in combat."},
-	{"name": "HUNTER", "role": "Proximity predator", "detail": "Owns a danger circle. Entering it triggers alert."},
-	{"name": "WISP", "role": "Orbit hunter", "detail": "Light roaming pressure enemy. Dangerous once combat starts."},
-	{"name": "WARPMINE", "role": "Trap mine", "detail": "Arms when you enter its trigger space, then deploys payload."},
+	{"name": "SWEEPER", "type": "Sweeper", "role": "Patrol scanner", "asset": "res://assets/enemy_4.png", "detail": "Pulse-cone patrol. Builds warning, then alerts."},
+	{"name": "PULSAR", "type": "Pulsar", "role": "Ring detector", "asset": "res://assets/star_enemy.png", "detail": "Expanding pulse rings. Direct exposed hits alert immediately."},
+	{"name": "PRISM", "type": "Prism", "role": "Beam scanner", "asset": "", "detail": "Rotating beam tripwire. Vector-drawn body; no PNG sprite."},
+	{"name": "SENTRY", "type": "Sentry", "role": "Turret watcher", "asset": "res://assets/enemy_stationary_1.png", "detail": "Pressure detector. Warns on exposed fast movement, fires in combat."},
+	{"name": "HUNTER", "type": "Hunter", "role": "Proximity predator", "asset": "res://assets/enemy_claw.png", "detail": "Owns a danger circle. Entering it triggers alert."},
+	{"name": "WISP", "type": "Wisp", "role": "Orbit hunter", "asset": "res://assets/enemy_1.png", "detail": "Light roaming pressure enemy. Dangerous once combat starts."},
+	{"name": "WALL SENSOR", "type": "WallSensor", "role": "Forward radar", "asset": "res://assets/triangle_enemy.png", "detail": "Extending front sensor beam. Mounted scanner threat."},
+	{"name": "WARPMINE", "type": "WarpMine", "role": "Trap mine", "asset": "", "detail": "Arms when you enter its trigger space. Vector-drawn body; no PNG sprite."},
 ]
 
 var _elapsed: float = 0.0
+var _texture_cache: Dictionary = {}
 
 
 func _process(delta: float) -> void:
@@ -50,10 +52,10 @@ func _draw() -> void:
 	draw_string(font, Vector2(cx - 170.0, 118.0), "FIELD REFERENCE  //  STEALTH THREATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.22, 0.65, 0.33, 0.52))
 	draw_line(Vector2(cx - 180.0, 136.0), Vector2(cx + 180.0, 136.0), Color(0.22, 0.6, 0.32, 0.22), 0.5)
 
-	var start_y := 180.0
-	var card_h := 60.0
-	var card_gap := 12.0
-	var card_w := minf(vp.x - 120.0, 860.0)
+	var start_y := 154.0
+	var card_h := 72.0
+	var card_gap := 8.0
+	var card_w := minf(vp.x - 120.0, 980.0)
 	var left := cx - card_w * 0.5
 
 	for i in range(ENEMIES.size()):
@@ -64,14 +66,42 @@ func _draw() -> void:
 		draw_rect(card, Color(0.02, 0.07, 0.04, 0.74), true)
 		draw_rect(card.grow(1.0), Color(0.22, 0.58, 0.34, 0.16 + selected_glow), false, 0.5)
 
-		var icon_center := Vector2(left + 34.0, y + card_h * 0.5)
-		_draw_enemy_icon(i, icon_center)
+		var preview := Rect2(Vector2(left + 14.0, y + 9.0), Vector2(54.0, 54.0))
+		_draw_enemy_preview(item, preview, i)
 
-		draw_string(font, Vector2(left + 64.0, y + 22.0), item["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.62, 1.0, 0.74, 0.95))
-		draw_string(font, Vector2(left + 210.0, y + 22.0), item["role"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.38, 0.82, 0.52, 0.72))
-		draw_string(font, Vector2(left + 64.0, y + 43.0), item["detail"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.54, 0.82, 0.62, 0.68))
+		draw_string(font, Vector2(left + 82.0, y + 21.0), item["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.62, 1.0, 0.74, 0.95))
+		draw_string(font, Vector2(left + 236.0, y + 21.0), item["type"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.70, 1.0, 0.78, 0.72))
+		draw_string(font, Vector2(left + 346.0, y + 21.0), item["role"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.38, 0.82, 0.52, 0.72))
+		draw_string(font, Vector2(left + 82.0, y + 43.0), item["detail"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.54, 0.82, 0.62, 0.68))
+		var asset_text: String = str(item["asset"]) if str(item["asset"]) != "" else "VECTOR / NO PNG"
+		draw_string(font, Vector2(left + 82.0, y + 62.0), asset_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.30, 0.72, 0.40, 0.58))
 
 	draw_string(font, Vector2(cx - 170.0, vp.y - 28.0), "ESC / I / B  TO RETURN", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.30, 0.72, 0.40, 0.62))
+
+
+func _draw_enemy_preview(item: Dictionary, rect: Rect2, fallback_index: int) -> void:
+	draw_rect(rect, Color(0.0, 0.0, 0.0, 0.28), true)
+	draw_rect(rect, Color(0.22, 0.58, 0.34, 0.22), false, 0.5)
+	var asset := str(item.get("asset", ""))
+	if asset != "":
+		var texture := _texture_for(asset)
+		if texture != null:
+			var size := texture.get_size()
+			if size.x > 0.0 and size.y > 0.0:
+				var scale := minf(rect.size.x / size.x, rect.size.y / size.y)
+				var draw_size := size * scale
+				var draw_rect := Rect2(rect.position + (rect.size - draw_size) * 0.5, draw_size)
+				draw_texture_rect(texture, draw_rect, false, Color(0.88, 1.0, 0.90, 0.98))
+				return
+	_draw_enemy_icon(fallback_index, rect.get_center())
+
+
+func _texture_for(path: String) -> Texture2D:
+	if _texture_cache.has(path):
+		return _texture_cache[path]
+	var texture := load(path) as Texture2D
+	_texture_cache[path] = texture
+	return texture
 
 
 func _draw_enemy_icon(index: int, center: Vector2) -> void:

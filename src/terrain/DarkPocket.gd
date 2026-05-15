@@ -13,7 +13,10 @@ func _ready() -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player_ship"):
-		body.in_dark_pocket = true
+		if body.has_method("set_dark_pocket_active"):
+			body.set_dark_pocket_active(true)
+		else:
+			body.in_dark_pocket = true
 		var world := get_tree().current_scene
 		if world != null and world.has_method("set_player_dark_pocket_state"):
 			world.set_player_dark_pocket_state(self, true)
@@ -21,7 +24,10 @@ func _on_body_entered(body: Node) -> void:
 
 func _on_body_exited(body: Node) -> void:
 	if body.is_in_group("player_ship"):
-		body.in_dark_pocket = false
+		if body.has_method("set_dark_pocket_active"):
+			body.set_dark_pocket_active(false)
+		else:
+			body.in_dark_pocket = false
 		var world := get_tree().current_scene
 		if world != null and world.has_method("set_player_dark_pocket_state"):
 			world.set_player_dark_pocket_state(self, false)

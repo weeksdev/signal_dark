@@ -90,6 +90,28 @@ func count() -> int:
 	return _count
 
 
+func capture_index() -> Array[Dictionary]:
+	var index: Array[Dictionary] = []
+	for capture in captures:
+		var telemetry: Dictionary = capture.get("telemetry", {})
+		index.append({
+			"ok": bool(capture.get("ok", false)),
+			"skipped": bool(capture.get("skipped", false)),
+			"label": str(capture.get("label", "")),
+			"file": str(capture.get("file", "")),
+			"note": str(capture.get("note", "")),
+			"time_msec": telemetry.get("time_msec", 0),
+			"enemy_count": telemetry.get("enemy_count", 0),
+			"drone_count": telemetry.get("drone_count", 0),
+			"player": telemetry.get("player", {}),
+			"enemies": telemetry.get("enemies", []),
+			"drones": telemetry.get("drones", []),
+			"search": telemetry.get("search", {}),
+			"events_since_last_capture": telemetry.get("events_since_last_capture", []),
+		})
+	return index
+
+
 func _safe_name(value: String) -> String:
 	var output := value.to_snake_case()
 	for ch in ["/", "\\", ":", "*", "?", "\"", "<", ">", "|", " "]:

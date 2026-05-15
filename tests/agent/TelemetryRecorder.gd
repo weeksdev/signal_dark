@@ -72,6 +72,8 @@ func sample(label: String = "") -> Dictionary:
 			"position": _vec(player.global_position),
 			"alive": not bool(player.get("dead")),
 			"dark_mode": bool(player.get("dark_mode")),
+			"in_dark_pocket": bool(player.get("in_dark_pocket")),
+			"cover_active": bool(player.get("cover_active")),
 		}
 	_events.clear()
 	return state

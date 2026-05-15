@@ -33,22 +33,34 @@ godot --headless --path . -s tests/warp_mine_test.gd
 Agent-driven visible scenario harness:
 
 ```bash
-godot --path . -s tests/agent/AgentHarness.gd -- --scenario tests/agent/scenarios/hunter_basic_attack.json
+./tests/agent/run_scenario.sh tests/agent/scenarios/hunter_basic_attack.json
+```
+
+Use `--headless` before the scenario path for mechanics-only verification without screenshot files:
+
+```bash
+./tests/agent/run_scenario.sh --headless tests/agent/scenarios/hunter_basic_attack.json
 ```
 
 Drone attention scenario:
 
 ```bash
-godot --path . -s tests/agent/AgentHarness.gd -- --scenario tests/agent/scenarios/drone_search_attention.json
+./tests/agent/run_scenario.sh tests/agent/scenarios/drone_search_attention.json
 ```
 
 Cover blocks enemy overlap scenario:
 
 ```bash
-godot --path . -s tests/agent/AgentHarness.gd -- --scenario tests/agent/scenarios/cover_blocks_enemy_overlap.json
+./tests/agent/run_scenario.sh tests/agent/scenarios/cover_blocks_enemy_overlap.json
 ```
 
-Artifacts are written to `tests/agent/artifacts/<timestamp>_<scenario>/` with `harness.log`, `run.json`, `summary.md`, `telemetry.jsonl`, and sparse screenshots.
+Dark pocket blocks Sweeper overlap scenario:
+
+```bash
+./tests/agent/run_scenario.sh tests/agent/scenarios/dark_pocket_blocks_sweeper_overlap.json
+```
+
+Artifacts are written to `tests/agent/artifacts/<timestamp>_<scenario>/` with `harness.log`, `run.json`, `summary.md`, `telemetry.jsonl`, `captures.json`, and sparse screenshots.
 
 What it checks:
 

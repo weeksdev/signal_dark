@@ -636,7 +636,11 @@ func set_player_dark_pocket_state(pocket: Area2D, active: bool) -> void:
 		_relax_enemies_for_hiding()
 	else:
 		_active_dark_pockets.erase(pocket.get_instance_id())
-	ship.in_dark_pocket = not _active_dark_pockets.is_empty()
+	var is_hidden := not _active_dark_pockets.is_empty()
+	if ship.has_method("set_dark_pocket_active"):
+		ship.set_dark_pocket_active(is_hidden)
+	else:
+		ship.in_dark_pocket = is_hidden
 	_refresh_dark_pocket_gates()
 
 

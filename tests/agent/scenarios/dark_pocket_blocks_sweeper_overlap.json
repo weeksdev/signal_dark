@@ -1,0 +1,83 @@
+{
+  "scenario": "dark_pocket_blocks_sweeper_overlap",
+  "scene": "res://src/world/AgentTestArena.tscn",
+  "seed": 11,
+  "time_scale": 1.0,
+  "max_fps": 60,
+  "duration": 4.2,
+  "screenshots": {
+    "interval_seconds": 1.0,
+    "max": 6,
+    "capture_on_failure": true
+  },
+  "steps": [
+    {
+      "t": 0.0,
+      "action": "spawn_dark_pocket",
+      "id": "hideout_1",
+      "at": [280, 210]
+    },
+    {
+      "t": 0.05,
+      "action": "spawn_player",
+      "id": "player",
+      "at": [280, 210]
+    },
+    {
+      "t": 0.35,
+      "action": "assert",
+      "condition": "player_in_dark_pocket == true",
+      "message": "Player should be hidden inside the spawned dark pocket"
+    },
+    {
+      "t": 0.36,
+      "action": "assert",
+      "condition": "player_blocks_enemies == true",
+      "message": "Hidden player should expose the enemy-blocking collision layer"
+    },
+    {
+      "t": 0.45,
+      "action": "spawn_enemy",
+      "type": "Sweeper",
+      "id": "sweeper_1",
+      "at": [170, 210],
+      "patrol_points": [[170, 210], [390, 210]],
+      "patrol_start_index": 1
+    },
+    {
+      "t": 1.9,
+      "action": "capture",
+      "name": "sweeper_near_hideout"
+    },
+    {
+      "t": 2.15,
+      "action": "assert",
+      "condition": "enemy_distance_to_player(sweeper_1) >= 30",
+      "message": "Sweeper should not overlap the hidden ship"
+    },
+    {
+      "t": 2.6,
+      "action": "assert",
+      "condition": "player_alive == true",
+      "message": "Hidden player should not be contact-killed by the Sweeper"
+    }
+  ],
+  "assertions": [
+    {
+      "condition": "player_in_dark_pocket == true",
+      "message": "Player should remain in hide mode"
+    },
+    {
+      "condition": "player_blocks_enemies == true",
+      "message": "Hidden player should keep blocking enemies"
+    },
+    {
+      "condition": "enemy_distance_to_player(sweeper_1) >= 30",
+      "message": "Sweeper should still be outside the hidden ship collision"
+    },
+    {
+      "condition": "player_alive == true",
+      "message": "Player should survive while hidden"
+    }
+  ]
+}

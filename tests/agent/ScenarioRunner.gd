@@ -6,6 +6,7 @@ const TelemetryRecorder := preload("res://tests/agent/TelemetryRecorder.gd")
 const AssertionEngine := preload("res://tests/agent/AssertionEngine.gd")
 
 const PLAYER_SCENE := "res://src/player/Ship.tscn"
+const DARK_POCKET_SCENE := "res://src/terrain/DarkPocket.tscn"
 const ENEMY_SCENES := {
 	"Hunter": "res://src/enemies/Hunter.tscn",
 	"Sweeper": "res://src/enemies/Sweeper.tscn",
@@ -48,7 +49,7 @@ func setup(tree: SceneTree, scenario: Dictionary, artifact_dir_abs: String, log:
 	if not _telemetry.setup(tree, artifact_dir_abs):
 		_failures.append("Unable to initialize telemetry recorder")
 		return false
-	_assertions.setup(tree, _targets)
+	_assertions.setup(tree, _targets, _screenshots)
 	return true
 
 
@@ -85,6 +86,7 @@ func run() -> Dictionary:
 		await _tree.physics_frame
 		now += tick
 	await _run_final_assertions()
+	_write_captures_index()
 	_input_driver.clear()
 	_telemetry.close()
 	Engine.time_scale = 1.0
@@ -107,6 +109,8 @@ func _apply_step(step: Dictionary, now: float) -> void:
 	match action:
 		"spawn_player":
 			await _spawn_player(step)
+		"spawn_dark_pocket":
+			await _spawn_dark_pocket(step)
 		"spawn_enemy":
 			await _spawn_enemy(step)
 		"capture":
@@ -139,6 +143,22 @@ func _spawn_player(step: Dictionary) -> void:
 		_tree.current_scene.call("configure_agent_camera")
 	_telemetry.record_event("spawn_player:%s" % str(step.get("id", "player")))
 	_log_info("spawned player id=%s at=%s" % [str(step.get("id", "player")), str(player.global_position)])
+
+
+func _spawn_dark_pocket(step: Dictionary) -> void:
+	var pocket := _instantiate_scene(DARK_POCKET_SCENE)
+	if pocket == null:
+		_fail("Unable to spawn dark pocket")
+		return
+	var id := str(step.get("id", "dark_pocket"))
+	pocket.name = id
+	pocket.set_meta("agent_id", id)
+	pocket.global_position = _vec2(step.get("at", [0, 0]))
+	_tree.current_scene.add_child(pocket)
+	_targets[id] = pocket
+	await _tree.process_frame
+	_telemetry.record_event("spawn_dark_pocket:%s" % id)
+	_log_info("spawned dark pocket id=%s at=%s" % [id, str(pocket.global_position)])
 
 
 func _spawn_enemy(step: Dictionary) -> void:
@@ -214,9 +234,19 @@ func _summary(sim_duration: float) -> Dictionary:
 		"duration_seconds": snappedf(sim_duration, 0.001),
 		"wall_duration_seconds": snappedf(float(Time.get_ticks_msec() - _started_msec) / 1000.0, 0.001),
 		"screenshots": _screenshots.count(),
+		"captures": _screenshots.capture_index(),
 		"assertions": _assertion_results,
 		"failures": _failures,
 	}
+
+
+func _write_captures_index() -> void:
+	var file := FileAccess.open(_artifact_dir_abs.path_join("captures.json"), FileAccess.WRITE)
+	if file == null:
+		_fail("Unable to write captures.json")
+		return
+	file.store_string(JSON.stringify(_screenshots.capture_index(), "\t"))
+	file.close()
 
 
 func _instantiate_scene(scene_path: String) -> Node:

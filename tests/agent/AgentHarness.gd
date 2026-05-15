@@ -2,6 +2,7 @@ extends SceneTree
 
 const ScenarioRunner := preload("res://tests/agent/ScenarioRunner.gd")
 const HarnessLog := preload("res://tests/agent/HarnessLog.gd")
+const ScenarioValidator := preload("res://tests/agent/ScenarioValidator.gd")
 
 const DEFAULT_SCENARIO := "res://tests/agent/scenarios/hunter_basic_attack.json"
 const DEFAULT_ARTIFACT_ROOT := "res://tests/agent/artifacts"
@@ -21,6 +22,12 @@ func _run() -> void:
 	_parse_args(OS.get_cmdline_user_args())
 	var scenario := _load_scenario(_scenario_path)
 	if scenario.is_empty():
+		quit(1)
+		return
+	var validation_errors := ScenarioValidator.new().validate(scenario)
+	if not validation_errors.is_empty():
+		for error in validation_errors:
+			push_error("[AgentHarness] scenario validation: %s" % error)
 		quit(1)
 		return
 	_prepare_artifact_dir(str(scenario.get("scenario", "scenario")))

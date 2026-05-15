@@ -157,7 +157,7 @@ func _sync_dark_pocket_state_immediate() -> void:
 		break
 	if inside == in_dark_pocket:
 		return
-	in_dark_pocket = inside
+	set_dark_pocket_active(inside)
 	var world := get_tree().current_scene
 	if world != null and world.has_method("set_player_dark_pocket_state"):
 		if matched_pocket != null:
@@ -286,12 +286,18 @@ func _try_activate_cover() -> void:
 
 func _set_cover_active(active: bool) -> void:
 	cover_active = active
-	if active:
-		collision_layer = _default_collision_layer | 4
-	else:
-		collision_layer = _default_collision_layer
+	_sync_enemy_blocker_collision()
 	if ship_visual != null and ship_visual.has_method("set_cover"):
 		ship_visual.set_cover(active)
+
+
+func set_dark_pocket_active(active: bool) -> void:
+	in_dark_pocket = active
+	_sync_enemy_blocker_collision()
+
+
+func _sync_enemy_blocker_collision() -> void:
+	collision_layer = (_default_collision_layer | 4) if cover_active or in_dark_pocket else _default_collision_layer
 
 
 func _try_launch_drone() -> void:
@@ -391,7 +397,7 @@ func take_hit() -> void:
 
 
 func _check_enemy_contact() -> void:
-	if cover_active:
+	if cover_active or in_dark_pocket:
 		return
 	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
 		if enemy == null or not enemy.is_alive:
