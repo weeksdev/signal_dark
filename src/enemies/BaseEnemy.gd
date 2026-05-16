@@ -412,7 +412,7 @@ func draw_emp_disabled_effect(radius: float = 30.0) -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = enemy_state_fill(_signature_color_value(), 0.08 if not AlertSystem.combat_mode else 0.14)
+	body_polygon.color = enemy_state_fill(_signature_color_value(), 0.10 if not AlertSystem.combat_mode else 0.175)
 	outline.default_color = enemy_state_outline()
 	_sync_visual_overlays()
 

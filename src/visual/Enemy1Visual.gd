@@ -49,14 +49,14 @@ func apply_palette(fill_color: Color, outline_color: Color, combat_active: bool,
 	if _shadow != null:
 		_shadow.scale = Vector2(sprite.scale.x * 1.15, sprite.scale.y * 0.55)
 	if emp_disabled:
-		sprite.modulate = Color(0.82, 0.96, 1.0, 1.0)
-		glow_sprite.modulate = Color(0.82, 0.96, 1.0, 0.7)
+		sprite.modulate = Color(1.025, 1.2, 1.25, 1.0)
+		glow_sprite.modulate = Color(0.82, 0.96, 1.0, 0.875)
 	elif alerting and not combat_active:
-		sprite.modulate = Color(1.0, 0.92, 0.9, 1.0)
-		glow_sprite.modulate = Color(1.0, 0.42, 0.18, 0.7)
+		sprite.modulate = Color(1.25, 1.15, 1.125, 1.0)
+		glow_sprite.modulate = Color(1.0, 0.42, 0.18, 0.875)
 	elif combat_active:
-		sprite.modulate = Color(1.0, 0.98, 0.94, 1.0)
-		glow_sprite.modulate = Color(outline_color.r, outline_color.g, outline_color.b, 0.76)
+		sprite.modulate = Color(1.25, 1.225, 1.175, 1.0)
+		glow_sprite.modulate = Color(outline_color.r, outline_color.g, outline_color.b, 0.95)
 	else:
-		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		glow_sprite.modulate = Color(outline_color.r, outline_color.g, outline_color.b, 0.68)
+		sprite.modulate = Color(1.25, 1.25, 1.25, 1.0)
+		glow_sprite.modulate = Color(outline_color.r, outline_color.g, outline_color.b, 0.85)

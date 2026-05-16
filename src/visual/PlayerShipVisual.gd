@@ -86,9 +86,9 @@ func _ready() -> void:
 
 
 func apply_palette(fill_color: Color, outline_color: Color, dark_mode: bool) -> void:
-	var ship_tint := Color(0.44, 0.44, 0.46, 1.0)
+	var ship_tint := Color(0.55, 0.55, 0.575, 1.0)
 	if ColorSystem.in_combat:
-		ship_tint = Color(0.88, 0.84, 0.80, 1.0)
+		ship_tint = Color(1.10, 1.05, 1.00, 1.0)
 	if hull != null:
 		hull.visible = true
 		hull.modulate = ship_tint
@@ -99,7 +99,7 @@ func apply_palette(fill_color: Color, outline_color: Color, dark_mode: bool) -> 
 		left_wing.modulate = ship_tint
 	if right_wing != null:
 		right_wing.modulate = ship_tint
-	var glow_tint := Color(outline_color.r, outline_color.g, outline_color.b, 0.72 if not dark_mode else 0.58)
+	var glow_tint := Color(outline_color.r, outline_color.g, outline_color.b, 0.90 if not dark_mode else 0.725)
 	if glow_hull != null:
 		glow_hull.visible = true
 		glow_hull.modulate = glow_tint
@@ -107,7 +107,7 @@ func apply_palette(fill_color: Color, outline_color: Color, dark_mode: bool) -> 
 		glow_left_wing.modulate = glow_tint
 	if glow_right_wing != null:
 		glow_right_wing.modulate = glow_tint
-	var exhaust_tint := Color(0.92, 0.98, 1.0, 0.68 if not dark_mode else 0.56)
+	var exhaust_tint := Color(0.92, 0.98, 1.0, 0.85 if not dark_mode else 0.70)
 	if ColorSystem.in_combat:
 		exhaust_tint = Color(1.0, 0.96, 0.9, exhaust_tint.a)
 	if exhaust != null:

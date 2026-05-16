@@ -2,12 +2,12 @@ extends Node
 
 signal mode_changed(in_combat: bool)
 
-const PHOSPHOR_BRIGHT := Color("4fbf68")
-const PHOSPHOR_MID := Color("2e8f45")
-const PHOSPHOR_DARK := Color("1c5b2c")
+const PHOSPHOR_BRIGHT := Color("63ef82")
+const PHOSPHOR_MID := Color("3ab356")
+const PHOSPHOR_DARK := Color("237237")
 const PHOSPHOR_SHADOW := Color("10351b")
 const PHOSPHOR_DEEP := Color("08180d")
-const PHOSPHOR_GHOST := Color("78b98a")
+const PHOSPHOR_GHOST := Color("96e7ad")
 const BG_STEALTH := Color("000a02")
 const BG_COMBAT := Color("01030a")
 const PLAYER_COMBAT := Color("00bfff")
@@ -62,11 +62,11 @@ func player_fill(dark_mode: bool) -> Color:
 func player_outline(dark_mode: bool) -> Color:
 	if dark_mode:
 		return Color("1a221c")
-	return Color("6d7f73") if not in_combat else Color("d7e8ef")
+	return Color("889f90") if not in_combat else Color("e8f4fa")
 
 
 func enemy_fill(signature_color: Color) -> Color:
-	return Color("7a1008") if in_combat else PHOSPHOR_DARK
+	return Color("99140a") if in_combat else PHOSPHOR_DARK
 
 
 func enemy_outline() -> Color:

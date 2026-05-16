@@ -149,7 +149,7 @@ func _begin_alert() -> void:
 
 
 func _update_palette() -> void:
-	body_polygon.color = enemy_state_fill(signature_color, 0.07 if not AlertSystem.combat_mode else 0.13)
+	body_polygon.color = enemy_state_fill(signature_color, 0.0875 if not AlertSystem.combat_mode else 0.1625)
 	outline.default_color = enemy_state_outline()
 	outline.width = 1.1
 	_sync_visual_overlays()
@@ -164,7 +164,7 @@ func _draw_body_sprite() -> void:
 		return
 	var size := _body_texture.get_size() * _BODY_SCALE
 	draw_set_transform(Vector2.ZERO, facing_angle + _BODY_ROT_OFFSET, Vector2.ONE)
-	draw_texture_rect(_body_texture, Rect2(-size * 0.5, size), false, Color(1.0, 1.0, 1.0, 0.82))
+	draw_texture_rect(_body_texture, Rect2(-size * 0.5, size), false, Color(1.25, 1.25, 1.25, 1.0))
 	draw_set_transform(Vector2.ZERO)
 
 
