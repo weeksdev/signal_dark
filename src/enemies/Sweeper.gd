@@ -4,7 +4,7 @@ const EXPLOSION_SCENE := preload("res://src/fx/ExplosionBurst.tscn")
 
 @export var signature_color := Color("00ff88")
 @export var detection_range: float = 225.0
-@export var cone_angle_degrees: float = 65.0
+@export var cone_angle_degrees: float = 92.0
 @export var patrol_speed: float = 60.0
 @export var combat_speed: float = 140.0
 @export var suppress_range: float = 34.0
@@ -17,7 +17,7 @@ const PULSE_SPEED      := 115.0
 const PULSE_TOLERANCE  := 13.0
 const ALERT_HOLD_SECONDS := 3.0
 const SUSPICION_DECAY  := 0.75
-const WARN_RANGE       := 184.0
+const WARN_RANGE       := 215.0
 
 # Rhythm: single pulse, then two quick, then long gap — repeating
 const PULSE_PATTERN: Array[float] = [1.3, 0.38, 0.38, 2.1]

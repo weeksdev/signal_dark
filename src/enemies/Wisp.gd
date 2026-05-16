@@ -10,7 +10,7 @@ const STEER_ACCEL := 360.0
 @export var patrol_speed: float = 72.0
 @export var combat_speed: float = 110.0
 @export var suppress_range: float = 28.0
-@export var alert_radius: float = 36.0
+@export var alert_radius: float = 70.0
 @export var search_interest_radius: float = 210.0
 @export var suspicion_follow_radius: float = 220.0
 
