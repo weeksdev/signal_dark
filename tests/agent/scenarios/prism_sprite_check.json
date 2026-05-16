@@ -1,0 +1,47 @@
+{
+  "scenario": "prism_sprite_check",
+  "scene": "res://src/world/AgentTestArena.tscn",
+  "seed": 42,
+  "time_scale": 0.3,
+  "duration": 4.0,
+  "screenshots": {
+    "interval_seconds": 0.0,
+    "max": 4,
+    "capture_on_failure": false
+  },
+  "steps": [
+    {
+      "t": 0.0,
+      "action": "spawn_player",
+      "id": "player",
+      "at": [120, 120]
+    },
+    {
+      "t": 0.1,
+      "action": "spawn_enemy",
+      "type": "Prism",
+      "id": "prism_1",
+      "at": [220, 120]
+    },
+    {
+      "t": 0.5,
+      "action": "capture",
+      "name": "prism_angle_1"
+    },
+    {
+      "t": 1.5,
+      "action": "capture",
+      "name": "prism_angle_2"
+    },
+    {
+      "t": 2.5,
+      "action": "capture",
+      "name": "prism_angle_3"
+    },
+    {
+      "t": 3.5,
+      "action": "capture",
+      "name": "prism_angle_4"
+    }
+  ]
+}

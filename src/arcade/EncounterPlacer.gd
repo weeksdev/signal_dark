@@ -85,9 +85,17 @@ func place(world: Node2D, graph,
 		_place_wall_sensors(world, rect, node, doorways, pocket_positions, rng, first_combat_room and floor_index == 0)
 		first_combat_room = false
 
+	# Collect actual enemy positions after all rooms are populated so sweepers
+	# and wisps contribute their real patrol-start coordinates, not the logical
+	# placement hint used during room processing.
+	var all_enemy_positions: Array = []
+	for child in world.get_children():
+		if child is CharacterBody2D:
+			all_enemy_positions.append(child.position)
+
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
 	_place_lockdown_corridor_gates(world, graph, node_rects, node_cells)
-	_place_debris(world, graph, node_rects, all_pocket_positions, rng)
+	_place_debris(world, graph, node_rects, all_pocket_positions, all_enemy_positions, rng)
 
 
 # ── Debris placement ─────────────────────────────────────────────────────────
@@ -95,8 +103,9 @@ func place(world: Node2D, graph,
 const DEBRIS_MARGIN       := 52.0
 const DEBRIS_SPACING      := 48.0
 const DEBRIS_POCKET_CLEAR := 96.0
+const DEBRIS_ENEMY_CLEAR  := 64.0
 
-func _place_debris(world: Node2D, graph, node_rects: Dictionary, pocket_positions: Array, rng) -> void:
+func _place_debris(world: Node2D, graph, node_rects: Dictionary, pocket_positions: Array, enemy_positions: Array, rng) -> void:
 	var debris_scene: PackedScene = load("res://src/terrain/Debris.tscn")
 	if debris_scene == null:
 		return
@@ -110,7 +119,7 @@ func _place_debris(world: Node2D, graph, node_rects: Dictionary, pocket_position
 		var count: int = rng.randi_range(0, 1) if is_corridor else rng.randi_range(1, 3)
 		var placed: Array = []
 		for _i in count:
-			var pos := _debris_pos(rect, placed, pocket_positions, rng)
+			var pos := _debris_pos(rect, placed, pocket_positions, enemy_positions, rng)
 			if pos == Vector2.ZERO:
 				continue
 			var piece: Node2D = debris_scene.instantiate()
@@ -119,7 +128,7 @@ func _place_debris(world: Node2D, graph, node_rects: Dictionary, pocket_position
 			placed.append(pos)
 
 
-func _debris_pos(rect: Rect2, placed: Array, pocket_positions: Array, rng) -> Vector2:
+func _debris_pos(rect: Rect2, placed: Array, pocket_positions: Array, enemy_positions: Array, rng) -> Vector2:
 	var inner := rect.grow(-DEBRIS_MARGIN)
 	if inner.size.x <= 0.0 or inner.size.y <= 0.0:
 		return Vector2.ZERO
@@ -136,6 +145,11 @@ func _debris_pos(rect: Rect2, placed: Array, pocket_positions: Array, rng) -> Ve
 		if clear:
 			for pocket in pocket_positions:
 				if (pos as Vector2).distance_to(pocket) < DEBRIS_POCKET_CLEAR:
+					clear = false
+					break
+		if clear:
+			for enemy in enemy_positions:
+				if (pos as Vector2).distance_to(enemy) < DEBRIS_ENEMY_CLEAR:
 					clear = false
 					break
 		if clear:

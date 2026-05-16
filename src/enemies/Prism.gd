@@ -13,10 +13,20 @@ const SEARCH_INTEREST_RADIUS := 255.0
 
 var facing_angle: float = 0.0
 
+var _body_texture: Texture2D = null
+
+const _BODY_SCALE      := 0.058
+const _BODY_ROT_OFFSET := PI * 0.25
+
 
 func _ready() -> void:
 	super._ready()
 	facing_angle = randf() * TAU
+	_prepare_body_sprite()
+
+
+func _prepare_body_sprite() -> void:
+	_body_texture = load("res://assets/prism.png")
 
 
 func _physics_process(delta: float) -> void:
@@ -128,8 +138,9 @@ func _check_detection() -> void:
 func _beam_directions() -> Array[Vector2]:
 	return [
 		Vector2.RIGHT.rotated(facing_angle),
-		Vector2.RIGHT.rotated(facing_angle + TAU / 3.0),
-		Vector2.RIGHT.rotated(facing_angle + TAU * 2.0 / 3.0),
+		Vector2.RIGHT.rotated(facing_angle + TAU * 0.25),
+		Vector2.RIGHT.rotated(facing_angle + TAU * 0.50),
+		Vector2.RIGHT.rotated(facing_angle + TAU * 0.75),
 	]
 
 
@@ -148,7 +159,17 @@ func _on_mode_changed(_in_combat: bool) -> void:
 	_update_palette()
 
 
+func _draw_body_sprite() -> void:
+	if _body_texture == null:
+		return
+	var size := _body_texture.get_size() * _BODY_SCALE
+	draw_set_transform(Vector2.ZERO, facing_angle + _BODY_ROT_OFFSET, Vector2.ONE)
+	draw_texture_rect(_body_texture, Rect2(-size * 0.5, size), false, Color(1.0, 1.0, 1.0, 0.82))
+	draw_set_transform(Vector2.ZERO)
+
+
 func _draw() -> void:
+	_draw_body_sprite()
 	var beam_color := outline.default_color
 	var halo_alpha := 0.06 if not AlertSystem.combat_mode else 0.1
 	draw_circle(Vector2.ZERO, 18.0, Color(beam_color.r, beam_color.g, beam_color.b, halo_alpha))
