@@ -1,16 +1,5 @@
 extends Node2D
 
-const SHIP_POLY := PackedVector2Array([
-	Vector2(0.0, -13.0),
-	Vector2(11.0, 4.0),
-	Vector2(5.0, 2.0),
-	Vector2(5.0, 9.0),
-	Vector2(-5.0, 9.0),
-	Vector2(-5.0, 2.0),
-	Vector2(-11.0, 4.0),
-	Vector2(0.0, -13.0),
-])
-
 var _lifetime: float = 3.5
 var _max_lifetime: float = 3.5
 
@@ -34,5 +23,9 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var t := clampf(_lifetime / _max_lifetime, 0.0, 1.0)
 	var alpha := t * 0.30
-	draw_polyline(SHIP_POLY, Color(0.55, 0.92, 0.72, alpha), 0.9)
+	draw_polyline(PackedVector2Array([
+		Vector2(0.0, -13.0), Vector2(11.0, 4.0), Vector2(5.0, 2.0),
+		Vector2(5.0, 9.0), Vector2(-5.0, 9.0), Vector2(-5.0, 2.0),
+		Vector2(-11.0, 4.0), Vector2(0.0, -13.0),
+	]), Color(0.55, 0.92, 0.72, alpha), 0.9)
 	draw_circle(Vector2.ZERO, 2.2, Color(0.55, 0.92, 0.72, alpha * 0.5))
