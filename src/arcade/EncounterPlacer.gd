@@ -13,6 +13,8 @@ const WARPMINE_SCENE    := preload("res://src/enemies/WarpMine.tscn")
 const WALL_SENSOR_SCENE := preload("res://src/enemies/WallSensor.tscn")
 const DARK_POCKET_SCENE := preload("res://src/terrain/DarkPocket.tscn")
 const GATELOCK_SCENE    := preload("res://src/terrain/GateLock.tscn")
+const WALL_SCENE        := preload("res://src/terrain/LatticeWall.tscn")
+const WALL_UNIT         := 140.0
 
 const COSTS := {
 	"sweeper": 2,
@@ -96,6 +98,7 @@ func place(world: Node2D, graph,
 	_place_gatelocks(world, graph, node_rects, node_cells, floor_index, rng)
 	_place_lockdown_corridor_gates(world, graph, node_rects, node_cells)
 	_place_debris(world, graph, node_rects, all_pocket_positions, all_enemy_positions, rng)
+	_place_interior_pillars(world, graph, node_rects, all_pocket_positions, all_enemy_positions, rng)
 
 
 # ── Debris placement ─────────────────────────────────────────────────────────
@@ -155,6 +158,58 @@ func _debris_pos(rect: Rect2, placed: Array, pocket_positions: Array, enemy_posi
 		if clear:
 			return pos
 	return Vector2.ZERO
+
+
+# ── Interior pillars ─────────────────────────────────────────────────────────
+
+const PILLAR_MARGIN      := 96.0
+const PILLAR_ENEMY_CLEAR := 88.0
+const PILLAR_POCKET_CLEAR := 96.0
+const PILLAR_LEN_MIN     := 72.0
+const PILLAR_LEN_MAX     := 130.0
+
+func _place_interior_pillars(world: Node2D, graph, node_rects: Dictionary, pocket_positions: Array, enemy_positions: Array, rng) -> void:
+	for node in graph.nodes:
+		if node.type in [ZoneGraph.NodeType.START, ZoneGraph.NodeType.EXIT, ZoneGraph.NodeType.CORRIDOR]:
+			continue
+		if not node_rects.has(node.id):
+			continue
+		var rect: Rect2 = node_rects[node.id]
+		var count := rng.randi_range(0, 2)
+		for _i in count:
+			_try_place_pillar(world, rect, pocket_positions, enemy_positions, rng)
+
+
+func _try_place_pillar(world: Node2D, room_rect: Rect2, pocket_positions: Array, enemy_positions: Array, rng) -> void:
+	var inner := room_rect.grow(-PILLAR_MARGIN)
+	if inner.size.x < 60.0 or inner.size.y < 60.0:
+		return
+	for _attempt in 24:
+		var pos := Vector2(
+			rng.randf_range(inner.position.x, inner.end.x),
+			rng.randf_range(inner.position.y, inner.end.y)
+		)
+		var clear := true
+		for pocket: Vector2 in pocket_positions:
+			if pos.distance_to(pocket) < PILLAR_POCKET_CLEAR:
+				clear = false
+				break
+		if not clear:
+			continue
+		for enemy: Vector2 in enemy_positions:
+			if pos.distance_to(enemy) < PILLAR_ENEMY_CLEAR:
+				clear = false
+				break
+		if not clear:
+			continue
+		var length := rng.randf_range(PILLAR_LEN_MIN, PILLAR_LEN_MAX)
+		var wall: Node2D = WALL_SCENE.instantiate()
+		wall.position = pos
+		wall.scale.x = length / WALL_UNIT
+		if rng.randi() % 2 == 1:
+			wall.rotation = PI * 0.5
+		world.add_child(wall)
+		return
 
 
 # ── Budget & composition ──────────────────────────────────────────────────────
@@ -338,7 +393,7 @@ func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, template: St
 		match t:
 			"sweeper":
 				placed.append(pos)
-				_spawn_sweeper(world, pos, rect, node, doorways)
+				_spawn_sweeper(world, pos, rect, node, doorways, rng)
 			"pulsar":
 				placed.append(pos)
 				_spawn_basic(world, PULSAR_SCENE, pos)
@@ -348,7 +403,7 @@ func _place_enemies(world: Node2D, rect: Rect2, node, types: Array, template: St
 			"hunter":
 				placed.append(pos)
 				_spawn_basic(world, HUNTER_SCENE, pos)
-			"wisp":     _spawn_wisp_pair(world, pos, rect, node, doorways, placed)
+			"wisp":     _spawn_wisp_pair(world, pos, rect, node, doorways, placed, rng)
 			"prism":
 				placed.append(pos)
 				_spawn_basic(world, PRISM_SCENE, pos)
@@ -361,24 +416,24 @@ func _apply_encounter_template(world: Node2D, rect: Rect2, node, template: Strin
 	match template:
 		TEMPLATE_MOVING_GAP_CORRIDOR:
 			if _consume_type(remaining_types, "sweeper", 2):
-				_spawn_corridor_sweeper_pair(world, rect, node, doorways, placed)
+				_spawn_corridor_sweeper_pair(world, rect, node, doorways, placed, rng)
 		TEMPLATE_CROSSING_SCANNERS:
 			if _consume_type(remaining_types, "wisp", 1):
 				var center := _template_anchor(rect, doorways, "center")
-				_spawn_wisp_pair(world, center, rect, node, doorways, placed)
+				_spawn_wisp_pair(world, center, rect, node, doorways, placed, rng)
 		TEMPLATE_GUARD_SCANNER_OVERLAP:
 			if _consume_type(remaining_types, "wisp", 1):
 				var center := _template_anchor(rect, doorways, "center")
-				_spawn_wisp_pair(world, center, rect, node, doorways, placed)
+				_spawn_wisp_pair(world, center, rect, node, doorways, placed, rng)
 			_spawn_template_denial(world, rect, remaining_types, doorways, blocked_positions, placed, rng, true)
 		TEMPLATE_BRANCH_BAIT:
 			if _consume_type(remaining_types, "wisp", 1):
 				var side_center := _template_anchor(rect, doorways, "doorway_bias")
-				_spawn_wisp_pair(world, side_center, rect, node, doorways, placed)
+				_spawn_wisp_pair(world, side_center, rect, node, doorways, placed, rng)
 			_spawn_template_denial(world, rect, remaining_types, doorways, blocked_positions, placed, rng, false)
 		TEMPLATE_SETPIECE_CROSSFIRE:
 			if _consume_type(remaining_types, "wisp", 1):
-				_spawn_wisp_pair(world, rect.get_center(), rect, node, doorways, placed)
+				_spawn_wisp_pair(world, rect.get_center(), rect, node, doorways, placed, rng)
 			_spawn_template_denial(world, rect, remaining_types, doorways, blocked_positions, placed, rng, true)
 
 
@@ -483,16 +538,16 @@ func _place_wall_sensors(world: Node2D, rect: Rect2, node, doorways: Array, bloc
 		_spawn_wall_sensor(world, data["position"], data["rotation"])
 
 
-func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2, node, doorways: Array) -> void:
+func _spawn_sweeper(world: Node2D, pos: Vector2, room_rect: Rect2, node, doorways: Array, rng) -> void:
 	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-72.0), pos, doorways, node.type)
 	var patrol_points: Array = patrol_layout.get("points", [])
 	var start_index := 0
-	if node.type == ZoneGraph.NodeType.CORRIDOR and patrol_points.size() >= 4:
-		start_index = 1
-	_spawn_pattern_sweeper(world, patrol_layout, start_index, 1, pos)
+	if patrol_points.size() > 1:
+		start_index = rng.randi() % patrol_points.size()
+	_spawn_pattern_sweeper(world, patrol_layout, start_index, 1, pos, rng)
 
 
-func _spawn_pattern_sweeper(world: Node2D, patrol_layout: Dictionary, start_index: int, step: int, fallback_pos: Vector2) -> void:
+func _spawn_pattern_sweeper(world: Node2D, patrol_layout: Dictionary, start_index: int, step: int, fallback_pos: Vector2, rng = null) -> void:
 	var sweeper: Node2D = SWEEPER_SCENE.instantiate()
 	var patrol_points: Array = patrol_layout.get("points", [])
 	var choke_indices: Array = patrol_layout.get("choke_indices", [])
@@ -505,30 +560,36 @@ func _spawn_pattern_sweeper(world: Node2D, patrol_layout: Dictionary, start_inde
 	sweeper.set("choke_indices", choke_indices)
 	sweeper.set("patrol_start_index", safe_start_index)
 	sweeper.set("patrol_step", step)
-
+	if rng != null:
+		sweeper.set("patrol_speed", sweeper.get("patrol_speed") * lerpf(0.82, 1.18, rng.randf()))
+		sweeper.set("cone_angle_degrees", sweeper.get("cone_angle_degrees") * lerpf(0.88, 1.12, rng.randf()))
+		sweeper.set("detection_range", sweeper.get("detection_range") * lerpf(0.90, 1.12, rng.randf()))
 	world.register_spawned_enemy(sweeper)
 
 
-func _spawn_corridor_sweeper_pair(world: Node2D, room_rect: Rect2, node, doorways: Array, placed: Array) -> void:
+func _spawn_corridor_sweeper_pair(world: Node2D, room_rect: Rect2, node, doorways: Array, placed: Array, rng) -> void:
 	var center := room_rect.get_center()
 	var patrol_layout := _build_sweeper_patrol_layout(room_rect.grow(-72.0), center, doorways, node.type)
 	var patrol_points: Array = patrol_layout.get("points", [])
 	if patrol_points.is_empty():
 		patrol_points = [center]
+	var n := patrol_points.size()
+	var phase := rng.randi() % n if n > 1 else 0
 	var first_index := 0
 	var second_index := 0
-	if patrol_points.size() >= 4:
-		first_index = 1
-		second_index = clampi(int(patrol_points.size() / 2) + 1, 0, patrol_points.size() - 1)
-	elif patrol_points.size() >= 2:
-		second_index = patrol_points.size() - 1
-	_spawn_pattern_sweeper(world, patrol_layout, first_index, 1, center)
-	_spawn_pattern_sweeper(world, patrol_layout, second_index, -1, center)
-	placed.append(patrol_points[clampi(first_index, 0, patrol_points.size() - 1)])
-	placed.append(patrol_points[clampi(second_index, 0, patrol_points.size() - 1)])
+	if n >= 4:
+		first_index = posmod(1 + phase, n)
+		second_index = posmod(int(n / 2) + 1 + phase, n)
+	elif n >= 2:
+		first_index = phase
+		second_index = posmod(phase + n - 1, n)
+	_spawn_pattern_sweeper(world, patrol_layout, first_index, 1, center, rng)
+	_spawn_pattern_sweeper(world, patrol_layout, second_index, -1, center, rng)
+	placed.append(patrol_points[clampi(first_index, 0, n - 1)])
+	placed.append(patrol_points[clampi(second_index, 0, n - 1)])
 
 
-func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, doorways: Array, placed: Array) -> void:
+func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, doorways: Array, placed: Array, rng) -> void:
 	var inner := room_rect.grow(-WISP_PAIR_MARGIN)
 	if inner.size.x <= 24.0 or inner.size.y <= 24.0:
 		inner = room_rect.grow(-ENEMY_MARGIN)
@@ -540,18 +601,20 @@ func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, do
 		patrol_points = [center]
 	var choke_indices: Array = patrol_layout["choke_indices"]
 	choke_indices = _clamp_patrol_indices(choke_indices, patrol_points.size())
-	var first_choke_index: int = clampi(int(patrol_layout["primary_choke"]), 0, patrol_points.size() - 1)
-	var opposite_index := clampi(int(patrol_layout["opposite_start"]), 0, patrol_points.size() - 1)
+	var n := patrol_points.size()
+	var phase := rng.randi() % n if n > 1 else 0
+	var first_choke_index: int = posmod(clampi(int(patrol_layout["primary_choke"]), 0, n - 1) + phase, n)
+	var opposite_index := posmod(clampi(int(patrol_layout["opposite_start"]), 0, n - 1) + phase, n)
 	var first_pos: Vector2 = patrol_points[first_choke_index]
 	var second_pos: Vector2 = patrol_points[opposite_index]
 
-	_spawn_routed_wisp(world, first_pos, patrol_points, choke_indices, first_choke_index, 1)
-	_spawn_routed_wisp(world, second_pos, patrol_points, choke_indices, opposite_index, -1)
+	_spawn_routed_wisp(world, first_pos, patrol_points, choke_indices, first_choke_index, 1, rng)
+	_spawn_routed_wisp(world, second_pos, patrol_points, choke_indices, opposite_index, -1, rng)
 	placed.append(first_pos)
 	placed.append(second_pos)
 
 
-func _spawn_routed_wisp(world: Node2D, pos: Vector2, patrol_points: Array, choke_indices: Array, start_index: int, step: int) -> void:
+func _spawn_routed_wisp(world: Node2D, pos: Vector2, patrol_points: Array, choke_indices: Array, start_index: int, step: int, rng = null) -> void:
 	var wisp = WISP_SCENE.instantiate()
 	wisp.position = pos
 	wisp.set("use_route_patrol", true)
@@ -564,6 +627,11 @@ func _spawn_routed_wisp(world: Node2D, pos: Vector2, patrol_points: Array, choke
 		for i in range(patrol_points.size() - 1):
 			longest_leg = maxf(longest_leg, patrol_points[i].distance_to(patrol_points[i + 1]))
 		wisp.set("patrol_radius", maxf(longest_leg * 0.4, WISP_ROUTE_CLEAR))
+	if rng != null:
+		wisp.set("patrol_speed", wisp.get("patrol_speed") * lerpf(0.82, 1.20, rng.randf()))
+		var sense_mul := lerpf(0.88, 1.14, rng.randf())
+		wisp.set("alert_radius", wisp.get("alert_radius") * sense_mul)
+		wisp.set("outer_awareness_radius", wisp.get("outer_awareness_radius") * sense_mul)
 	world.register_spawned_enemy(wisp)
 
 
