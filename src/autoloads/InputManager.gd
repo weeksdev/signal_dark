@@ -11,6 +11,7 @@ var _agent_move_vector: Vector2 = Vector2.ZERO
 var _agent_aim_vector: Vector2 = Vector2.ZERO
 var _agent_actions_pressed: Dictionary = {}
 var _agent_actions_just_pressed: Dictionary = {}
+var _joy_buttons_just_pressed: Dictionary = {}
 
 
 func _ready() -> void:
@@ -18,7 +19,13 @@ func _ready() -> void:
 	set_process(true)
 
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton and event.pressed:
+		_joy_buttons_just_pressed[int(event.button_index)] = true
+
+
 func _process(_delta: float) -> void:
+	_joy_buttons_just_pressed.clear()
 	var connected := not Input.get_connected_joypads().is_empty()
 	if connected == _controller_present:
 		return
@@ -30,7 +37,7 @@ func get_move_vector() -> Vector2:
 	if _agent_input_enabled:
 		return _agent_move_vector
 	var joy_vector := _get_left_stick()
-	if joy_vector.length() > DEADZONE:
+	if joy_vector != Vector2.ZERO:
 		return joy_vector
 	if OS.has_feature("mobile"):
 		return TouchControls.touch_move
@@ -252,14 +259,19 @@ func _left_trigger_pressed() -> bool:
 	var device := _first_joypad()
 	if device == -1:
 		return false
-	return Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT) > 0.35
+	return _normalize_trigger(Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT)) > 0.35
 
 
 func _right_trigger_pressed() -> bool:
 	var device := _first_joypad()
 	if device == -1:
 		return false
-	return Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT) > 0.35
+	return _normalize_trigger(Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT)) > 0.35
+
+
+func _normalize_trigger(raw: float) -> float:
+	# macOS reports triggers on a -1..1 scale; normalize to 0..1
+	return (raw + 1.0) * 0.5 if raw < 0.0 else raw
 
 
 func _joy_button_pressed(button: JoyButton) -> bool:
@@ -270,10 +282,7 @@ func _joy_button_pressed(button: JoyButton) -> bool:
 
 
 func _joy_button_just_pressed(button: JoyButton) -> bool:
-	var device := _first_joypad()
-	if device == -1:
-		return false
-	return Input.is_joy_button_pressed(device, button)
+	return _joy_buttons_just_pressed.get(int(button), false)
 
 
 func _first_joypad() -> int:
