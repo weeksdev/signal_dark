@@ -11,8 +11,11 @@ const STEER_ACCEL := 360.0
 @export var combat_speed: float = 110.0
 @export var suppress_range: float = 28.0
 @export var alert_radius: float = 70.0
+@export var outer_awareness_radius: float = 145.0
 @export var search_interest_radius: float = 210.0
 @export var suspicion_follow_radius: float = 220.0
+
+const SUSPICION_BUILD_RATE := 1.8
 
 var anchor: Vector2 = Vector2.ZERO
 var phase: float = 0.0
@@ -80,7 +83,7 @@ func _physics_process(delta: float) -> void:
 		elif use_route_patrol:
 			velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
 			_advance_route()
-		_check_alert_radius()
+		_update_detection(delta)
 	queue_redraw()
 
 
@@ -119,19 +122,24 @@ func take_damage(silent: bool, _hit_origin: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
-func _check_alert_radius() -> void:
+func _update_detection(delta: float) -> void:
 	var player = get_tree().get_first_node_in_group("player_ship")
 	if player == null:
-		return
-	if should_suppress_detection_of(player):
 		return
 	if world_is_point_jammed(global_position) or world_is_point_jammed(player.global_position):
 		return
 	if player.in_dark_pocket:
 		return
-	if global_position.distance_to(player.global_position) > alert_radius:
+	if should_suppress_detection_of(player):
 		return
-	_begin_alert()
+	var dist := global_position.distance_to(player.global_position)
+	if dist <= alert_radius:
+		_begin_alert()
+		return
+	if dist <= outer_awareness_radius:
+		var proximity_t := 1.0 - ((dist - alert_radius) / (outer_awareness_radius - alert_radius))
+		if add_suspicion(proximity_t * SUSPICION_BUILD_RATE * delta):
+			_begin_alert()
 
 
 func _begin_alert() -> void:
@@ -308,6 +316,7 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, 29.0, Color(tint.r, tint.g, tint.b, 0.11))
 	draw_circle(Vector2.ZERO, 18.0, Color(tint.r, tint.g, tint.b, 0.085))
 	if not combat_active:
+		draw_arc(Vector2.ZERO, outer_awareness_radius, 0.0, TAU, 52, Color(tint.r, tint.g, tint.b, 0.18), 0.7)
 		draw_circle(Vector2.ZERO, alert_radius + 18.0, Color(tint.r, tint.g, tint.b, 0.06))
 		draw_circle(Vector2.ZERO, alert_radius + 8.0, Color(tint.r, tint.g, tint.b, 0.08))
 		draw_circle(Vector2.ZERO, alert_radius, Color(tint.r, tint.g, tint.b, 0.10))

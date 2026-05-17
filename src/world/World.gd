@@ -6,6 +6,7 @@ const PRISM_SCENE := preload("res://src/enemies/Prism.tscn")
 const RuntimeDebugLog := preload("res://src/debug/RuntimeDebugLog.gd")
 const ObjectiveNode := preload("res://src/world/ObjectiveNode.gd")
 const SearchRelayBurst := preload("res://src/fx/SearchRelayBurst.gd")
+const PlayerTrail := preload("res://src/fx/PlayerTrail.gd")
 const PauseOverlayScene := preload("res://src/ui/PauseOverlay.gd")
 const ArcadeSummaryOverlayScene := preload("res://src/ui/ArcadeRunSummaryOverlay.gd")
 const ALERT_SPOTTED_SFX_PATH := "res://audio/sfx_alert_spotted.wav"
@@ -55,6 +56,7 @@ var _hack_wrong_flash: bool = false
 var _gate_hack_sequences: Dictionary = {}
 var _search_position: Vector2 = Vector2.ZERO
 var _search_timer: float = 0.0
+var _player_trail: Node = null
 var _search_reason: String = ""
 var _search_points: Array[Vector2] = []
 var _search_phase: int = 0
@@ -169,6 +171,8 @@ func _ready() -> void:
 	_refresh_gate_hack_previews()
 	_ensure_pause_overlay()
 	_ensure_arcade_summary_overlay()
+	_player_trail = PlayerTrail.new()
+	add_child(_player_trail)
 	_setup_scene_music()
 
 
@@ -446,6 +450,8 @@ func _on_enemy_suspicious(enemy: Node) -> void:
 	if ship == null or ship.in_dark_pocket:
 		RuntimeDebugLog.log("suspicion", "%s suspicious ignored; ship hidden or missing" % enemy.name)
 		return
+	if _player_trail != null:
+		_player_trail.activate()
 	RuntimeDebugLog.log("suspicion", "%s triggered suspicion support flow at ship=(%.1f, %.1f)" % [enemy.name, ship.global_position.x, ship.global_position.y])
 	play_spotted_sfx(enemy.global_position)
 	_last_known_player_position = ship.global_position
