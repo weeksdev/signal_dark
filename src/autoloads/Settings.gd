@@ -13,6 +13,7 @@ const KEY_MUSIC_VOLUME := "music_volume"
 const KEY_FX_VOLUME := "fx_volume"
 const KEY_STEALTH_BRIGHTNESS := "stealth_brightness"
 const KEY_COMBAT_BRIGHTNESS := "combat_brightness"
+const KEY_CRT_INTENSITY := "crt_intensity"
 
 const AUTO_FIRE_MODE_AUTO := -1
 const AUTO_FIRE_MODE_OFF := 0
@@ -25,6 +26,7 @@ var music_volume: float = 0.75
 var fx_volume: float = 0.85
 var stealth_brightness: float = 0.5
 var combat_brightness: float = 0.5
+var crt_intensity: float = 0.6
 
 
 func _ready() -> void:
@@ -108,6 +110,24 @@ func adjust_combat_brightness(direction: int) -> void:
 	set_combat_brightness(combat_brightness + float(direction) * BRIGHTNESS_STEP)
 
 
+func set_crt_intensity(value: float) -> void:
+	value = snappedf(clampf(value, 0.0, 1.0), 0.01)
+	if is_equal_approx(crt_intensity, value):
+		return
+	crt_intensity = value
+	_save()
+	brightness_changed.emit()
+	settings_changed.emit()
+
+
+func adjust_crt_intensity(direction: int) -> void:
+	set_crt_intensity(crt_intensity + float(direction) * BRIGHTNESS_STEP)
+
+
+func get_crt_intensity_summary() -> String:
+	return "%d%%" % int(round(crt_intensity * 100.0))
+
+
 func get_stealth_brightness_summary() -> String:
 	return "%d%%" % int(round(stealth_brightness * 100.0))
 
@@ -171,6 +191,7 @@ func _load() -> void:
 	fx_volume = float(config.get_value(SECTION, KEY_FX_VOLUME, 0.85))
 	stealth_brightness = float(config.get_value(SECTION, KEY_STEALTH_BRIGHTNESS, 0.5))
 	combat_brightness = float(config.get_value(SECTION, KEY_COMBAT_BRIGHTNESS, 0.5))
+	crt_intensity = float(config.get_value(SECTION, KEY_CRT_INTENSITY, 0.6))
 
 
 func _save() -> void:
@@ -180,6 +201,7 @@ func _save() -> void:
 	config.set_value(SECTION, KEY_FX_VOLUME, fx_volume)
 	config.set_value(SECTION, KEY_STEALTH_BRIGHTNESS, stealth_brightness)
 	config.set_value(SECTION, KEY_COMBAT_BRIGHTNESS, combat_brightness)
+	config.set_value(SECTION, KEY_CRT_INTENSITY, crt_intensity)
 	config.save(SETTINGS_PATH)
 
 

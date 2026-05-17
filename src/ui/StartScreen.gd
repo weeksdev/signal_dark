@@ -175,9 +175,9 @@ func _handle_settings_key(keycode: Key) -> void:
 		KEY_ESCAPE, KEY_BACKSPACE:
 			_settings_open = false
 		KEY_UP, KEY_W:
-			_settings_index = posmod(_settings_index - 1, 5)
+			_settings_index = posmod(_settings_index - 1, 6)
 		KEY_DOWN, KEY_S:
-			_settings_index = posmod(_settings_index + 1, 5)
+			_settings_index = posmod(_settings_index + 1, 6)
 		KEY_LEFT, KEY_A:
 			_adjust_setting(-1)
 		KEY_RIGHT, KEY_D:
@@ -191,9 +191,9 @@ func _handle_settings_joypad(button: JoyButton) -> void:
 		JOY_BUTTON_B, JOY_BUTTON_BACK:
 			_settings_open = false
 		JOY_BUTTON_DPAD_UP:
-			_settings_index = posmod(_settings_index - 1, 5)
+			_settings_index = posmod(_settings_index - 1, 6)
 		JOY_BUTTON_DPAD_DOWN:
-			_settings_index = posmod(_settings_index + 1, 5)
+			_settings_index = posmod(_settings_index + 1, 6)
 		JOY_BUTTON_DPAD_LEFT:
 			_adjust_setting(-1)
 		JOY_BUTTON_DPAD_RIGHT:
@@ -214,6 +214,8 @@ func _adjust_setting(direction: int) -> void:
 			Settings.adjust_stealth_brightness(direction)
 		4:
 			Settings.adjust_combat_brightness(direction)
+		5:
+			Settings.adjust_crt_intensity(direction)
 
 
 func keycode_is_confirm(keycode: Key) -> bool:
@@ -236,8 +238,8 @@ func _handle_mobile_settings_touch(screen_pos: Vector2) -> void:
 		return
 	# Row taps: left half = decrease, right half = increase
 	var rows_area_h := vp.y - header_h - footer_h
-	var row_h := rows_area_h / 5.0
-	for row in 5:
+	var row_h := rows_area_h / 6.0
+	for row in 6:
 		var row_top := header_h + row * row_h
 		if screen_pos.y >= row_top and screen_pos.y < row_top + row_h:
 			_settings_index = row
@@ -494,7 +496,7 @@ func _draw() -> void:
 
 	# ── Mode-specific prompts ─────────────────────────────────────────────────
 	if _settings_open:
-		var panel := Rect2(Vector2(cx - 188.0, mode_y + 62.0), Vector2(376.0, 242.0))
+		var panel := Rect2(Vector2(cx - 188.0, mode_y + 62.0), Vector2(376.0, 270.0))
 		draw_rect(panel, Color(0.02, 0.05, 0.04, 0.9), true)
 		draw_rect(panel, Color(0.30, 0.82, 0.52, 0.22), false, 1.0)
 		draw_string(font, Vector2(panel.position.x + 16.0, panel.position.y + 22.0),
@@ -520,7 +522,7 @@ func _draw() -> void:
 					Color(0.38, 0.74, 0.48, 0.62))
 		var row_y := panel.position.y + 72.0
 		var row_height := 28.0
-		for row in 5:
+		for row in 6:
 			var selected_row := _settings_index == row
 			if selected_row:
 				draw_rect(Rect2(Vector2(panel.position.x + 10.0, row_y + row * row_height), Vector2(panel.size.x - 20.0, row_height)),
@@ -531,6 +533,7 @@ func _draw() -> void:
 			["FX",              Settings.get_fx_volume_summary()],
 			["STEALTH BRIGHT",  Settings.get_stealth_brightness_summary()],
 			["COMBAT BRIGHT",   Settings.get_combat_brightness_summary()],
+			["CRT INTENSITY",   Settings.get_crt_intensity_summary()],
 		]
 		for i in _rows.size():
 			var label: String = _rows[i][0]
@@ -543,7 +546,7 @@ func _draw() -> void:
 			draw_string(font, Vector2(panel.end.x - 136.0, row_y + 19.0 + i * row_height),
 					value, HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
 					Color(0.84, 0.96, 0.90, 0.94))
-		draw_string(font, Vector2(panel.position.x + 18.0, panel.position.y + 222.0),
+		draw_string(font, Vector2(panel.position.x + 18.0, panel.position.y + 250.0),
 				"BRIGHT 0%=darkest  100%=most visible",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
 				Color(0.42, 0.76, 0.52, 0.64))
@@ -638,7 +641,7 @@ func _draw_mobile_settings_fullscreen(vp: Vector2, font: Font) -> void:
 	var footer_h := maxf(vp.y * 0.18, 60.0)
 	var rows_area_y := header_h
 	var rows_area_h := vp.y - header_h - footer_h
-	var row_h := rows_area_h / 5.0
+	var row_h := rows_area_h / 6.0
 
 	# Dark background
 	draw_rect(Rect2(Vector2.ZERO, vp), Color(0.01, 0.03, 0.02, 0.97), true)
@@ -662,6 +665,7 @@ func _draw_mobile_settings_fullscreen(vp: Vector2, font: Font) -> void:
 		["FX",             Settings.get_fx_volume_summary()],
 		["STEALTH BRIGHT", Settings.get_stealth_brightness_summary()],
 		["COMBAT BRIGHT",  Settings.get_combat_brightness_summary()],
+		["CRT INTENSITY",  Settings.get_crt_intensity_summary()],
 	]
 	for i in rows_data.size():
 		var label: String = rows_data[i][0]
