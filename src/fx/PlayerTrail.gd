@@ -1,5 +1,6 @@
 extends Node
 
+const GHOST_SCENE := preload("res://src/fx/PlayerTrailGhost.gd")
 const SPAWN_INTERVAL   := 0.38
 const MIN_MOVE_DIST    := 16.0
 const GHOST_LIFETIME   := 3.5
@@ -35,7 +36,7 @@ func _process(delta: float) -> void:
 
 func _stamp(player: Node2D) -> void:
 	_last_spawn_pos = player.global_position
-	var ghost := load("res://src/fx/PlayerTrailGhost.gd").new()
+	var ghost := GHOST_SCENE.new()
 	get_parent().add_child(ghost)
 	ghost.init(player.global_position, player.rotation, GHOST_LIFETIME)
 	var world = GameState.current_world
