@@ -90,8 +90,8 @@ void fragment() {
 	vec3 combat_tint = vec3(0.01, 0.025, 0.06) * edge * 0.22;
 	vec3 red_edge = vec3(0.28, 0.015, 0.005) * edge * breach * 0.15;
 	vec3 red_lift = vec3(0.08, 0.012, 0.004) * (1.0 - edge) * breach * 0.04;
-	vec3 combat_rgb = base.rgb * 0.86 + combat_tint + red_edge + red_lift;
-	combat_rgb *= 1.0 - edge * 0.46;
+	vec3 combat_rgb = base.rgb * 1.22 + combat_tint + red_edge + red_lift;
+	combat_rgb *= 1.0 - edge * 0.12;
 	combat_rgb += scan * vec3(0.018, 0.004, 0.001) * combat_mix;
 	out_col.rgb = mix(out_col.rgb, combat_rgb, combat_mix);
 
@@ -270,9 +270,12 @@ func _apply_static_shader_params() -> void:
 	var crt_tint_s := lerpf(0.05, 0.42, crt) if not in_combat else lerpf(0.02, 0.15, crt)
 	_shader_material.set_shader_parameter("crt_tint_strength", crt_tint_s)
 	_shader_material.set_shader_parameter("crt_tint", Vector3(0.32, 0.95, 0.48))
-	_shader_material.set_shader_parameter("scanline_strength", lerpf(0.04, 0.45, crt))
-	_shader_material.set_shader_parameter("vignette_strength", lerpf(0.08, 0.50, crt))
-	_shader_material.set_shader_parameter("grille_strength", lerpf(0.01, 0.24, crt))
+	var scan_s := lerpf(0.04, 0.45, crt)
+	var grille_s := lerpf(0.01, 0.24, crt)
+	var vignette_s := lerpf(0.08, 0.50, crt)
+	_shader_material.set_shader_parameter("scanline_strength", scan_s if not in_combat else scan_s * 0.08)
+	_shader_material.set_shader_parameter("vignette_strength", vignette_s if not in_combat else vignette_s * 0.3)
+	_shader_material.set_shader_parameter("grille_strength", grille_s if not in_combat else grille_s * 0.05)
 	_shader_material.set_shader_parameter("warp_strength", lerpf(0.003, 0.032, crt))
 	_shader_material.set_shader_parameter("wash_radius_px", 322.0)
 	_shader_material.set_shader_parameter("wash_softness_px", 92.0)
