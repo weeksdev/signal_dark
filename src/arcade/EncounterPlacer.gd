@@ -175,6 +175,13 @@ func _place_interior_pillars(world: Node2D, graph, node_rects: Dictionary, pocke
 		if not node_rects.has(node.id):
 			continue
 		var rect: Rect2 = node_rects[node.id]
+		var has_enemy := false
+		for ep: Vector2 in enemy_positions:
+			if rect.has_point(ep):
+				has_enemy = true
+				break
+		if has_enemy:
+			continue
 		var count: int = rng.randi_range(0, 2)
 		for _i in count:
 			_try_place_pillar(world, rect, pocket_positions, enemy_positions, rng)

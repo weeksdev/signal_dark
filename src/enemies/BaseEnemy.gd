@@ -570,6 +570,7 @@ func _cast_visibility_polygon(max_range: float, start_angle: float, end_angle: f
 		var params := PhysicsRayQueryParameters2D.create(origin, origin + dir * max_range)
 		params.collision_mask = 4
 		params.exclude = [get_rid()]
+		params.hit_from_inside = true
 		var hit := space_state.intersect_ray(params)
 		if not hit.is_empty():
 			poly.append((hit["position"] as Vector2) - origin)

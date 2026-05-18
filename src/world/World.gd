@@ -632,6 +632,7 @@ func is_line_blocked(from_point: Vector2, to_point: Vector2, exclusions := []) -
 	var query := PhysicsRayQueryParameters2D.create(from_point, to_point)
 	query.collision_mask = 4
 	query.exclude = exclusions
+	query.hit_from_inside = true
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
 	return not hit.is_empty()
 
