@@ -1,427 +1,376 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://src/world/World.gd" id="1"]
 [ext_resource type="Script" path="res://src/world/Grid.gd" id="2"]
-[ext_resource type="Script" path="res://src/world/FloorLayer.gd" id="17"]
-[ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="4"]
-[ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="5"]
-[ext_resource type="PackedScene" path="res://src/terrain/LatticeWall.tscn" id="6"]
-[ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="7"]
-[ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="8"]
-[ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="9"]
-[ext_resource type="PackedScene" path="res://src/enemies/Hunter.tscn" id="10"]
-[ext_resource type="PackedScene" path="res://src/enemies/Sentry.tscn" id="11"]
-[ext_resource type="PackedScene" path="res://src/enemies/Wisp.tscn" id="12"]
-[ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="13"]
-[ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="14"]
-[ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="15"]
-[ext_resource type="PackedScene" path="res://src/enemies/WallSensor.tscn" id="16"]
+[ext_resource type="Script" path="res://src/world/FloorLayer.gd" id="3"]
+[ext_resource type="PackedScene" path="res://src/player/Ship.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sweeper.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://src/enemies/Pulsar.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://src/terrain/LatticeWall.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://src/terrain/DarkPocket.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://src/ui/HUD.tscn" id="9"]
+[ext_resource type="Script" path="res://src/fx/StealthOverlay.gd" id="10"]
+[ext_resource type="PackedScene" path="res://src/enemies/Hunter.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://src/enemies/Sentry.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://src/enemies/Wisp.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://src/world/ExitZone.tscn" id="14"]
+[ext_resource type="Script" path="res://src/ui/ZoneCompleteOverlay.gd" id="15"]
+[ext_resource type="Script" path="res://src/ui/GameOverOverlay.gd" id="16"]
+[ext_resource type="PackedScene" path="res://src/enemies/WallSensor.tscn" id="17"]
 [ext_resource type="Texture2D" path="res://assets/floor.png" id="18"]
 [ext_resource type="Texture2D" path="res://assets/floor_2.png" id="19"]
+[ext_resource type="AudioStreamWAV" path="res://audio/download_search_red_file_sprint_alt.wav" id="20"]
+[ext_resource type="AudioStreamWAV" path="res://audio/download_combat_red_wire_chase.wav" id="21"]
 
 [node name="World02" type="Node2D"]
 script = ExtResource("1")
 
+[node name="MusicStealth" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("20")
+volume_db = -80.0
+bus = &"Master"
+
+[node name="MusicCombat" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("21")
+volume_db = -80.0
+bus = &"Master"
+
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("2")
-world_rect = Rect2(-96, -96, 4608, 3200)
+world_rect = Rect2(-96, 400, 4608, 1400)
 
 [node name="FloorLayer" type="Node2D" parent="."]
-script = ExtResource("17")
+script = ExtResource("3")
 tile_texture = ExtResource("18")
 alternate_tile_texture = ExtResource("19")
 
 ; ═══════════════════════════════════════════════════════════════════════════════
-; PLAYER
-; Safe start chamber before the tighter level 2 routing begins.
+; ZONE 2 — TENSION
+; Introduced: Sentry, Hunter. Mechanics: suppression, EMP, jammer.
+; Flow: Spawn → Corridor A → Antechamber (SentryA) → Junction (SweeperB vertical)
+;       → [Sentry Gallery | Hunter Den] → Archive → Compression → Relay → Exit
 ; ═══════════════════════════════════════════════════════════════════════════════
-[node name="Ship" parent="." instance=ExtResource("3")]
-position = Vector2(430, 1160)
 
-; ═══════════════════════════════════════════════════════════════════════════════
-; ROOM 1 — ENTRY LOCK
-; Closed box with one east door. Teaches that Zone 02 is denser immediately.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="R1Top" parent="." instance=ExtResource("6")]
-position = Vector2(480, 760)
-scale = Vector2(3.9, 1.0)
+[node name="Ship" parent="." instance=ExtResource("4")]
+position = Vector2(450, 1100)
 
-[node name="R1Bot" parent="." instance=ExtResource("6")]
-position = Vector2(480, 1560)
-scale = Vector2(3.9, 1.0)
+; ─────────────────────────── SPAWN ROOM ───────────────────────
+; x:200-700, y:800-1400. Same safe start as Zone 1.
+; DarkPocket teaches mechanic before the zone's harder threats.
+; ──────────────────────────────────────────────────────────────
+[node name="R1Top" parent="." instance=ExtResource("7")]
+position = Vector2(450, 800)
+scale = Vector2(3.5, 1.0)
 
-[node name="R1Left" parent="." instance=ExtResource("6")]
-position = Vector2(200, 1160)
+[node name="R1Bot" parent="." instance=ExtResource("7")]
+position = Vector2(450, 1400)
+scale = Vector2(3.5, 1.0)
+
+[node name="R1Left" parent="." instance=ExtResource("7")]
+position = Vector2(200, 1100)
 rotation = 1.5708
-scale = Vector2(5.7, 1.0)
+scale = Vector2(4.2, 1.0)
 
-[node name="R1RightN" parent="." instance=ExtResource("6")]
-position = Vector2(760, 900)
+[node name="R1RightN" parent="." instance=ExtResource("7")]
+position = Vector2(700, 900)
 rotation = 1.5708
-scale = Vector2(2.1, 1.0)
+scale = Vector2(1.4, 1.0)
 
-[node name="R1RightS" parent="." instance=ExtResource("6")]
-position = Vector2(760, 1420)
+[node name="R1RightS" parent="." instance=ExtResource("7")]
+position = Vector2(700, 1300)
 rotation = 1.5708
-scale = Vector2(2.1, 1.0)
+scale = Vector2(1.4, 1.0)
 
-[node name="DarkPocketA" parent="." instance=ExtResource("7")]
-position = Vector2(360, 1360)
+[node name="DarkPocketA" parent="." instance=ExtResource("8")]
+position = Vector2(360, 1300)
 
-; ═══════════════════════════════════════════════════════════════════════════════
-; CORRIDOR 1 — ENTRY LOCK → MAZE ATRIUM
-; First chokepoint. SweeperA crosses the whole neck.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="C1Top" parent="." instance=ExtResource("6")]
-position = Vector2(870, 1060)
-scale = Vector2(1.55, 1.0)
+; ─────────────────────────── CORRIDOR A ───────────────────────
+; x:700-1100, y:1000-1200. SweeperA paces. No pocket.
+; First corridor isn't free in Zone 2 — sets tone.
+; ──────────────────────────────────────────────────────────────
+[node name="CATop" parent="." instance=ExtResource("7")]
+position = Vector2(900, 1000)
+scale = Vector2(2.8, 1.0)
 
-[node name="C1Bot" parent="." instance=ExtResource("6")]
-position = Vector2(870, 1260)
-scale = Vector2(1.55, 1.0)
+[node name="CABot" parent="." instance=ExtResource("7")]
+position = Vector2(900, 1200)
+scale = Vector2(2.8, 1.0)
 
-[node name="SweeperA" parent="." instance=ExtResource("4")]
-position = Vector2(870, 1160)
+[node name="SweeperA" parent="." instance=ExtResource("5")]
+position = Vector2(900, 1100)
 
 [node name="PatrolA" parent="SweeperA"]
-position = Vector2(-150, 0)
+position = Vector2(-175, 0)
 
 [node name="PatrolB" parent="SweeperA"]
-position = Vector2(150, 0)
+position = Vector2(175, 0)
 
-; ═══════════════════════════════════════════════════════════════════════════════
-; ROOM 2 — MAZE ATRIUM
-; Big room with internal walls that create upper and lower dead-end branches.
-; The real route stays in the middle; wrong turns force a retreat.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="R2Top" parent="." instance=ExtResource("6")]
-position = Vector2(1520, 500)
-scale = Vector2(7.6, 1.0)
+; ─────────────────────────── ANTECHAMBER ──────────────────────
+; x:1100-1600, y:800-1400 (500×600). First Sentry encounter.
+; SentryA faces west — its 220px ring fills the room.
+; DarkPocketB in NW corner: hide here, wait for Sentry to rotate, suppress from behind.
+; Teaches: suppression kill via dark mode + flanking.
+; ──────────────────────────────────────────────────────────────
+[node name="R2Top" parent="." instance=ExtResource("7")]
+position = Vector2(1350, 800)
+scale = Vector2(3.5, 1.0)
 
-[node name="R2Bot" parent="." instance=ExtResource("6")]
-position = Vector2(1520, 1820)
-scale = Vector2(7.6, 1.0)
+[node name="R2Bot" parent="." instance=ExtResource("7")]
+position = Vector2(1350, 1400)
+scale = Vector2(3.5, 1.0)
 
-[node name="R2LeftN" parent="." instance=ExtResource("6")]
-position = Vector2(980, 780)
+[node name="R2LeftN" parent="." instance=ExtResource("7")]
+position = Vector2(1100, 900)
 rotation = 1.5708
-scale = Vector2(3.9, 1.0)
+scale = Vector2(1.4, 1.0)
 
-[node name="R2LeftS" parent="." instance=ExtResource("6")]
-position = Vector2(980, 1540)
+[node name="R2LeftS" parent="." instance=ExtResource("7")]
+position = Vector2(1100, 1300)
 rotation = 1.5708
-scale = Vector2(3.9, 1.0)
+scale = Vector2(1.4, 1.0)
 
-[node name="R2RightTop" parent="." instance=ExtResource("6")]
-position = Vector2(2060, 780)
+[node name="R2RightN" parent="." instance=ExtResource("7")]
+position = Vector2(1600, 900)
 rotation = 1.5708
-scale = Vector2(4.0, 1.0)
+scale = Vector2(1.4, 1.0)
 
-[node name="R2RightBot" parent="." instance=ExtResource("6")]
-position = Vector2(2060, 1540)
+[node name="R2RightS" parent="." instance=ExtResource("7")]
+position = Vector2(1600, 1300)
 rotation = 1.5708
-scale = Vector2(4.0, 1.0)
+scale = Vector2(1.4, 1.0)
 
-[node name="R2NorthShelf" parent="." instance=ExtResource("6")]
-position = Vector2(1360, 760)
-scale = Vector2(2.6, 1.0)
+[node name="DarkPocketB" parent="." instance=ExtResource("8")]
+position = Vector2(1150, 950)
 
-[node name="R2SouthShelf" parent="." instance=ExtResource("6")]
-position = Vector2(1400, 1460)
-scale = Vector2(2.9, 1.0)
+[node name="SentryA" parent="." instance=ExtResource("12")]
+position = Vector2(1450, 1100)
 
-[node name="R2CoreWest" parent="." instance=ExtResource("6")]
-position = Vector2(1280, 1120)
+; ─────────────────────────── JUNCTION ROOM ────────────────────
+; x:1600-1900, y:600-1600 (300×1000). SweeperB patrols vertically.
+; West entry y:1000-1200 from Antechamber. No east exit.
+; East wall solid — only exits are north (Sentry Gallery) and south (Hunter Den).
+; DarkPocketC near north exit: decision pocket before the fork.
+; ──────────────────────────────────────────────────────────────
+[node name="R3Top" parent="." instance=ExtResource("7")]
+position = Vector2(1750, 600)
+scale = Vector2(2.1, 1.0)
+
+[node name="R3Bot" parent="." instance=ExtResource("7")]
+position = Vector2(1750, 1600)
+scale = Vector2(2.1, 1.0)
+
+[node name="R3LeftN" parent="." instance=ExtResource("7")]
+position = Vector2(1600, 800)
 rotation = 1.5708
-scale = Vector2(2.2, 1.0)
+scale = Vector2(2.8, 1.0)
 
-[node name="R2CoreEast" parent="." instance=ExtResource("6")]
-position = Vector2(1700, 1180)
+[node name="R3LeftS" parent="." instance=ExtResource("7")]
+position = Vector2(1600, 1400)
 rotation = 1.5708
-scale = Vector2(2.6, 1.0)
+scale = Vector2(2.8, 1.0)
 
-[node name="R2DeadNorthCap" parent="." instance=ExtResource("6")]
-position = Vector2(1840, 660)
-scale = Vector2(1.5, 1.0)
-
-[node name="R2DeadNorthWall" parent="." instance=ExtResource("6")]
-position = Vector2(1930, 820)
+[node name="R3Right" parent="." instance=ExtResource("7")]
+position = Vector2(1900, 1100)
 rotation = 1.5708
-scale = Vector2(1.3, 1.0)
+scale = Vector2(7.0, 1.0)
 
-[node name="R2DeadSouthCap" parent="." instance=ExtResource("6")]
-position = Vector2(1840, 1660)
-scale = Vector2(1.5, 1.0)
+[node name="DarkPocketC" parent="." instance=ExtResource("8")]
+position = Vector2(1660, 680)
 
-[node name="R2DeadSouthWall" parent="." instance=ExtResource("6")]
-position = Vector2(1930, 1500)
-rotation = 1.5708
-scale = Vector2(1.3, 1.0)
-
-[node name="R2Cover" parent="." instance=ExtResource("6")]
-position = Vector2(1510, 1160)
-scale = Vector2(1.2, 1.0)
-
-[node name="DarkPocketB" parent="." instance=ExtResource("7")]
-position = Vector2(1860, 760)
-
-[node name="DarkPocketC" parent="." instance=ExtResource("7")]
-position = Vector2(1840, 1510)
-
-[node name="PulsarA" parent="." instance=ExtResource("5")]
-position = Vector2(1540, 760)
-
-[node name="PulsarB" parent="." instance=ExtResource("5")]
-position = Vector2(1220, 1490)
-
-[node name="SweeperB" parent="." instance=ExtResource("4")]
-position = Vector2(1490, 1160)
+[node name="SweeperB" parent="." instance=ExtResource("5")]
+position = Vector2(1750, 1100)
 
 [node name="PatrolA" parent="SweeperB"]
-position = Vector2(0, -230)
+position = Vector2(0, -430)
 
 [node name="PatrolB" parent="SweeperB"]
-position = Vector2(0, 230)
+position = Vector2(0, 430)
 
-[node name="WispA" parent="." instance=ExtResource("12")]
-position = Vector2(1830, 760)
+; ─────────────────────────── SENTRY GALLERY (upper) ───────────
+; x:1900-2500, y:600-900 (600×300). Upper branch from Junction.
+; SentryB and SentryC watch west from deep in the gallery.
+; DarkPocketD at far east: player can slip past to the back and suppress.
+; Opens east directly into Archive (no dedicated right wall — Archive receives it).
+; ──────────────────────────────────────────────────────────────
+[node name="SGTop" parent="." instance=ExtResource("7")]
+position = Vector2(2200, 600)
+scale = Vector2(4.2, 1.0)
 
-[node name="HunterA" parent="." instance=ExtResource("10")]
-position = Vector2(1810, 1510)
+[node name="SGBot" parent="." instance=ExtResource("7")]
+position = Vector2(2200, 900)
+scale = Vector2(4.2, 1.0)
 
-; ═══════════════════════════════════════════════════════════════════════════════
-; CORRIDOR 2 — MAZE ATRIUM → KILLBOX
-; Second hard neck. SweeperC and a pulse check stack here.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="C2Top" parent="." instance=ExtResource("6")]
-position = Vector2(2170, 1080)
-scale = Vector2(1.55, 1.0)
+[node name="DarkPocketD" parent="." instance=ExtResource("8")]
+position = Vector2(2450, 820)
 
-[node name="C2Bot" parent="." instance=ExtResource("6")]
-position = Vector2(2170, 1300)
-scale = Vector2(1.55, 1.0)
+[node name="SentryB" parent="." instance=ExtResource("12")]
+position = Vector2(2050, 750)
 
-[node name="PulsarC" parent="." instance=ExtResource("5")]
-position = Vector2(2100, 1190)
+[node name="SentryC" parent="." instance=ExtResource("12")]
+position = Vector2(2280, 750)
 
-[node name="SweeperC" parent="." instance=ExtResource("4")]
-position = Vector2(2170, 1190)
+; ─────────────────────────── HUNTER DEN (lower) ───────────────
+; x:1900-2500, y:1300-1600 (600×300). Lower branch from Junction.
+; Two Hunters roam the den. No pocket — read the oval, don't get cornered.
+; Opens east directly into Archive.
+; ──────────────────────────────────────────────────────────────
+[node name="HDTop" parent="." instance=ExtResource("7")]
+position = Vector2(2200, 1300)
+scale = Vector2(4.2, 1.0)
 
-[node name="PatrolA" parent="SweeperC"]
-position = Vector2(-115, 0)
+[node name="HDBot" parent="." instance=ExtResource("7")]
+position = Vector2(2200, 1600)
+scale = Vector2(4.2, 1.0)
 
-[node name="PatrolB" parent="SweeperC"]
-position = Vector2(115, 0)
+[node name="HunterA" parent="." instance=ExtResource("11")]
+position = Vector2(2050, 1450)
 
-; ═══════════════════════════════════════════════════════════════════════════════
-; ROOM 3 — KILLBOX MAZE
-; Upper route is the real push. Lower-right branch is a trap pocket that dead-ends.
-; More enemies, more overlapping sight lines, still with cover to slip between.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="R3Top" parent="." instance=ExtResource("6")]
-position = Vector2(2720, 500)
-scale = Vector2(6.2, 1.0)
+[node name="HunterB" parent="." instance=ExtResource("11")]
+position = Vector2(2300, 1450)
 
-[node name="R3Bot" parent="." instance=ExtResource("6")]
-position = Vector2(2720, 1820)
-scale = Vector2(6.2, 1.0)
+; ─────────────────────────── ARCHIVE ROOM ─────────────────────
+; x:2500-3100, y:600-1600 (600×1000). Both wings converge here.
+; PulsarA at north, PulsarB at south — rings interleave diagonally.
+; HunterC roams the full archive — must clear or outrun before reaching exit.
+; DarkPocketE at SW entry area.
+; West wall: only middle solid (y:900-1300), wings open into top and bottom.
+; East exit y:1000-1200 → Compression Neck.
+; ──────────────────────────────────────────────────────────────
+[node name="R4Top" parent="." instance=ExtResource("7")]
+position = Vector2(2800, 600)
+scale = Vector2(4.2, 1.0)
 
-[node name="R3LeftN" parent="." instance=ExtResource("6")]
-position = Vector2(2280, 800)
+[node name="R4Bot" parent="." instance=ExtResource("7")]
+position = Vector2(2800, 1600)
+scale = Vector2(4.2, 1.0)
+
+[node name="R4LeftMid" parent="." instance=ExtResource("7")]
+position = Vector2(2500, 1100)
 rotation = 1.5708
-scale = Vector2(4.0, 1.0)
+scale = Vector2(2.8, 1.0)
 
-[node name="R3LeftS" parent="." instance=ExtResource("6")]
-position = Vector2(2280, 1520)
+[node name="R4RightN" parent="." instance=ExtResource("7")]
+position = Vector2(3100, 800)
 rotation = 1.5708
-scale = Vector2(3.9, 1.0)
+scale = Vector2(2.8, 1.0)
 
-[node name="R3RightTop" parent="." instance=ExtResource("6")]
-position = Vector2(3160, 660)
+[node name="R4RightS" parent="." instance=ExtResource("7")]
+position = Vector2(3100, 1400)
 rotation = 1.5708
-scale = Vector2(2.5, 1.0)
+scale = Vector2(2.8, 1.0)
 
-[node name="R3RightMid" parent="." instance=ExtResource("6")]
-position = Vector2(3160, 1290)
-rotation = 1.5708
-scale = Vector2(4.7, 1.0)
-
-[node name="R3RightBot" parent="." instance=ExtResource("6")]
-position = Vector2(3160, 1740)
-rotation = 1.5708
-scale = Vector2(1.2, 1.0)
-
-[node name="R3SpineTop" parent="." instance=ExtResource("6")]
-position = Vector2(2620, 780)
-scale = Vector2(2.5, 1.0)
-
-[node name="R3SpineBot" parent="." instance=ExtResource("6")]
-position = Vector2(2680, 1530)
-scale = Vector2(3.0, 1.0)
-
-[node name="R3VertA" parent="." instance=ExtResource("6")]
-position = Vector2(2480, 1040)
-rotation = 1.5708
-scale = Vector2(1.55, 1.0)
-
-[node name="R3VertB" parent="." instance=ExtResource("6")]
-position = Vector2(2760, 1260)
-rotation = 1.5708
-scale = Vector2(2.2, 1.0)
-
-[node name="R3VertC" parent="." instance=ExtResource("6")]
-position = Vector2(2980, 980)
-rotation = 1.5708
-scale = Vector2(1.45, 1.0)
-
-[node name="R3DeadSouthCap" parent="." instance=ExtResource("6")]
-position = Vector2(3000, 1660)
-scale = Vector2(1.7, 1.0)
-
-[node name="R3Cover" parent="." instance=ExtResource("6")]
-position = Vector2(2580, 1180)
+[node name="R4Cover" parent="." instance=ExtResource("7")]
+position = Vector2(2950, 900)
 scale = Vector2(1.0, 1.0)
 
-[node name="DarkPocketD" parent="." instance=ExtResource("7")]
-position = Vector2(3050, 1520)
+[node name="DarkPocketE" parent="." instance=ExtResource("8")]
+position = Vector2(2600, 1480)
 
-[node name="SentryA" parent="." instance=ExtResource("11")]
-position = Vector2(2470, 720)
+[node name="PulsarA" parent="." instance=ExtResource("6")]
+position = Vector2(2700, 850)
 
-[node name="SentryB" parent="." instance=ExtResource("11")]
-position = Vector2(2920, 900)
+[node name="PulsarB" parent="." instance=ExtResource("6")]
+position = Vector2(2900, 1380)
 
-[node name="WispB" parent="." instance=ExtResource("12")]
-position = Vector2(2870, 760)
+[node name="HunterC" parent="." instance=ExtResource("11")]
+position = Vector2(2750, 1150)
 
-[node name="WispC" parent="." instance=ExtResource("12")]
-position = Vector2(2920, 1500)
+; ─────────────────────────── COMPRESSION NECK ─────────────────
+; x:3100-3400, y:1000-1200 (300×200). SweeperC paces the bottleneck.
+; If HunterC wasn't cleared, it may follow into this neck.
+; "Clear before you bottle yourself in" teaching moment.
+; ──────────────────────────────────────────────────────────────
+[node name="CNTop" parent="." instance=ExtResource("7")]
+position = Vector2(3250, 1000)
+scale = Vector2(2.1, 1.0)
 
-[node name="HunterB" parent="." instance=ExtResource("10")]
-position = Vector2(2480, 1490)
+[node name="CNBot" parent="." instance=ExtResource("7")]
+position = Vector2(3250, 1200)
+scale = Vector2(2.1, 1.0)
 
-[node name="SweeperD" parent="." instance=ExtResource("4")]
-position = Vector2(2860, 1190)
+[node name="SweeperC" parent="." instance=ExtResource("5")]
+position = Vector2(3250, 1100)
 
-[node name="PatrolA" parent="SweeperD"]
-position = Vector2(0, -280)
-
-[node name="PatrolB" parent="SweeperD"]
-position = Vector2(0, 280)
-
-; ═══════════════════════════════════════════════════════════════════════════════
-; CORRIDOR 3 — KILLBOX → VAULT
-; Final narrow transfer before the exit room.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="C3Top" parent="." instance=ExtResource("6")]
-position = Vector2(3270, 760)
-scale = Vector2(1.55, 1.0)
-
-[node name="C3Bot" parent="." instance=ExtResource("6")]
-position = Vector2(3270, 980)
-scale = Vector2(1.55, 1.0)
-
-[node name="SweeperE" parent="." instance=ExtResource("4")]
-position = Vector2(3270, 870)
-
-[node name="PatrolA" parent="SweeperE"]
+[node name="PatrolA" parent="SweeperC"]
 position = Vector2(-120, 0)
 
-[node name="PatrolB" parent="SweeperE"]
+[node name="PatrolB" parent="SweeperC"]
 position = Vector2(120, 0)
 
-; ═══════════════════════════════════════════════════════════════════════════════
-; ROOM 4 — EXIT VAULT
-; Smaller pressure room. Upper nook is another false route; exit is lower-right.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="R4Top" parent="." instance=ExtResource("6")]
-position = Vector2(3790, 560)
-scale = Vector2(5.8, 1.0)
+; ─────────────────────────── RELAY CHAMBER ────────────────────
+; x:3400-3900, y:700-1500 (500×800). Two Wisps on offset orbits.
+; PulsarC at center — rings overlap the orbital paths.
+; Two dark pockets at west entry: player can pause, read orbital timing.
+; ──────────────────────────────────────────────────────────────
+[node name="R5Top" parent="." instance=ExtResource("7")]
+position = Vector2(3650, 700)
+scale = Vector2(3.5, 1.0)
 
-[node name="R4Bot" parent="." instance=ExtResource("6")]
-position = Vector2(3790, 1360)
-scale = Vector2(5.8, 1.0)
+[node name="R5Bot" parent="." instance=ExtResource("7")]
+position = Vector2(3650, 1500)
+scale = Vector2(3.5, 1.0)
 
-[node name="R4LeftN" parent="." instance=ExtResource("6")]
-position = Vector2(3380, 660)
+[node name="R5LeftN" parent="." instance=ExtResource("7")]
+position = Vector2(3400, 850)
 rotation = 1.5708
-scale = Vector2(2.5, 1.0)
+scale = Vector2(2.1, 1.0)
 
-[node name="R4LeftS" parent="." instance=ExtResource("6")]
-position = Vector2(3380, 1170)
+[node name="R5LeftS" parent="." instance=ExtResource("7")]
+position = Vector2(3400, 1350)
 rotation = 1.5708
-scale = Vector2(2.8, 1.0)
+scale = Vector2(2.1, 1.0)
 
-[node name="R4RightTop" parent="." instance=ExtResource("6")]
-position = Vector2(4200, 760)
+[node name="R5RightN" parent="." instance=ExtResource("7")]
+position = Vector2(3900, 850)
 rotation = 1.5708
-scale = Vector2(2.8, 1.0)
+scale = Vector2(2.1, 1.0)
 
-[node name="R4RightMid" parent="." instance=ExtResource("6")]
-position = Vector2(4200, 980)
+[node name="R5RightS" parent="." instance=ExtResource("7")]
+position = Vector2(3900, 1350)
 rotation = 1.5708
-scale = Vector2(1.5, 1.0)
+scale = Vector2(2.1, 1.0)
 
-[node name="R4RightBot" parent="." instance=ExtResource("6")]
-position = Vector2(4200, 1220)
-rotation = 1.5708
-scale = Vector2(2.0, 1.0)
+[node name="R5Column1" parent="." instance=ExtResource("7")]
+position = Vector2(3600, 900)
+scale = Vector2(1.0, 1.0)
 
-[node name="R4CoverN" parent="." instance=ExtResource("6")]
-position = Vector2(3710, 760)
-scale = Vector2(1.6, 1.0)
+[node name="R5Column2" parent="." instance=ExtResource("7")]
+position = Vector2(3600, 1300)
+scale = Vector2(1.0, 1.0)
 
-[node name="R4CoverS" parent="." instance=ExtResource("6")]
-position = Vector2(3740, 1140)
-scale = Vector2(1.5, 1.0)
+[node name="DarkPocketF" parent="." instance=ExtResource("8")]
+position = Vector2(3450, 900)
 
-[node name="R4CoreWall" parent="." instance=ExtResource("6")]
-position = Vector2(3900, 980)
-rotation = 1.5708
-scale = Vector2(1.45, 1.0)
+[node name="DarkPocketG" parent="." instance=ExtResource("8")]
+position = Vector2(3450, 1300)
 
-[node name="R4TrapCap" parent="." instance=ExtResource("6")]
-position = Vector2(4020, 860)
-scale = Vector2(1.1, 1.0)
+[node name="WispA" parent="." instance=ExtResource("13")]
+position = Vector2(3620, 900)
+patrol_radius = 110.0
 
-[node name="DarkPocketE" parent="." instance=ExtResource("7")]
-position = Vector2(4060, 1210)
+[node name="WispB" parent="." instance=ExtResource("13")]
+position = Vector2(3620, 1300)
+patrol_radius = 110.0
 
-[node name="PulsarD" parent="." instance=ExtResource("5")]
-position = Vector2(3860, 930)
+[node name="PulsarC" parent="." instance=ExtResource("6")]
+position = Vector2(3720, 1100)
 
-[node name="SentryC" parent="." instance=ExtResource("11")]
-position = Vector2(3640, 920)
+; ─────────────────────────── EXIT HALL ────────────────────────
+; x:3900-4200, y:1000-1200 (300×200). Rest before the exit.
+; No enemies — reward for surviving Relay Chamber.
+; ──────────────────────────────────────────────────────────────
+[node name="CETop" parent="." instance=ExtResource("7")]
+position = Vector2(4050, 1000)
+scale = Vector2(2.1, 1.0)
 
-[node name="SentryD" parent="." instance=ExtResource("11")]
-position = Vector2(4010, 760)
+[node name="CEBot" parent="." instance=ExtResource("7")]
+position = Vector2(4050, 1200)
+scale = Vector2(2.1, 1.0)
 
-[node name="HunterC" parent="." instance=ExtResource("10")]
-position = Vector2(3560, 1210)
+[node name="ExitZone" parent="." instance=ExtResource("14")]
+position = Vector2(4180, 1100)
 
-[node name="WispD" parent="." instance=ExtResource("12")]
-position = Vector2(3930, 1080)
-
-[node name="SweeperF" parent="." instance=ExtResource("4")]
-position = Vector2(3910, 1030)
-
-[node name="PatrolA" parent="SweeperF"]
-position = Vector2(-150, 0)
-
-[node name="PatrolB" parent="SweeperF"]
-position = Vector2(150, 0)
-
-; ═══════════════════════════════════════════════════════════════════════════════
-; EXIT ZONE — lower-right of the vault.
-; Clearing Zone 02 returns to the title.
-; ═══════════════════════════════════════════════════════════════════════════════
-[node name="ExitZone" parent="." instance=ExtResource("13")]
-position = Vector2(4120, 1040)
-
-; ═══════════════════════════════════════════════════════════════════════════════
-; UI / OVERLAY
-; ═══════════════════════════════════════════════════════════════════════════════
+; ─────────────────────────── UI / OVERLAY ─────────────────────
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer"]
@@ -435,9 +384,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("9")
+script = ExtResource("10")
 
-[node name="HUD" parent="CanvasLayer" instance=ExtResource("8")]
+[node name="HUD" parent="CanvasLayer" instance=ExtResource("9")]
 
 [node name="ZoneCompleteOverlay" type="Control" parent="CanvasLayer"]
 layout_mode = 3
@@ -447,7 +396,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("14")
+script = ExtResource("15")
 
 [node name="GameOverOverlay" type="Control" parent="CanvasLayer"]
 layout_mode = 3
@@ -457,12 +406,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("15")
+script = ExtResource("16")
 
-[node name="WallSensorA" parent="." instance=ExtResource("16")]
-position = Vector2(870, 1082)
+[node name="WallSensorA" parent="." instance=ExtResource("17")]
+position = Vector2(900, 1000)
 rotation = 1.5708
 
-[node name="WallSensorB" parent="." instance=ExtResource("16")]
-position = Vector2(2170, 1278)
+[node name="WallSensorB" parent="." instance=ExtResource("17")]
+position = Vector2(3100, 1200)
 rotation = -1.5708
