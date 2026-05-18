@@ -36,6 +36,8 @@ var _last_position: Vector2 = Vector2.ZERO
 var _pulses: Array[float] = []
 var _pulse_timer: float = 0.3
 var _pulse_idx: int = 0
+var _vis_poly_cone: PackedVector2Array = PackedVector2Array()
+var _vis_pulse_polys: Array[PackedVector2Array] = []
 
 @onready var patrol_a: Marker2D = $PatrolA
 @onready var patrol_b: Marker2D = $PatrolB
@@ -99,6 +101,7 @@ func _physics_process(delta: float) -> void:
 		var target_angle := facing_vector.angle() - PI * 0.5
 		asset_visual.rotation = lerp_angle(asset_visual.rotation, target_angle, minf(delta * 10.0, 1.0))
 
+	_update_vis_polygons()
 	queue_redraw()
 
 
@@ -355,6 +358,20 @@ func _proximity_risk(distance: float, emission: float, speed_ratio: float, dark_
 	return (closeness * (speed_risk + emission_risk)) * dark_penalty
 
 
+func _update_vis_polygons() -> void:
+	if combat_active:
+		_vis_poly_cone = PackedVector2Array()
+		_vis_pulse_polys.clear()
+		return
+	var half_rad := deg_to_rad(cone_angle_degrees * 0.5)
+	var start_angle := facing_vector.angle() - half_rad
+	var end_angle := facing_vector.angle() + half_rad
+	_vis_poly_cone = _cast_visibility_polygon(detection_range, start_angle, end_angle, 28, true)
+	_vis_pulse_polys.resize(_pulses.size())
+	for i in range(_pulses.size()):
+		_vis_pulse_polys[i] = _cast_visibility_polygon(_pulses[i], start_angle, end_angle, 14, false)
+
+
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.08 if not AlertSystem.combat_mode else 0.14)
 	outline.default_color = enemy_state_outline()
@@ -375,15 +392,19 @@ func _draw() -> void:
 	var start_angle := facing_vector.angle() - half_rad
 	var end_angle   := facing_vector.angle() + half_rad
 
-	# Expanding pulse arcs — brightest at origin, fade toward max range
-	for pulse_r: float in _pulses:
+	# Filled flashlight cone — wall-clipped
+	if _vis_poly_cone.size() >= 3:
+		draw_colored_polygon(_vis_poly_cone, Color(cone_color.r, cone_color.g, cone_color.b, 0.06))
+
+	# Expanding pulse arcs — wall-clipped polylines
+	for i in range(_pulses.size()):
+		var pulse_r: float = _pulses[i]
 		var fade := 1.0 - (pulse_r / detection_range)
 		var arc_col := Color(cone_color.r, cone_color.g, cone_color.b, 0.70 * fade)
-		draw_arc(Vector2.ZERO, pulse_r, start_angle, end_angle, 32, arc_col, 1.2)
-		# Soft echo trail behind the arc
-		if pulse_r > 10.0:
-			draw_arc(Vector2.ZERO, pulse_r - 7.0, start_angle, end_angle, 24,
-					Color(cone_color.r, cone_color.g, cone_color.b, 0.18 * fade), 1.2)
+		if i < _vis_pulse_polys.size() and _vis_pulse_polys[i].size() >= 2:
+			draw_polyline(_vis_pulse_polys[i], arc_col, 1.2)
+		else:
+			draw_arc(Vector2.ZERO, pulse_r, start_angle, end_angle, 32, arc_col, 1.2)
 
 	# Plus / targeting reticle at center
 	var arm := 9.0

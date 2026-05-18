@@ -554,6 +554,27 @@ func _suspicion_source_strength() -> float:
 	return clampf(_suspicion_source_timer / SUSPICION_SOURCE_DURATION, 0.0, 1.0)
 
 
+func _cast_visibility_polygon(max_range: float, start_angle: float, end_angle: float, ray_count: int, include_center: bool) -> PackedVector2Array:
+	var space_state := get_world_2d().direct_space_state
+	if space_state == null:
+		return PackedVector2Array()
+	var origin := global_position
+	var poly := PackedVector2Array()
+	if include_center:
+		poly.append(Vector2.ZERO)
+	var full_circle := absf(end_angle - start_angle) >= TAU - 0.01
+	for i in range(ray_count):
+		var t := float(i) / float(ray_count) if full_circle else float(i) / float(maxi(ray_count - 1, 1))
+		var angle := start_angle + (end_angle - start_angle) * t
+		var dir := Vector2.from_angle(angle)
+		var params := PhysicsRayQueryParameters2D.create(origin, origin + dir * max_range)
+		params.collision_mask = 4
+		params.exclude = [get_rid()]
+		var hit := space_state.intersect_ray(params)
+		poly.append(hit["position"] - origin if not hit.is_empty() else dir * max_range)
+	return poly
+
+
 func _clear_support_state() -> void:
 	_support_receive_timer = 0.0
 	_support_delay_timer = 0.0

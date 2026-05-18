@@ -29,6 +29,8 @@ var _route_pause: float = 0.0
 var _patrol_index: int = 0
 var _stuck_timer: float = 0.0
 var _last_position: Vector2 = Vector2.ZERO
+var _vis_poly_outer: PackedVector2Array = PackedVector2Array()
+var _vis_poly_alert: PackedVector2Array = PackedVector2Array()
 
 
 func _ready() -> void:
@@ -84,6 +86,7 @@ func _physics_process(delta: float) -> void:
 			velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
 			_advance_route()
 		_update_detection(delta)
+	_update_vis_polygons()
 	queue_redraw()
 
 
@@ -131,6 +134,8 @@ func _update_detection(delta: float) -> void:
 	if player.in_dark_pocket:
 		return
 	if should_suppress_detection_of(player):
+		return
+	if is_world_line_blocked(global_position, player.global_position, [get_rid()]):
 		return
 	var dist := global_position.distance_to(player.global_position)
 	if dist <= alert_radius:
@@ -287,6 +292,15 @@ func _preferred_patrol_step(index: int, route_size: int) -> int:
 	return 1 if forward_steps > backward_steps else -1
 
 
+func _update_vis_polygons() -> void:
+	if combat_active:
+		_vis_poly_outer = PackedVector2Array()
+		_vis_poly_alert = PackedVector2Array()
+		return
+	_vis_poly_outer = _cast_visibility_polygon(outer_awareness_radius, 0.0, TAU, 40, false)
+	_vis_poly_alert = _cast_visibility_polygon(alert_radius, 0.0, TAU, 28, false)
+
+
 func _update_palette() -> void:
 	body_polygon.color = enemy_state_fill(signature_color, 0.05 if not AlertSystem.combat_mode else 0.12)
 	outline.default_color = enemy_state_outline()
@@ -316,10 +330,10 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, 29.0, Color(tint.r, tint.g, tint.b, 0.11))
 	draw_circle(Vector2.ZERO, 18.0, Color(tint.r, tint.g, tint.b, 0.085))
 	if not combat_active:
-		draw_arc(Vector2.ZERO, outer_awareness_radius, 0.0, TAU, 52, Color(tint.r, tint.g, tint.b, 0.18), 0.7)
-		draw_circle(Vector2.ZERO, alert_radius + 18.0, Color(tint.r, tint.g, tint.b, 0.06))
-		draw_circle(Vector2.ZERO, alert_radius + 8.0, Color(tint.r, tint.g, tint.b, 0.08))
-		draw_circle(Vector2.ZERO, alert_radius, Color(tint.r, tint.g, tint.b, 0.10))
+		if _vis_poly_outer.size() >= 3:
+			draw_colored_polygon(_vis_poly_outer, Color(tint.r, tint.g, tint.b, 0.07))
+		if _vis_poly_alert.size() >= 3:
+			draw_colored_polygon(_vis_poly_alert, Color(tint.r, tint.g, tint.b, 0.13))
 		draw_arc(Vector2.ZERO, alert_radius, 0.0, TAU, 40, Color(tint.r, tint.g, tint.b, 0.52), 1.1)
 		draw_arc(Vector2.ZERO, alert_radius * 0.7, 0.0, TAU, 28, Color(tint.r, tint.g, tint.b, 0.28), 0.7)
 	var whisker := Vector2(0.0, -20.0).rotated(phase * 2.0)
