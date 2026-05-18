@@ -126,9 +126,9 @@ src/
 
 ## Notes
 
-- Main scene: [src/ui/StartScreen.tscn](/Users/andrewweeks/repos/signal_dark/src/ui/StartScreen.tscn)
-- Arcade scene: [src/world/ArcadeWorld.tscn](/Users/andrewweeks/repos/signal_dark/src/world/ArcadeWorld.tscn)
-- Autoload state lives in [project.godot](/Users/andrewweeks/repos/signal_dark/project.godot)
+- Main scene: [src/ui/StartScreen.tscn](src/ui/StartScreen.tscn)
+- Arcade scene: [src/world/ArcadeWorld.tscn](src/world/ArcadeWorld.tscn)
+- Autoload state lives in [project.godot](project.godot)
 
 ## Testing
 
@@ -138,8 +138,8 @@ The simplest smoke test is:
 godot --headless --path . --quit
 ```
 
-There is also a test docs stub in [tests/README.md](/Users/andrewweeks/repos/signal_dark/tests/README.md).
+There is also a test docs stub in [tests/README.md](tests/README.md).
 
 ## Asset Tooling
 
-For AI-generated image cleanup and slicing, see [tools/README_asset_prep.md](/Users/andrewweeks/repos/signal_dark/tools/README_asset_prep.md).
+For AI-generated image cleanup and slicing, see [tools/README_asset_prep.md](tools/README_asset_prep.md).

@@ -47,6 +47,8 @@ var _emp_slow_timer: float = 0.0
 var _emp_flash: float = 0.0
 var _hack_prompt_active: bool = false
 var _default_collision_layer: int = 0
+var _cached_enemies: Array = []
+var _cached_pockets: Array = []
 
 @onready var weapon_system = $WeaponSystem
 @onready var body_polygon = $Body
@@ -82,9 +84,10 @@ func _physics_process(delta: float) -> void:
 		if _cover_timer <= 0.0:
 			_set_cover_active(false)
 	dark_mode = InputManager.is_dark_mode()
+	_cached_enemies = get_tree().get_nodes_in_group("zone_enemy")
+	_cached_pockets = get_tree().get_nodes_in_group("dark_pocket")
 	var move_input := InputManager.get_move_vector()
-	var in_stealth_phase := not AlertSystem.combat_mode
-	var speed_scale := dark_mode_speed_scale if in_stealth_phase else 1.0
+	var speed_scale := dark_mode_speed_scale if dark_mode else 1.0
 	var acceleration_scale := dark_mode_acceleration_scale if dark_mode else 1.0
 	var drag_scale := dark_mode_drag_scale if dark_mode else 1.0
 	if _emp_slow_timer > 0.0:
@@ -147,7 +150,7 @@ func _physics_process(delta: float) -> void:
 func _sync_dark_pocket_state_immediate() -> void:
 	var inside := false
 	var matched_pocket: Area2D = null
-	for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+	for pocket in _cached_pockets:
 		if not (pocket is Area2D):
 			continue
 		if global_position.distance_to(pocket.global_position) > 70.0:
@@ -163,7 +166,7 @@ func _sync_dark_pocket_state_immediate() -> void:
 		if matched_pocket != null:
 			world.set_player_dark_pocket_state(matched_pocket, true)
 		else:
-			for pocket in get_tree().get_nodes_in_group("dark_pocket"):
+			for pocket in _cached_pockets:
 				if pocket is Area2D:
 					world.set_player_dark_pocket_state(pocket, false)
 
@@ -188,7 +191,7 @@ func _get_auto_fire_direction() -> Vector2:
 	var best_combat_any: Node2D = null
 	var best_combat_any_distance := INF
 	var world := get_tree().current_scene
-	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
+	for enemy in _cached_enemies:
 		if enemy == null or not is_instance_valid(enemy):
 			continue
 		if not (enemy is Node2D):
@@ -256,7 +259,7 @@ func _try_launch_probe() -> void:
 func _try_suppressed_kill() -> bool:
 	if not dark_mode:
 		return false
-	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
+	for enemy in _cached_enemies:
 		if enemy.can_be_suppressed_by(self):
 			enemy.take_damage(true, global_position)
 			return true
@@ -335,7 +338,7 @@ func _spawn_emp_shockwave() -> void:
 
 func _update_suppress_prompt() -> void:
 	var can_suppress := false
-	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
+	for enemy in _cached_enemies:
 		if enemy.can_be_suppressed_by(self):
 			can_suppress = true
 			break
@@ -380,6 +383,7 @@ func _on_mode_changed(in_combat: bool) -> void:
 	if in_combat and cover_active:
 		_set_cover_active(false)
 		_cover_timer = 0.0
+		_cover_cooldown_remaining = 0.0
 	_update_palette()
 
 
@@ -399,7 +403,7 @@ func take_hit() -> void:
 func _check_enemy_contact() -> void:
 	if cover_active or in_dark_pocket:
 		return
-	for enemy in get_tree().get_nodes_in_group("zone_enemy"):
+	for enemy in _cached_enemies:
 		if enemy == null or not enemy.is_alive:
 			continue
 		if global_position.distance_to(enemy.global_position) <= 22.0:

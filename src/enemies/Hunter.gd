@@ -82,13 +82,13 @@ func _run_patrol(delta: float) -> void:
 func _run_search(delta: float, roam_target: Vector2) -> void:
 	var offset: Vector2 = roam_target - global_position
 	if offset.length() > PATROL_ARRIVE_DIST:
-			var desired_dir := offset.normalized()
-			facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 7.0, 0.0, 1.0)).normalized()
-			velocity = velocity.move_toward(desired_dir * roam_speed, STEER_ACCEL * delta)
-			move_and_slide()
-			_push_out_of_dark_pockets(delta)
-			if get_slide_collision_count() > 0:
-				velocity = velocity.bounce(get_slide_collision(0).get_normal()) * 0.25
+		var desired_dir := offset.normalized()
+		facing_vector = facing_vector.lerp(desired_dir, clampf(delta * 7.0, 0.0, 1.0)).normalized()
+		velocity = velocity.move_toward(desired_dir * roam_speed, STEER_ACCEL * delta)
+		move_and_slide()
+		_push_out_of_dark_pockets(delta)
+		if get_slide_collision_count() > 0:
+			velocity = velocity.bounce(get_slide_collision(0).get_normal()) * 0.25
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, STEER_ACCEL * delta)
 
