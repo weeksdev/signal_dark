@@ -37,7 +37,7 @@ var _pulses: Array[float] = []
 var _pulse_timer: float = 0.3
 var _pulse_idx: int = 0
 var _vis_poly_cone: PackedVector2Array = PackedVector2Array()
-var _vis_pulse_polys: Array[PackedVector2Array] = []
+var _vis_pulse_polys: Array = []
 
 @onready var patrol_a: Marker2D = $PatrolA
 @onready var patrol_b: Marker2D = $PatrolB
@@ -401,8 +401,9 @@ func _draw() -> void:
 		var pulse_r: float = _pulses[i]
 		var fade := 1.0 - (pulse_r / detection_range)
 		var arc_col := Color(cone_color.r, cone_color.g, cone_color.b, 0.70 * fade)
-		if i < _vis_pulse_polys.size() and _vis_pulse_polys[i].size() >= 2:
-			draw_polyline(_vis_pulse_polys[i], arc_col, 1.2)
+		var pp: PackedVector2Array = _vis_pulse_polys[i] if i < _vis_pulse_polys.size() and _vis_pulse_polys[i] is PackedVector2Array else PackedVector2Array()
+		if pp.size() >= 2:
+			draw_polyline(pp, arc_col, 1.2)
 		else:
 			draw_arc(Vector2.ZERO, pulse_r, start_angle, end_angle, 32, arc_col, 1.2)
 
