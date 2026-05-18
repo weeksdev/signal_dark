@@ -130,10 +130,15 @@ scale = Vector2(4.2, 1.0)
 position = Vector2(1400, 1600)
 scale = Vector2(4.2, 1.0)
 
-[node name="R2Left" parent="." instance=ExtResource("7")]
-position = Vector2(1100, 1100)
+[node name="R2LeftTop" parent="." instance=ExtResource("7")]
+position = Vector2(1100, 798)
 rotation = 1.5708
-scale = Vector2(7.0, 1.0)
+scale = Vector2(2.8, 1.0)
+
+[node name="R2LeftBot" parent="." instance=ExtResource("7")]
+position = Vector2(1100, 1402)
+rotation = 1.5708
+scale = Vector2(2.8, 1.0)
 
 [node name="R2RightTop" parent="." instance=ExtResource("7")]
 position = Vector2(1700, 700)
