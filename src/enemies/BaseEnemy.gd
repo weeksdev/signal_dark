@@ -571,7 +571,10 @@ func _cast_visibility_polygon(max_range: float, start_angle: float, end_angle: f
 		params.collision_mask = 4
 		params.exclude = [get_rid()]
 		var hit := space_state.intersect_ray(params)
-		poly.append(hit["position"] - origin if not hit.is_empty() else dir * max_range)
+		if not hit.is_empty():
+			poly.append((hit["position"] as Vector2) - origin)
+		else:
+			poly.append(dir * max_range)
 	return poly
 
 
