@@ -175,7 +175,7 @@ func _place_interior_pillars(world: Node2D, graph, node_rects: Dictionary, pocke
 		if not node_rects.has(node.id):
 			continue
 		var rect: Rect2 = node_rects[node.id]
-		var count := rng.randi_range(0, 2)
+		var count: int = rng.randi_range(0, 2)
 		for _i in count:
 			_try_place_pillar(world, rect, pocket_positions, enemy_positions, rng)
 
@@ -202,7 +202,7 @@ func _try_place_pillar(world: Node2D, room_rect: Rect2, pocket_positions: Array,
 				break
 		if not clear:
 			continue
-		var length := rng.randf_range(PILLAR_LEN_MIN, PILLAR_LEN_MAX)
+		var length: float = rng.randf_range(PILLAR_LEN_MIN, PILLAR_LEN_MAX)
 		var wall: Node2D = WALL_SCENE.instantiate()
 		wall.position = pos
 		wall.scale.x = length / WALL_UNIT
@@ -574,7 +574,7 @@ func _spawn_corridor_sweeper_pair(world: Node2D, room_rect: Rect2, node, doorway
 	if patrol_points.is_empty():
 		patrol_points = [center]
 	var n := patrol_points.size()
-	var phase := rng.randi() % n if n > 1 else 0
+	var phase: int = rng.randi() % n if n > 1 else 0
 	var first_index := 0
 	var second_index := 0
 	if n >= 4:
@@ -602,7 +602,7 @@ func _spawn_wisp_pair(world: Node2D, center: Vector2, room_rect: Rect2, node, do
 	var choke_indices: Array = patrol_layout["choke_indices"]
 	choke_indices = _clamp_patrol_indices(choke_indices, patrol_points.size())
 	var n := patrol_points.size()
-	var phase := rng.randi() % n if n > 1 else 0
+	var phase: int = rng.randi() % n if n > 1 else 0
 	var first_choke_index: int = posmod(clampi(int(patrol_layout["primary_choke"]), 0, n - 1) + phase, n)
 	var opposite_index := posmod(clampi(int(patrol_layout["opposite_start"]), 0, n - 1) + phase, n)
 	var first_pos: Vector2 = patrol_points[first_choke_index]
